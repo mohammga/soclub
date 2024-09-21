@@ -1,11 +1,10 @@
-package com.example.soclub.ui.navigation.navBars
-
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -17,28 +16,21 @@ import androidx.navigation.compose.rememberNavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(
+fun HomeTopBar(
     navController: NavController,
-    title: String,  // New parameter to accept a title
-    showBackButton: Boolean = true,  // Parameter to show or hide the back button
-    route: String? = null
+    title: String,
+    showBackButton: Boolean = false,  // For HomeScreen, we don't need a back button
 ) {
-    CenterAlignedTopAppBar(
+    SmallTopAppBar(
         title = {
             Text(
                 text = title,  // Use the title parameter
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Start,  // Align title to the start (left)
             )
         },
         navigationIcon = {
             if (showBackButton) {
-                IconButton(onClick = {
-                    if (route != null) {
-                        navController.navigate(route)
-                    } else {
-                        navController.popBackStack()
-                    }
-                }) {
+                IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back"
@@ -46,17 +38,23 @@ fun TopBar(
                 }
             }
         },
+        actions = {
+            IconButton(onClick = { /* Handle notifications click */ }) {
+                Icon(
+                    imageVector = Icons.Filled.Notifications,
+                    contentDescription = "Notifications",
+                    tint = Color.Black  // Icon color
+                )
+            }
+        },
+        colors = TopAppBarDefaults.smallTopAppBarColors(
+            containerColor = Color.White
+        )
     )
 }
 
 @Preview
 @Composable
-fun TopBarPreview() {
-    TopBar(rememberNavController(), title = "Preview Title", showBackButton = true)  // Preview with back button
-}
-
-@Preview
-@Composable
-fun TopBarTextOnlyPreview() {
-    TopBar(rememberNavController(), title = "Preview Title", showBackButton = false)  // Preview without back button
+fun HomeTopBarPreview() {
+    HomeTopBar(rememberNavController(), title = "SoClub")  // Preview of HomeTopBar
 }

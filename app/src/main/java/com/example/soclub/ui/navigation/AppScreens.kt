@@ -6,5 +6,6 @@ enum class AppScreens {
     SIGNIN,
     HOME,
     ENTRIES,
-    PROFILE
+    PROFILE,
+    DETAIL
 }
