@@ -12,6 +12,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.soclub.ui.navigation.navBars.BottomNavBar
 import com.example.soclub.ui.navigation.navBars.TopBar
 import com.example.soclub.ui.navigation.navBars.getCurrentScreen
+import com.example.soclub.ui.screens.changePassword.ChangePasswordScreen
+import com.example.soclub.ui.screens.editProfile.EditProfileScreen
 import com.example.soclub.ui.screens.entries.EntriesScreen
 import com.example.soclub.ui.screens.home.HomeScreen
 import com.example.soclub.ui.screens.profile.ProfileScreen
@@ -82,9 +84,13 @@ fun AppNavigation() {
             composable(AppScreens.SIGNIN.name) {
                 SigninScreen(navController)
             }
-            composable(AppScreens.ENTRIES.name) {
-                EntriesScreen(navController)
+            composable(AppScreens.CHANGE_PASSWORD.name) {
+                ChangePasswordScreen(navController)
             }
+            composable(AppScreens.EDIT_PROFILE.name) {
+                EditProfileScreen(navController)
+            }
+
         }
     }
 }

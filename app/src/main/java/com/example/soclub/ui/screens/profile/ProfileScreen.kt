@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.soclub.R
+import com.example.soclub.ui.navigation.AppScreens
 
 @Composable
 fun ProfileScreen(navController: NavHostController) {
@@ -56,7 +57,7 @@ fun ProfileScreen(navController: NavHostController) {
 
         // Edit Profile Button
         Button(
-            onClick = { /* Handle edit profile */ },
+            onClick = { navController.navigate(AppScreens.EDIT_PROFILE.name)},
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray)
         ) {
