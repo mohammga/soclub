@@ -108,12 +108,13 @@ fun EntryItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Event Image
+        // Event Image with custom width and height
         Image(
             painter = painterResource(id = imageRes),
             contentDescription = null,
             modifier = Modifier
-                .size(80.dp)
+                .width(120.dp) // Custom width for the image
+                .height(80.dp) // Adjust height as needed
                 .clip(RoundedCornerShape(8.dp)),
             contentScale = ContentScale.Crop
         )
@@ -135,24 +136,27 @@ fun EntryItem(
                 text = time,
                 style = MaterialTheme.typography.bodyMedium
             )
-        }
 
-        Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-        // Cancel Button
-        Button(
-            onClick = onCancelClick,
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
-            shape = RoundedCornerShape(24.dp),
-            modifier = Modifier.height(32.dp)
-        ) {
-            Text(
-                text = "Kanseller",
-                color = Color.White
-            )
+            // Full-width Button
+            Button(
+                onClick = onCancelClick,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier
+                    .fillMaxWidth() // Make the button full width
+                    .height(32.dp)
+            ) {
+                Text(
+                    text = "Kanseller",
+                    color = Color.White
+                )
+            }
         }
     }
 }
+
 
 data class Entry(
     val imageRes: Int,
