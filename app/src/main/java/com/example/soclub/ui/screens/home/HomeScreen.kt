@@ -70,11 +70,12 @@ fun HomeScreen(navController: NavHostController) {
 
     Column(modifier = Modifier.fillMaxSize()) {
         // Tab row
-        ScrollableTabRow(selectedTabIndex = pagerState.currentPage) {
+        ScrollableTabRow(selectedTabIndex = pagerState.currentPage,  edgePadding = 2.dp) {
             tabTitles.forEachIndexed { index, title ->
                 Tab(
                     text = { Text(title) },
                     selected = pagerState.currentPage == index,
+                    modifier = Modifier.padding(10.dp),
                     onClick = {
                         coroutineScope.launch {
                             pagerState.animateScrollToPage(index)
