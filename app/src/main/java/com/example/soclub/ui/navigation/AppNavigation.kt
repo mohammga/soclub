@@ -14,6 +14,7 @@ import com.example.soclub.ui.navigation.navBars.TopBar
 import com.example.soclub.ui.navigation.navBars.getCurrentScreen
 import com.example.soclub.ui.screens.changePassword.ChangePasswordScreen
 import com.example.soclub.ui.screens.editProfile.EditProfileScreen
+import com.example.soclub.ui.screens.entries.EntriesScreen
 import com.example.soclub.ui.screens.home.HomeScreen
 import com.example.soclub.ui.screens.profile.ProfileScreen
 import com.example.soclub.ui.screens.signin.SigninScreen
@@ -76,20 +77,23 @@ fun AppNavigation() {
             startDestination = AppScreens.START.name,
             modifier = Modifier.padding(innerPadding)
         ) {
+            composable(AppScreens.START.name) {
+                StartScreen(navController)
+            }
             composable(AppScreens.SIGNUP.name) {
                 SignupScreen(navController)
+            }
+            composable(AppScreens.SIGNIN.name) {
+                SigninScreen(navController)
             }
             composable(AppScreens.HOME.name) {
                 HomeScreen(navController)
             }
-            composable(AppScreens.START.name) {
-                StartScreen(navController)
+            composable(AppScreens.ENTRIES.name) {
+                EntriesScreen(navController)
             }
             composable(AppScreens.PROFILE.name) {
                 ProfileScreen(navController)
-            }
-            composable(AppScreens.SIGNIN.name) {
-                SigninScreen(navController)
             }
             composable(AppScreens.CHANGE_PASSWORD.name) {
                 ChangePasswordScreen(navController)
