@@ -7,5 +7,6 @@ enum class AppScreens {
     HOME,
     ENTRIES,
     PROFILE,
-    DETAIL
+    CHANGE_PASSWORD,
+    EDIT_PROFILE,
 }

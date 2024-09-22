@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.*
@@ -16,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -24,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.soclub.R
+import com.example.soclub.ui.navigation.AppScreens
 
 @Composable
 fun ProfileScreen(navController: NavHostController) {
@@ -56,7 +59,7 @@ fun ProfileScreen(navController: NavHostController) {
 
         // Edit Profile Button
         Button(
-            onClick = { /* Handle edit profile */ },
+            onClick = { navController.navigate(AppScreens.EDIT_PROFILE.name)},
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray)
         ) {
@@ -79,7 +82,9 @@ fun ProfileScreen(navController: NavHostController) {
         // Info rows (Name, Email, etc.)
         ProfileInfoRow(label = "Navn", value = "Sarah Nordmann")
         ProfileInfoRow(label = "E-post", value = "sarah-nordmann@gmail.com")
-        ProfileInfoRow(label = "Passord", onClick = { /* Handle click */ })
+        ProfileInfoRow(label = "Passord", onClick = {
+            navController.navigate("change_password")
+        })
         ProfileInfoRow(label = "Tillatelser", onClick = { /* Handle click */ })
 
         Spacer(modifier = Modifier.weight(1f))
@@ -118,7 +123,11 @@ fun ProfileInfoRow(label: String, value: String = "", onClick: (() -> Unit)? = n
             Text(text = label, style = MaterialTheme.typography.bodyLarge)
         }
         if (value.isNotEmpty()) {
-            Text(text = value, style = MaterialTheme.typography.bodyLarge)
+            ClickableText(
+                text = AnnotatedString(value),
+                style = MaterialTheme.typography.bodyLarge,
+                onClick = { onClick?.invoke() }
+            )
         } else {
             Icon(imageVector = Icons.Default.ArrowForward, contentDescription = null)
         }
