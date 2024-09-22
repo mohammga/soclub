@@ -12,6 +12,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.soclub.ui.navigation.navBars.BottomNavBar
 import com.example.soclub.ui.navigation.navBars.TopBar
 import com.example.soclub.ui.navigation.navBars.getCurrentScreen
+import com.example.soclub.ui.screens.changePassword.ChangePasswordScreen
+import com.example.soclub.ui.screens.editProfile.EditProfileScreen
 import com.example.soclub.ui.screens.entries.EntriesScreen
 import com.example.soclub.ui.screens.home.HomeScreen
 import com.example.soclub.ui.screens.profile.ProfileScreen
@@ -40,6 +42,14 @@ fun AppNavigation() {
                 AppScreens.PROFILE.name -> {
                     TopBar(navController, title = "Profil", showBackButton = false)
                 }
+                AppScreens.EDIT_PROFILE.name -> {
+                TopBar(navController, title = "Endre Profil", showBackButton = true)
+                }
+
+                AppScreens.CHANGE_PASSWORD.name -> {
+                    TopBar(navController, title = "Endre passord", showBackButton = true)
+                }
+
                 AppScreens.ENTRIES.name -> {
                     TopBar(navController, title = "Mine Påmeldinger", showBackButton = false)
                 }
@@ -67,24 +77,31 @@ fun AppNavigation() {
             startDestination = AppScreens.START.name,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(AppScreens.SIGNUP.name) {
-                SignupScreen(navController)
-            }
-            composable(AppScreens.HOME.name) {
-                HomeScreen(navController)
-            }
             composable(AppScreens.START.name) {
                 StartScreen(navController)
             }
-            composable(AppScreens.PROFILE.name) {
-                ProfileScreen(navController)
+            composable(AppScreens.SIGNUP.name) {
+                SignupScreen(navController)
             }
             composable(AppScreens.SIGNIN.name) {
                 SigninScreen(navController)
             }
+            composable(AppScreens.HOME.name) {
+                HomeScreen(navController)
+            }
             composable(AppScreens.ENTRIES.name) {
                 EntriesScreen(navController)
             }
+            composable(AppScreens.PROFILE.name) {
+                ProfileScreen(navController)
+            }
+            composable(AppScreens.CHANGE_PASSWORD.name) {
+                ChangePasswordScreen(navController)
+            }
+            composable(AppScreens.EDIT_PROFILE.name) {
+                EditProfileScreen(navController)
+            }
+
         }
     }
 }
