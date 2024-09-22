@@ -25,7 +25,7 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import com.example.soclub.R
 
-data class Activity(val imageResId: Int, val title: String, val description: Any, val ageGroup: Any, val maxParticipants : Any, val location : Any )  {
+data class Activity(val imageResId: Int, val title: String, val description: String, val ageGroup: Any, val maxParticipants : Any, val location : Any )  {
 }
 
 @Composable
@@ -51,6 +51,15 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             fontWeight = FontWeight.Medium,
             modifier = Modifier.align(Alignment.Start)
         )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = activity.description,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.align(Alignment.Start)
+        )
+
     }
 }
 
