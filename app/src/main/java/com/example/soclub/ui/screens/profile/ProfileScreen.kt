@@ -85,7 +85,9 @@ fun ProfileScreen(navController: NavHostController) {
         ProfileInfoRow(label = "Passord", onClick = {
             navController.navigate("change_password")
         })
-        ProfileInfoRow(label = "Tillatelser", onClick = { /* Handle click */ })
+        ProfileInfoRow(label = "Tillatelser", onClick = {
+            navController.navigate("edit_permission")
+        })
 
         Spacer(modifier = Modifier.weight(1f))
 
