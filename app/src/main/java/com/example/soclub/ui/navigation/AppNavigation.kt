@@ -13,6 +13,7 @@ import com.example.soclub.ui.navigation.navBars.BottomNavBar
 import com.example.soclub.ui.navigation.navBars.TopBar
 import com.example.soclub.ui.navigation.navBars.getCurrentScreen
 import com.example.soclub.ui.screens.changePassword.ChangePasswordScreen
+import com.example.soclub.ui.screens.editPermission.EditPermissionScreen
 import com.example.soclub.ui.screens.editProfile.EditProfileScreen
 import com.example.soclub.ui.screens.entries.EntriesScreen
 import com.example.soclub.ui.screens.home.HomeScreen
@@ -48,6 +49,10 @@ fun AppNavigation() {
 
                 AppScreens.CHANGE_PASSWORD.name -> {
                     TopBar(navController, title = "Endre passord", showBackButton = true)
+                }
+
+                AppScreens.EDIT_PERMISSION.name -> {
+                    TopBar(navController, title = "Endre tillatelser", showBackButton = true)
                 }
 
                 AppScreens.ENTRIES.name -> {
@@ -100,6 +105,10 @@ fun AppNavigation() {
             }
             composable(AppScreens.EDIT_PROFILE.name) {
                 EditProfileScreen(navController)
+            }
+
+            composable(AppScreens.EDIT_PERMISSION.name) {
+                EditPermissionScreen(navController)
             }
 
         }
