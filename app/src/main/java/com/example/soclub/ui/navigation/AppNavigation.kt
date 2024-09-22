@@ -1,5 +1,6 @@
 package com.example.soclub.ui.navigation
 
+import HomeTopBar
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -26,9 +27,25 @@ fun AppNavigation() {
 
     Scaffold(
         topBar = {
-            when(currentScreen) {
-                AppScreens.SIGNUP.name -> { TopBar(navController) } // Vise toppbar på signup screen
-                else -> { /* Ingen toppbar for andre skjermer */ }
+            when (currentScreen) {
+                AppScreens.SIGNUP.name -> {
+                    TopBar(navController, title = "Join Clubhouse", showBackButton = true)
+                }
+                AppScreens.SIGNIN.name -> {
+                    TopBar(navController, title = "Logg inn", showBackButton = true)
+                }
+                AppScreens.HOME.name -> {
+                    HomeTopBar(navController, title = "SoClub")
+                }
+                AppScreens.PROFILE.name -> {
+                    TopBar(navController, title = "Profil", showBackButton = false)
+                }
+                AppScreens.ENTRIES.name -> {
+                    TopBar(navController, title = "Mine Påmeldinger", showBackButton = false)
+                }
+                else -> {
+                    // Handle other screens
+                }
             }
         },
         bottomBar = {
@@ -39,44 +56,38 @@ fun AppNavigation() {
             )
 
             if (currentScreen !in screensWithoutBottomBar) {
-                BottomNavBar(navController) // Vise bottombar på alle skjermer unntatt de spesifiserte
+                BottomNavBar(navController)
             }
         },
         modifier = Modifier.fillMaxSize()
-    )
- { innerPadding ->
+    ) { innerPadding ->
 
         NavHost(
             navController = navController,
             startDestination = AppScreens.START.name,
             modifier = Modifier.padding(innerPadding)
         ) {
-
             composable(AppScreens.SIGNUP.name) {
                 SignupScreen(navController)
             }
-
             composable(AppScreens.HOME.name) {
                 HomeScreen(navController)
             }
-
             composable(AppScreens.START.name) {
                 StartScreen(navController)
             }
-
             composable(AppScreens.PROFILE.name) {
                 ProfileScreen(navController)
             }
-
             composable(AppScreens.SIGNIN.name) {
                 SigninScreen(navController)
             }
-
             composable(AppScreens.ENTRIES.name) {
                 EntriesScreen(navController)
             }
-
         }
-
     }
 }
+
+
+
