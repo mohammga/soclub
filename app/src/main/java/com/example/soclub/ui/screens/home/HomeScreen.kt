@@ -7,11 +7,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -39,7 +41,8 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
+                .height(150.dp)
+                .clip(RoundedCornerShape(16.dp)),
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
@@ -58,6 +61,7 @@ fun HomeScreen(navController: NavHostController) {
     val activities = listOf(
         Activity(R.drawable.yoga, "Yoga", "Beskrivelse", "18+", 20, "Oslo"),
         Activity(R.drawable.kaffe, "Kaffe", "Beskrivelse", "Alle aldre", 10, "Bergen"),
+        Activity(R.drawable.svomming, "Svømming", "Beskrivelse", "Alle aldre", 30, "Stavanger"),
         Activity(R.drawable.svomming, "Svømming", "Beskrivelse", "Alle aldre", 30, "Stavanger")
     )
     val tabTitles = listOf("Forslag", "Fest", "Festival", "Trening", "Mat")
