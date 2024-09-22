@@ -1,7 +1,5 @@
 package com.example.soclub.ui.screens.changePassword
 
-
-
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,13 +22,9 @@ fun ChangePasswordScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+
+
     ) {
-        Text(
-            text = "Endre passord",
-            style = MaterialTheme.typography.titleLarge
-        )
 
         Spacer(modifier = Modifier.height(16.dp))
 

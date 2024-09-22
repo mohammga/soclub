@@ -14,7 +14,6 @@ import com.example.soclub.ui.navigation.navBars.TopBar
 import com.example.soclub.ui.navigation.navBars.getCurrentScreen
 import com.example.soclub.ui.screens.changePassword.ChangePasswordScreen
 import com.example.soclub.ui.screens.editProfile.EditProfileScreen
-import com.example.soclub.ui.screens.entries.EntriesScreen
 import com.example.soclub.ui.screens.home.HomeScreen
 import com.example.soclub.ui.screens.profile.ProfileScreen
 import com.example.soclub.ui.screens.signin.SigninScreen
@@ -42,6 +41,14 @@ fun AppNavigation() {
                 AppScreens.PROFILE.name -> {
                     TopBar(navController, title = "Profil", showBackButton = false)
                 }
+                AppScreens.EDIT_PROFILE.name -> {
+                TopBar(navController, title = "Endre Profil", showBackButton = true)
+                }
+
+                AppScreens.CHANGE_PASSWORD.name -> {
+                    TopBar(navController, title = "Endre passord", showBackButton = true)
+                }
+
                 AppScreens.ENTRIES.name -> {
                     TopBar(navController, title = "Mine Påmeldinger", showBackButton = false)
                 }

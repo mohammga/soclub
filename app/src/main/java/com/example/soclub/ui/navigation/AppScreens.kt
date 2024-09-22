@@ -9,5 +9,4 @@ enum class AppScreens {
     PROFILE,
     CHANGE_PASSWORD,
     EDIT_PROFILE,
-    DETAIL
 }
