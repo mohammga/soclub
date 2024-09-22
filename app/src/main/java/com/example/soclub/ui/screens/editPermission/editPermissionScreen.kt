@@ -27,7 +27,7 @@ fun EditPermissionScreen(navController: NavController) {
             .padding(15.dp)
     ) {
         Text(
-            text = "Plassering",  // Title above the switch
+            text = "Plassering",
             style = MaterialTheme.typography.bodyLarge.copy(
                 fontWeight = FontWeight.Bold
             ),
@@ -52,7 +52,7 @@ fun EditPermissionScreen(navController: NavController) {
             )
         }
         Text(
-            text = "Kamera",  // Title above the switch
+            text = "Kamera",
             style = MaterialTheme.typography.bodyLarge.copy(
                 fontWeight = FontWeight.Bold
             ),
@@ -76,7 +76,7 @@ fun EditPermissionScreen(navController: NavController) {
             )
         }
         Text(
-            text = "Varsler",  // Title above the switch
+            text = "Varsler",
             style = MaterialTheme.typography.bodyLarge.copy(
                 fontWeight = FontWeight.Bold
             ),
