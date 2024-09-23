@@ -51,14 +51,6 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             fontWeight = FontWeight.Medium,
             modifier = Modifier.align(Alignment.Start)
         )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = activity.description,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.align(Alignment.Start)
-        )
 
     }
 }

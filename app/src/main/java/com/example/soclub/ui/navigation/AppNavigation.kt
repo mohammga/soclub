@@ -12,6 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.soclub.ui.navigation.navBars.BottomNavBar
 import com.example.soclub.ui.navigation.navBars.TopBar
 import com.example.soclub.ui.navigation.navBars.getCurrentScreen
+import com.example.soclub.ui.screens.activityDetail.ActivityDetailScreen
 import com.example.soclub.ui.screens.changePassword.ChangePasswordScreen
 import com.example.soclub.ui.screens.editPermission.EditPermissionScreen
 import com.example.soclub.ui.screens.editProfile.EditProfileScreen
@@ -40,6 +41,11 @@ fun AppNavigation() {
                 AppScreens.HOME.name -> {
                     HomeTopBar(navController, title = "SoClub")
                 }
+
+                AppScreens.DETAIL.name -> {
+                    TopBar(navController, title = "Aktivitet", showBackButton = true)
+                }
+
                 AppScreens.PROFILE.name -> {
                     TopBar(navController, title = "Profil", showBackButton = false)
                 }
@@ -94,6 +100,9 @@ fun AppNavigation() {
             composable(AppScreens.HOME.name) {
                 HomeScreen(navController)
             }
+            composable(AppScreens.DETAIL.name) {
+                ActivityDetailScreen(navController)
+            }
             composable(AppScreens.ENTRIES.name) {
                 EntriesScreen(navController)
             }
@@ -106,7 +115,6 @@ fun AppNavigation() {
             composable(AppScreens.EDIT_PROFILE.name) {
                 EditProfileScreen(navController)
             }
-
             composable(AppScreens.EDIT_PERMISSION.name) {
                 EditPermissionScreen(navController)
             }
