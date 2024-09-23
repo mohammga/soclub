@@ -34,9 +34,11 @@ fun ActivityDetailScreen(navController: NavController) {
             contentDescription = "Welcome Image",
             modifier = Modifier
                 .fillMaxWidth()
-                .height(400.dp),
+                .height(300.dp),
             contentScale = ContentScale.Crop
         )
+
+        Text(text = "Odai is gay")
     }
 }
 
