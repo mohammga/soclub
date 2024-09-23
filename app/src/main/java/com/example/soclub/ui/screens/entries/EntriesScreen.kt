@@ -38,15 +38,13 @@ fun EntriesScreen(navController: NavHostController) {
                     Modifier
                         .tabIndicatorOffset(tabPositions[selectedTab])
                         .height(4.dp), // Customize the underline thickness
-                    color = Color.Black // Set the underline color to black
                 )
             }
         ) {
             Tab(
                 text = {
                     Text(
-                        "Aktive",
-                        color = if (selectedTab == 0) Color.Black else Color.Gray // Set text color based on selected state
+                        "Aktive"
                     )
                 },
                 selected = selectedTab == 0,
@@ -55,8 +53,7 @@ fun EntriesScreen(navController: NavHostController) {
             Tab(
                 text = {
                     Text(
-                        "Utgåtte",
-                        color = if (selectedTab == 1) Color.Black else Color.Gray // Set text color based on selected state
+                        "Utgåtte"
                     )
                 },
                 selected = selectedTab == 1,
@@ -142,7 +139,6 @@ fun EntryItem(
             // Full-width Button
             Button(
                 onClick = onCancelClick,
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
                 shape = RoundedCornerShape(24.dp),
                 modifier = Modifier
                     .fillMaxWidth() // Make the button full width
@@ -150,7 +146,6 @@ fun EntryItem(
             ) {
                 Text(
                     text = "Kanseller",
-                    color = Color.White
                 )
             }
         }

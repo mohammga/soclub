@@ -69,14 +69,14 @@ fun SigninScreen(navController: NavController) {
             onClick = {
                 navController.navigate("home")
             },
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
         ) {
             Text(
                 text = "Logg inn",
-                color = Color.White
             )
         }
     }

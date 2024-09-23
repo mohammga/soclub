@@ -65,7 +65,6 @@ fun StartScreen(navController: NavController) {
             onClick = {
                 navController.navigate("signup")  // Naviger til SignupScreen når knappen trykkes
             },
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
@@ -73,7 +72,6 @@ fun StartScreen(navController: NavController) {
         ) {
             Text(
                 text = "Fortsett",
-                color = Color.White
             )
         }
     }

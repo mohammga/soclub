@@ -88,14 +88,12 @@ fun SignupScreen(navController: NavController) {
             onClick = {
                 navController.navigate("signin")
             },
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
         ) {
             Text(
                 text = "Registrer deg",
-                color = Color.White
             )
         }
     }

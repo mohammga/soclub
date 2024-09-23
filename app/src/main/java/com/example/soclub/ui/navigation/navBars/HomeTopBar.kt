@@ -6,9 +6,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
@@ -43,13 +41,9 @@ fun HomeTopBar(
                 Icon(
                     imageVector = Icons.Filled.Notifications,
                     contentDescription = "Notifications",
-                    tint = Color.Black  // Icon color
                 )
             }
         },
-        colors = TopAppBarDefaults.smallTopAppBarColors(
-            containerColor = Color.White
-        )
     )
 }
 

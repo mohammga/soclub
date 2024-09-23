@@ -61,7 +61,7 @@ fun ProfileScreen(navController: NavHostController) {
         Button(
             onClick = { navController.navigate(AppScreens.EDIT_PROFILE.name)},
             shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.LightGray)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
         ) {
             Text(text = "Rediger profil", color = Color.Black)
         }
