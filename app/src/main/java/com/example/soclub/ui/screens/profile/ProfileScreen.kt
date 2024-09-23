@@ -63,7 +63,7 @@ fun ProfileScreen(navController: NavHostController) {
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
         ) {
-            Text(text = "Rediger profil", color = Color.Black)
+            Text(text = "Rediger profil")
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -97,14 +97,13 @@ fun ProfileScreen(navController: NavHostController) {
                 navController.navigate("signin")
             },
             shape = RoundedCornerShape(50),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
         ) {
             Text(
                 text = "Logg ut",
-                color = Color.White,
                 style = MaterialTheme.typography.labelLarge
             )
         }
