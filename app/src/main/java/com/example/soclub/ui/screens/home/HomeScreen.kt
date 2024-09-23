@@ -10,6 +10,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,19 +70,25 @@ fun HomeScreen(navController: NavHostController) {
     val tabTitles = listOf("Forslag", "Fest", "Festival", "Trening", "Mat")
     val pagerState = rememberPagerState(pageCount = { tabTitles.size })
     val coroutineScope = rememberCoroutineScope()
+    val title = remember { mutableStateOf("Populære aktiviteter") }
+
+
+
 
     Column(modifier = Modifier.fillMaxSize()) {
         // Tab row
         ScrollableTabRow(selectedTabIndex = pagerState.currentPage,  edgePadding = 2.dp) {
-            tabTitles.forEachIndexed { index, title ->
+            tabTitles.forEachIndexed { index, tabTitle ->
                 Tab(
-                    text = { Text(title) },
+                    text = { Text(tabTitle) },
                     selected = pagerState.currentPage == index,
                     modifier = Modifier.padding(10.dp),
                     onClick = {
                         coroutineScope.launch {
                             pagerState.animateScrollToPage(index)
                         }
+                        title.value = tabTitle
+
                     }
                 )
             }
@@ -90,7 +98,7 @@ fun HomeScreen(navController: NavHostController) {
 
         // Title for the section
         Text(
-            text = "Populære aktiviteter",
+            text = title.value,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
