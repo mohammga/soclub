@@ -1,4 +1,4 @@
-package com.example.soclub.ui.navigation
+package com.example.soclub.components.navigation
 
 enum class AppScreens {
     START,

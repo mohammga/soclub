@@ -1,8 +1,7 @@
-package com.example.soclub.ui.navigation.navBars
+package com.example.soclub.components.navigation.navBars
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.DateRange
@@ -18,7 +17,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.soclub.R
-import com.example.soclub.ui.navigation.AppScreens
+import com.example.soclub.components.navigation.AppScreens
 
 data class BottomNavItems(val route: AppScreens, val icon: ImageVector, @StringRes val label: Int)
 

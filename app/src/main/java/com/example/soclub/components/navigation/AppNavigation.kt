@@ -1,4 +1,4 @@
-package com.example.soclub.ui.navigation
+package com.example.soclub.components.navigation
 
 import HomeTopBar
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,9 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.soclub.ui.navigation.navBars.BottomNavBar
-import com.example.soclub.ui.navigation.navBars.TopBar
-import com.example.soclub.ui.navigation.navBars.getCurrentScreen
+import com.example.soclub.components.navigation.navBars.BottomNavBar
+import com.example.soclub.components.navigation.navBars.TopBar
+import com.example.soclub.components.navigation.navBars.getCurrentScreen
 import com.example.soclub.ui.screens.activityDetail.ActivityDetailScreen
 import com.example.soclub.ui.screens.changePassword.ChangePasswordScreen
 import com.example.soclub.ui.screens.editPermission.EditPermissionScreen
