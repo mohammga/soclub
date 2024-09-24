@@ -3,6 +3,7 @@ package com.example.soclub.ui.screens.activityDetail
 import android.provider.CalendarContract.Colors
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -29,140 +30,126 @@ import com.example.soclub.R
 
 @Composable
 fun ActivityDetailScreen(navController: NavController) {
-    Column(
+    LazyColumn(
         modifier = Modifier
-            .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top  // Innholdet er fortsatt plassert øverst
+            .fillMaxSize()
+            .padding(16.dp), // Generell padding for hele layouten
+        horizontalAlignment = Alignment.Start
     ) {
-        // Image at the top
-        Image(
-            painter = painterResource(id = R.drawable.yoga),  // Bytt ut med riktig bilde
-            contentDescription = "Welcome Image",
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp),
-            contentScale = ContentScale.Crop
-        )
-
-        Text(
-            text = "Yoga ved Tunevannet",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .padding(start = 16.dp)
-                .padding(5.dp, 15.dp)
-                .align(Alignment.Start)
-        )
-
-        Text(
-            text = "Tirsdag.28.august 2024",
-            modifier = Modifier
-                .padding(start = 16.dp)
-                .padding(5.dp, 2.dp)
-                .align(Alignment.Start)
-        )
-
-
-
-
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .align(Alignment.Start),
-            verticalAlignment = Alignment.CenterVertically // Justerer vertikalt i midten
-        ) {
-            Box(
+        // Toppbilde
+        item {
+            Image(
+                painter = painterResource(id = R.drawable.yoga),
+                contentDescription = "Welcome Image",
                 modifier = Modifier
-                    .padding(end = 16.dp) // Gir litt avstand til teksten
-            ) {
-                ElevatedCardExample()
-            }
-
-            Column(
-                modifier = Modifier.padding(5.dp) // Liten padding rundt tekstene
-            ) {
-                Text(
-                    text = "Tunevannet",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 17.sp,
-                )
-                Text(
-                    text = "Sarpsborg",
-                    color = Color.Gray
-
-                )
-            }
-        }
-
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .align(Alignment.Start),
-            verticalAlignment = Alignment.CenterVertically // Justerer vertikalt i midten
-        ) {
-            Box(
-                modifier = Modifier
-                    .padding(end = 16.dp) // Gir litt avstand til teksten
-            ) {
-                ElevatedCardExample()
-            }
-
-            Column(
-                modifier = Modifier.padding(5.dp) // Liten padding rundt tekstene
-            ) {
-                Text(
-                    text = "Maks 10 personer",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 17.sp,
-
-                    )
-                Text(
-                    text = "Aldersgruppe:Alle",
-                    color = Color.Gray
-
-
-                    )
-
-
-            }
-
-
-        }
-
-        Text(
-            text = "Bli med på sosialisering ved Tunevannet. Vi vil ha yoga og lek. Dette er en aktivitet for folk som liker å være sammen med andre mennesker.",
-            modifier = Modifier
-            .align(Alignment.Start)
-                .padding(start = 16.dp)
-                .padding(5.dp, 10.dp),
-        )
-
-        Image(
-            painter = painterResource(R.drawable.gpsbilde1),
-            contentDescription = "Profile Picture",
-            modifier = Modifier
-                    .size(400.dp)
-                    .padding(start = 16.dp)
-                    .padding(5.dp, 10.dp),
-        )
-
-        Button(
-            onClick = {
-
-            },
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-        ) {
-            Text(
-                text = "Meld deg",
-                color = Color.White
+                    .fillMaxWidth()
+                    .height(300.dp),
+                contentScale = ContentScale.Crop
             )
         }
 
+        // Hovedtittel
+        item {
+            Text(
+                text = "Yoga ved Tunevannet",
 
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .padding(top = 16.dp)
+
+
+            )
+        }
+
+        // Dato
+        item {
+            Text(
+                text = "Tirsdag. 28. august 2024",
+                modifier = Modifier
+                    .padding(vertical = 4.dp),
+
+            )
+        }
+
+        // Første informasjonsrad
+        item {
+            InfoRow("Tunevannet", "Sarpsborg")
+        }
+
+        // Andre informasjonsrad
+        item {
+            InfoRow("Maks 10 personer", "Aldersgruppe: Alle")
+        }
+
+        // Beskrivelse
+        item {
+            Text(
+                text = "Bli med på sosialisering ved Tunevannet. Vi vil ha yoga og lek. Dette er en aktivitet for folk som liker å være sammen med andre mennesker.",
+                modifier = Modifier
+                    .padding(vertical = 16.dp),
+
+            )
+        }
+
+        // GPS-bilde
+        item {
+            Image(
+                painter = painterResource(R.drawable.gpsbilde1),
+                contentDescription = "GPS-bilde",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(250.dp) // Justert for bedre visning
+                    .padding(vertical = 8.dp),
+                contentScale = ContentScale.Crop
+            )
+        }
+
+        // Knapp
+        item {
+            Button(
+                onClick = { /* Legg til handling for knappen */ },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp)
+                    .height(48.dp)
+            ) {
+                Text(
+                    text = "Meld deg",
+                    color = Color.White
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun InfoRow(mainText: String, subText: String) {
+    Row(
+        modifier = Modifier
+            .padding(vertical = 8.dp),
+
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(end = 16.dp)
+        ) {
+            ElevatedCardExample()
+        }
+
+        Column {
+            Text(
+                text = mainText,
+                fontWeight = FontWeight.Bold,
+                fontSize = 17.sp,
+            )
+            Text(
+                text = subText,
+                color = Color.Gray
+            )
+        }
     }
 }
 
@@ -170,16 +157,14 @@ fun ActivityDetailScreen(navController: NavController) {
 fun ElevatedCardExample() {
     ElevatedCard(
         modifier = Modifier
-            .size(width = 50.dp, height = 50.dp),
-        colors = CardDefaults.elevatedCardColors( // Endrer bakgrunnsfargen til hvit
+            .size(50.dp), // Juster størrelse på kortet
+        colors = CardDefaults.elevatedCardColors(
             containerColor = Color.LightGray
         )
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
-
-
         ) {
             Image(
                 painter = painterResource(R.drawable.ic_action_name),
@@ -193,14 +178,9 @@ fun ElevatedCardExample() {
     }
 }
 
-
-
-
 @Preview(showBackground = true)
 @Composable
 fun ActivityDetailScreenPreview() {
     ActivityDetailScreen(rememberNavController())
-    ElevatedCard(onClick = { /*TODO*/ }) {
-
-    }
 }
+
