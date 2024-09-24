@@ -6,4 +6,5 @@
     <string name="home">Hjem</string>
     <string name="entries">Mine Påmeldinger</string>
     <string name="profile">Profil</string>
+    <string name="location_permission_not_granted">Location Permission not granted</string>
 </resources>
