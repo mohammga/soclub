@@ -12,16 +12,16 @@ import androidx.navigation.compose.rememberNavController
 import com.example.soclub.components.navigation.navBars.BottomNavBar
 import com.example.soclub.components.navigation.navBars.TopBar
 import com.example.soclub.components.navigation.navBars.getCurrentScreen
-import com.example.soclub.ui.screens.activityDetail.ActivityDetailScreen
-import com.example.soclub.ui.screens.changePassword.ChangePasswordScreen
-import com.example.soclub.ui.screens.editPermission.EditPermissionScreen
-import com.example.soclub.ui.screens.editProfile.EditProfileScreen
-import com.example.soclub.ui.screens.entries.EntriesScreen
-import com.example.soclub.ui.screens.home.HomeScreen
-import com.example.soclub.ui.screens.profile.ProfileScreen
-import com.example.soclub.ui.screens.signin.SigninScreen
-import com.example.soclub.ui.screens.signup.SignupScreen;
-import com.example.soclub.ui.screens.start.StartScreen;
+import com.example.soclub.screens.activityDetail.ActivityDetailScreen
+import com.example.soclub.screens.changePassword.ChangePasswordScreen
+import com.example.soclub.screens.editPermission.EditPermissionScreen
+import com.example.soclub.screens.editProfile.EditProfileScreen
+import com.example.soclub.screens.entries.EntriesScreen
+import com.example.soclub.screens.home.HomeScreen
+import com.example.soclub.screens.profile.ProfileScreen
+import com.example.soclub.screens.signin.SigninScreen
+import com.example.soclub.screens.signup.SignupScreen;
+import com.example.soclub.screens.start.StartScreen;
 
 
 @Composable

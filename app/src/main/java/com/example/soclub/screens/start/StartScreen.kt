@@ -1,4 +1,4 @@
-package com.example.soclub.ui.screens.start
+package com.example.soclub.screens.start
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*

@@ -1,4 +1,4 @@
-package com.example.soclub.ui.screens.home
+package com.example.soclub.screens.home
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image

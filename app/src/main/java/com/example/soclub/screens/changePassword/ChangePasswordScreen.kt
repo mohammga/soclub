@@ -1,4 +1,4 @@
-package com.example.soclub.ui.screens.changePassword
+package com.example.soclub.screens.changePassword
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*

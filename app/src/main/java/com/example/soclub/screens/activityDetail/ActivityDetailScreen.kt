@@ -1,4 +1,4 @@
-package com.example.soclub.ui.screens.activityDetail
+package com.example.soclub.screens.activityDetail
 
 import android.provider.CalendarContract.Colors
 import androidx.compose.foundation.Image

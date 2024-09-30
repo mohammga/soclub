@@ -1,4 +1,4 @@
-package com.example.soclub.ui.screens.editPermission
+package com.example.soclub.screens.editPermission
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme

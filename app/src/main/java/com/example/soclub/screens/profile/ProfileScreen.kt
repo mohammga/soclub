@@ -1,4 +1,4 @@
-package com.example.soclub.ui.screens.profile
+package com.example.soclub.screens.profile
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -123,7 +124,9 @@ fun ProfileInfoRow(label: String, value: String = "", onClick: (() -> Unit)? = n
         if (value.isNotEmpty()) {
             ClickableText(
                 text = AnnotatedString(value),
-                style = MaterialTheme.typography.bodyLarge,
+                style = TextStyle(
+                    color = MaterialTheme.colorScheme.secondary,
+                ),
                 onClick = { onClick?.invoke() }
             )
         } else {

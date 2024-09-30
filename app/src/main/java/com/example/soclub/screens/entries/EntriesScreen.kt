@@ -1,4 +1,4 @@
-package com.example.soclub.ui.screens.entries
+package com.example.soclub.screens.entries
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable

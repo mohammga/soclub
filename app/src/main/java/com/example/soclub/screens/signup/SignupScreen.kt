@@ -1,4 +1,4 @@
-package com.example.soclub.ui.screens.signup
+package com.example.soclub.screens.signup
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
