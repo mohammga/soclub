@@ -43,7 +43,7 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(150.dp)
+                .height(200.dp)
                 .clip(RoundedCornerShape(16.dp)),
         )
         Spacer(modifier = Modifier.height(8.dp))
