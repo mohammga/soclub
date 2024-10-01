@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -15,58 +16,91 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.soclub.R
 import com.example.soclub.components.navigation.AppScreens
+import com.example.soclub.models.UserInfo
+import com.example.soclub.screens.signin.SigninViewModel
+
+
 
 @Composable
-fun ProfileScreen(navController: NavHostController) {
+fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel = hiltViewModel()) {
+    val userInfo = viewModel.userInfo // Get the user info from the ViewModel
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Profile image
-        Image(
-            painter = painterResource(R.drawable.user), // Replace with your image resource
-            contentDescription = "Profile Picture",
-            modifier = Modifier
-                .size(100.dp)
-                .clip(CircleShape),
-            contentScale = ContentScale.Crop
-        )
+        ProfileImage()
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Profile Name
-        Text(
-            text = "Sarah Nordmann",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold
-        )
+        // Use userInfo?.name to get the name from the UserInfo object
+        ProfileName(name = userInfo?.name ?: "Laster...")
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Edit Profile Button
-        Button(
-            onClick = { navController.navigate(AppScreens.EDIT_PROFILE.name)},
-            shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
-        ) {
-            Text(text = "Rediger profil")
-        }
+        EditProfileButton(navController)
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Account Information Section
+        AccountInfoSection(navController, userInfo)
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        LogoutButton(navController, viewModel)
+    }
+}
+
+@Composable
+fun ProfileImage() {
+    Image(
+        painter = painterResource(R.drawable.user),
+        contentDescription = "Profile Picture",
+        modifier = Modifier
+            .size(100.dp)
+            .clip(CircleShape),
+        contentScale = ContentScale.Crop
+    )
+}
+
+@Composable
+fun ProfileName(name: String) {
+    Text(
+        text = name,
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.Bold
+    )
+}
+
+@Composable
+fun EditProfileButton(navController: NavHostController) {
+    Button(
+        onClick = { navController.navigate(AppScreens.EDIT_PROFILE.name) },
+        shape = RoundedCornerShape(16.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+    ) {
+        Text(text = "Rediger profil")
+    }
+}
+
+@Composable
+fun AccountInfoSection(navController: NavHostController, userInfo: UserInfo?) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
         Text(
             text = "Min konto",
             style = MaterialTheme.typography.titleMedium,
@@ -77,36 +111,34 @@ fun ProfileScreen(navController: NavHostController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Info rows (Name, Email, etc.)
-        ProfileInfoRow(label = "Navn", value = "Sarah Nordmann")
-        ProfileInfoRow(label = "E-post", value = "sarah-nordmann@gmail.com")
+        ProfileInfoRow(label = "Navn", value = userInfo?.name ?: "Laster...")
+        ProfileInfoRow(label = "E-post", value = userInfo?.email ?: "Laster...")
         ProfileInfoRow(label = "Passord", onClick = {
             navController.navigate("change_password")
         })
         ProfileInfoRow(label = "Tillatelser", onClick = {
             navController.navigate("edit_permission")
         })
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Logout Button
-        Button(
-            onClick = {
-                navController.navigate("signin")
-            },
-            shape = RoundedCornerShape(50),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-        ) {
-            Text(
-                text = "Logg ut",
-                style = MaterialTheme.typography.labelLarge
-            )
-        }
     }
 }
+
+@Composable
+fun LogoutButton(navController: NavHostController, viewModel: ProfileViewModel) {
+    TextButton(
+        onClick = { viewModel.onSignOut(navController) },
+        shape = RoundedCornerShape(50),
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp)
+    ) {
+        Text(
+            text = "Logg ut",
+            style = MaterialTheme.typography.labelLarge
+        )
+    }
+}
+
 
 @Composable
 fun ProfileInfoRow(label: String, value: String = "", onClick: (() -> Unit)? = null) {

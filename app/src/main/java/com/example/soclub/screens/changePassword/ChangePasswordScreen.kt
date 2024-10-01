@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 
+
 @Composable
 fun ChangePasswordScreen(navController: NavController) {
     var oldPassword by remember { mutableStateOf("") }
@@ -24,35 +25,26 @@ fun ChangePasswordScreen(navController: NavController) {
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = oldPassword,
-            onValueChange = { oldPassword = it },
-            label = { Text("Gammelt passord") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+        PasswordInputField(
+            label = "Gammelt passord",
+            password = oldPassword,
+            onPasswordChange = { oldPassword = it }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = newPassword,
-            onValueChange = { newPassword = it },
-            label = { Text("Nytt passord") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+        PasswordInputField(
+            label = "Nytt passord",
+            password = newPassword,
+            onPasswordChange = { newPassword = it }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
-            label = { Text("Bekreft nytt passord") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+        PasswordInputField(
+            label = "Bekreft nytt passord",
+            password = confirmPassword,
+            onPasswordChange = { confirmPassword = it }
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -60,6 +52,7 @@ fun ChangePasswordScreen(navController: NavController) {
         Button(
             onClick = {
                 if (newPassword == confirmPassword) {
+                    // Her kan du legge til logikk for å oppdatere passordet
                     navController.popBackStack()
                 }
             },
@@ -69,6 +62,22 @@ fun ChangePasswordScreen(navController: NavController) {
             Text(text = "Oppdater passord", color = Color.White)
         }
     }
+}
+
+@Composable
+fun PasswordInputField(
+    label: String,
+    password: String,
+    onPasswordChange: (String) -> Unit
+) {
+    OutlinedTextField(
+        value = password,
+        onValueChange = onPasswordChange,
+        label = { Text(label) },
+        visualTransformation = PasswordVisualTransformation(),
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true
+    )
 }
 
 @Preview(showBackground = true)

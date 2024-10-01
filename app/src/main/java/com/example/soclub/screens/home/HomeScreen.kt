@@ -27,36 +27,14 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import com.example.soclub.R
 
-data class Activity(val imageResId: Int, val title: String, val description: String, val ageGroup: Any, val maxParticipants : Any, val location : Any )  {
-}
-
-@Composable
-fun ActivityItem(activity: Activity, onClick: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-    ) {
-        Image(
-            painter = painterResource(id = activity.imageResId),
-            contentDescription = activity.title,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .clip(RoundedCornerShape(16.dp)),
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = activity.title,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.align(Alignment.Start)
-        )
-
-    }
-}
-
+data class Activity(
+    val imageResId: Int,
+    val title: String,
+    val description: String,
+    val ageGroup: Any,
+    val maxParticipants: Any,
+    val location: Any
+)
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -72,12 +50,9 @@ fun HomeScreen(navController: NavHostController) {
     val coroutineScope = rememberCoroutineScope()
     val title = remember { mutableStateOf("Populære aktiviteter") }
 
-
-
-
     Column(modifier = Modifier.fillMaxSize()) {
         // Tab row
-        ScrollableTabRow(selectedTabIndex = pagerState.currentPage,  edgePadding = 2.dp) {
+        ScrollableTabRow(selectedTabIndex = pagerState.currentPage, edgePadding = 2.dp) {
             tabTitles.forEachIndexed { index, tabTitle ->
                 Tab(
                     text = { Text(tabTitle) },
@@ -88,7 +63,6 @@ fun HomeScreen(navController: NavHostController) {
                             pagerState.animateScrollToPage(index)
                         }
                         title.value = tabTitle
-
                     }
                 )
             }
@@ -120,6 +94,32 @@ fun HomeScreen(navController: NavHostController) {
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ActivityItem(activity: Activity, onClick: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+    ) {
+        Image(
+            painter = painterResource(id = activity.imageResId),
+            contentDescription = activity.title,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+                .clip(RoundedCornerShape(16.dp)),
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = activity.title,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.align(Alignment.Start)
+        )
     }
 }
 

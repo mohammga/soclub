@@ -20,62 +20,73 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.soclub.R
 
+
 @Composable
 fun StartScreen(navController: NavController) {
     Column(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top  // Innholdet er fortsatt plassert øverst
+        verticalArrangement = Arrangement.Top
     ) {
-        // Image at the top
-        Image(
-            painter = painterResource(id = R.drawable.soclub_start_image),  // Bytt ut med riktig bilde
-            contentDescription = "Welcome Image",
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(400.dp),
-            contentScale = ContentScale.Crop
-        )
+        WelcomeImage()
 
-        Spacer(modifier = Modifier.height(16.dp))  // Litt avstand mellom bilde og tekst
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Welcome message
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "SoClub",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Velkommen til SoClub-app for sosialisering\nog deltakelse i ulike aktiviteter.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray,
-                textAlign = TextAlign.Center
-            )
-        }
+        WelcomeMessage()
 
-        Spacer(modifier = Modifier.weight(1f))  // Legg mellomrom mellom tekst og knapp
+        Spacer(modifier = Modifier.weight(1f))
 
-        // Continue button
-        Button(
-            onClick = {
-                navController.navigate("signup")  // Naviger til SignupScreen når knappen trykkes
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .height(48.dp)
-        ) {
-            Text(
-                text = "Fortsett",
-            )
-        }
+        ContinueButton(navController)
     }
 }
+
+@Composable
+fun WelcomeImage() {
+    Image(
+        painter = painterResource(id = R.drawable.soclub_start_image),
+        contentDescription = "Welcome Image",
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(400.dp),
+        contentScale = ContentScale.Crop
+    )
+}
+
+@Composable
+fun WelcomeMessage() {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "SoClub",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Velkommen til SoClub-app for sosialisering\nog deltakelse i ulike aktiviteter.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.Gray,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+fun ContinueButton(navController: NavController) {
+    Button(
+        onClick = {
+            navController.navigate("signup")
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .height(48.dp)
+    ) {
+        Text(text = "Fortsett")
+    }
+}
+
 
 @Preview(showBackground = true)
 @Composable

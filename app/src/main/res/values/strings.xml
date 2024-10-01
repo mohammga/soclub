@@ -31,4 +31,11 @@
     <string name="entries">Mine Påmeldinger</string>
     <string name="profile">Profil</string>
     <string name="location_permission_not_granted">Location Permission not granted</string>
+
+
+    <string name="error_name_required">Navn er påkrevd</string>
+    <string name="error_invalid_email">Ugyldig e-post</string>
+    <string name="error_invalid_password">Passordet er ugyldig</string>
+    <string name="error_account_creation">Kunne ikke opprette konto</string>
+
 </resources>

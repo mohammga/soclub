@@ -1,4 +1,4 @@
-package com.example.soclub.screens.login
+package com.example.soclub.screens.signin
 
 import android.content.Context
 import android.widget.Toast
@@ -15,16 +15,16 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class LoginUiState(
+data class SigninUiState(
     val email: String = "",
     val password: String = "",
     val errorMessage: String = ""
 )
 
 @HiltViewModel
-class LoginViewModel @Inject constructor(private val accountService: AccountService) : ViewModel() {
+class SigninViewModel @Inject constructor(private val accountService: AccountService) : ViewModel() {
 
-    var uiState = mutableStateOf(LoginUiState())
+    var uiState = mutableStateOf(SigninUiState())
         private set
 
     private val email get() = uiState.value.email
@@ -63,8 +63,8 @@ class LoginViewModel @Inject constructor(private val accountService: AccountServ
                         viewModelScope.launch {
                             accountService.currentUser.collectLatest { user ->
                                 if (user.id?.isNotEmpty() == true) {
-                                    navController.navigate(AppScreens.TEXT.name) {
-                                        popUpTo(AppScreens.LOGIN.name) { inclusive = true }
+                                    navController.navigate(AppScreens.HOME.name) {
+                                        popUpTo(AppScreens.SIGNIN.name) { inclusive = true }
                                     }
                                 }
                             }

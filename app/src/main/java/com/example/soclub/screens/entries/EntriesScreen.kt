@@ -26,49 +26,42 @@ import com.example.soclub.R
 
 @Composable
 fun EntriesScreen(navController: NavHostController) {
-    // Manage which tab is selected: Aktive or Utgåtte
     val (selectedTab, setSelectedTab) = remember { mutableStateOf(0) }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Tabs for "Aktive" and "Utgåtte"
-        TabRow(
-            selectedTabIndex = selectedTab,
-            indicator = { tabPositions ->
-                SecondaryIndicator(
-                    Modifier
-                        .tabIndicatorOffset(tabPositions[selectedTab])
-                        .height(4.dp), // Customize the underline thickness
-                )
-            }
-        ) {
-            Tab(
-                text = {
-                    Text(
-                        "Aktive"
-                    )
-                },
-                selected = selectedTab == 0,
-                onClick = { setSelectedTab(0) }
-            )
-            Tab(
-                text = {
-                    Text(
-                        "Utgåtte"
-                    )
-                },
-                selected = selectedTab == 1,
-                onClick = { setSelectedTab(1) }
-            )
-        }
+        Tabs(selectedTab = selectedTab, setSelectedTab = setSelectedTab)
 
-        // Display active or past entries based on selected tab
         if (selectedTab == 0) {
             ActiveEntriesList()
         } else {
-            // Add logic for displaying expired events here if needed
+            // Her kan logikk for å vise utgåtte oppføringer legges til hvis nødvendig
         }
     }
+}
 
+@Composable
+fun Tabs(selectedTab: Int, setSelectedTab: (Int) -> Unit) {
+    TabRow(
+        selectedTabIndex = selectedTab,
+        indicator = { tabPositions ->
+            SecondaryIndicator(
+                Modifier
+                    .tabIndicatorOffset(tabPositions[selectedTab])
+                    .height(4.dp)
+            )
+        }
+    ) {
+        Tab(
+            text = { Text("Aktive") },
+            selected = selectedTab == 0,
+            onClick = { setSelectedTab(0) }
+        )
+        Tab(
+            text = { Text("Utgåtte") },
+            selected = selectedTab == 1,
+            onClick = { setSelectedTab(1) }
+        )
+    }
 }
 
 @Composable
@@ -85,7 +78,7 @@ fun ActiveEntriesList() {
                 imageRes = entry.imageRes,
                 title = entry.title,
                 time = entry.time,
-                onCancelClick = { /* Handle cancel click */ }
+                onCancelClick = { /* Håndter kanselleringsklikk */ }
             )
         }
     }
@@ -101,34 +94,22 @@ fun EntryItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { /* Handle click on the entry */ },
+            .clickable { /* Håndter klikk på oppføringen */ },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Event Image with custom width and height
-        Image(
-            painter = painterResource(id = imageRes),
-            contentDescription = null,
-            modifier = Modifier
-                .width(120.dp) // Custom width for the image
-                .height(80.dp) // Adjust height as needed
-                .clip(RoundedCornerShape(8.dp)),
-            contentScale = ContentScale.Crop
-        )
+        // Arrangement av bilde
+        EventImage(imageRes)
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            // Title
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
 
-            // Time
             Text(
                 text = time,
                 style = MaterialTheme.typography.bodyMedium
@@ -136,22 +117,37 @@ fun EntryItem(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Full-width Button
-            Button(
-                onClick = onCancelClick,
-                shape = RoundedCornerShape(24.dp),
-                modifier = Modifier
-                    .fillMaxWidth() // Make the button full width
-                    .height(32.dp)
-            ) {
-                Text(
-                    text = "Kanseller",
-                )
-            }
+            // Kanselleringsknapp
+            CancelButton(onClick = onCancelClick)
         }
     }
 }
 
+@Composable
+fun EventImage(imageRes: Int) {
+    Image(
+        painter = painterResource(id = imageRes),
+        contentDescription = null,
+        modifier = Modifier
+            .width(120.dp)
+            .height(80.dp)
+            .clip(RoundedCornerShape(8.dp)),
+        contentScale = ContentScale.Crop
+    )
+}
+
+@Composable
+fun CancelButton(onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(32.dp)
+    ) {
+        Text(text = "Kanseller")
+    }
+}
 
 data class Entry(
     val imageRes: Int,
@@ -159,7 +155,6 @@ data class Entry(
     val time: String
 )
 
-// Sample data for the entries
 val activeEntries = listOf(
     Entry(R.drawable.event1, "Hvordan planlegge en tur til", "Ons, 19:00"),
     Entry(R.drawable.event2, "Mestrer kunsten å lage pasta", "Tor, 18:00"),

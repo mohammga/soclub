@@ -13,31 +13,30 @@ import androidx.navigation.compose.rememberNavController
 import com.example.soclub.components.navigation.navBars.BottomNavBar
 import com.example.soclub.components.navigation.navBars.TopBar
 import com.example.soclub.components.navigation.navBars.getCurrentScreen
-import com.example.soclub.screens.LoginSelection.LoginSelectionScreen
 import com.example.soclub.screens.activityDetail.ActivityDetailScreen
 import com.example.soclub.screens.changePassword.ChangePasswordScreen
 import com.example.soclub.screens.editPermission.EditPermissionScreen
 import com.example.soclub.screens.editProfile.EditProfileScreen
 import com.example.soclub.screens.entries.EntriesScreen
 import com.example.soclub.screens.home.HomeScreen
-import com.example.soclub.screens.login.LoginScreen
 import com.example.soclub.screens.profile.ProfileScreen
-import com.example.soclub.screens.registration.RegistrationScreen
 import com.example.soclub.screens.signin.SigninScreen
 import com.example.soclub.screens.signup.SignupScreen;
 import com.example.soclub.screens.start.StartScreen;
-import com.example.soclub.screens.text.TextScreen
 import com.example.soclub.service.impl.AccountServiceImpl
 import com.example.soclub.service.module.FirebaseModule
-
-
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
     val currentScreen = getCurrentScreen(navController)
 
-    val accountService = remember { AccountServiceImpl(FirebaseModule.auth()) }
+    // Inject FirebaseAuth and FirebaseFirestore using FirebaseModule
+    val auth = remember { FirebaseModule.auth() }
+    val firestore = remember { FirebaseModule.firestore() }
+
+    // Pass both auth and firestore to AccountServiceImpl
+    val accountService = remember { AccountServiceImpl(auth, firestore) }
 
     Scaffold(
         topBar = {
@@ -51,26 +50,21 @@ fun AppNavigation() {
                 AppScreens.HOME.name -> {
                     HomeTopBar(navController, title = "SoClub")
                 }
-
                 AppScreens.DETAIL.name -> {
                     TopBar(navController, title = "Aktivitet", showBackButton = true)
                 }
-
                 AppScreens.PROFILE.name -> {
                     TopBar(navController, title = "Profil", showBackButton = false)
                 }
                 AppScreens.EDIT_PROFILE.name -> {
-                TopBar(navController, title = "Endre Profil", showBackButton = true)
+                    TopBar(navController, title = "Endre Profil", showBackButton = true)
                 }
-
                 AppScreens.CHANGE_PASSWORD.name -> {
                     TopBar(navController, title = "Endre passord", showBackButton = true)
                 }
-
                 AppScreens.EDIT_PERMISSION.name -> {
                     TopBar(navController, title = "Endre tillatelser", showBackButton = true)
                 }
-
                 AppScreens.ENTRIES.name -> {
                     TopBar(navController, title = "Mine Påmeldinger", showBackButton = false)
                 }
@@ -97,9 +91,9 @@ fun AppNavigation() {
             navController = navController,
             startDestination =
             if (accountService.hasUser) {
-                AppScreens.TEXT.name
+                AppScreens.HOME.name
             } else {
-                AppScreens.LOGIN_SELECTION.name
+                AppScreens.START.name
             },
             modifier = Modifier.padding(innerPadding)
         ) {
@@ -133,20 +127,6 @@ fun AppNavigation() {
             composable(AppScreens.EDIT_PERMISSION.name) {
                 EditPermissionScreen(navController)
             }
-
-            composable(AppScreens.LOGIN.name) {
-                LoginScreen(navController)
-            }
-            composable(AppScreens.LOGIN_SELECTION.name) {
-                LoginSelectionScreen(navController)
-            }
-            composable(AppScreens.REGISTRATION.name) {
-                RegistrationScreen(navController)
-            }
-            composable(AppScreens.TEXT.name) {
-                TextScreen(navController)
-            }
-
         }
     }
 }

@@ -10,10 +10,5 @@ enum class AppScreens {
     CHANGE_PASSWORD,
     EDIT_PROFILE,
     EDIT_PERMISSION,
-    DETAIL,
-
-    LOGIN,
-    LOGIN_SELECTION,
-    REGISTRATION,
-    TEXT
+    DETAIL
 }
