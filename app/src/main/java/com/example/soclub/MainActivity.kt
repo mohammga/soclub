@@ -11,7 +11,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import com.example.soclub.components.navigation.AppNavigation
 import com.example.soclub.ui.theme.SoclubTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
@@ -56,3 +59,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+

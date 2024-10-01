@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "673560655609",
+    "project_id": "soclub-af7ad",
+    "storage_bucket": "soclub-af7ad.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:673560655609:android:0c74b7ebda509e3582d428",
+        "android_client_info": {
+          "package_name": "com.example.soclub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWjZFBZhMs5PcmlNAOgI5BHkIHAOEfLjU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

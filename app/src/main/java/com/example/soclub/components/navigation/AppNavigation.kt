@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -12,22 +13,31 @@ import androidx.navigation.compose.rememberNavController
 import com.example.soclub.components.navigation.navBars.BottomNavBar
 import com.example.soclub.components.navigation.navBars.TopBar
 import com.example.soclub.components.navigation.navBars.getCurrentScreen
+import com.example.soclub.screens.LoginSelection.LoginSelectionScreen
 import com.example.soclub.screens.activityDetail.ActivityDetailScreen
 import com.example.soclub.screens.changePassword.ChangePasswordScreen
 import com.example.soclub.screens.editPermission.EditPermissionScreen
 import com.example.soclub.screens.editProfile.EditProfileScreen
 import com.example.soclub.screens.entries.EntriesScreen
 import com.example.soclub.screens.home.HomeScreen
+import com.example.soclub.screens.login.LoginScreen
 import com.example.soclub.screens.profile.ProfileScreen
+import com.example.soclub.screens.registration.RegistrationScreen
 import com.example.soclub.screens.signin.SigninScreen
 import com.example.soclub.screens.signup.SignupScreen;
 import com.example.soclub.screens.start.StartScreen;
+import com.example.soclub.screens.text.TextScreen
+import com.example.soclub.service.impl.AccountServiceImpl
+import com.example.soclub.service.module.FirebaseModule
+
 
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
     val currentScreen = getCurrentScreen(navController)
+
+    val accountService = remember { AccountServiceImpl(FirebaseModule.auth()) }
 
     Scaffold(
         topBar = {
@@ -85,7 +95,12 @@ fun AppNavigation() {
 
         NavHost(
             navController = navController,
-            startDestination = AppScreens.START.name,
+            startDestination =
+            if (accountService.hasUser) {
+                AppScreens.TEXT.name
+            } else {
+                AppScreens.LOGIN_SELECTION.name
+            },
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(AppScreens.START.name) {
@@ -117,6 +132,19 @@ fun AppNavigation() {
             }
             composable(AppScreens.EDIT_PERMISSION.name) {
                 EditPermissionScreen(navController)
+            }
+
+            composable(AppScreens.LOGIN.name) {
+                LoginScreen(navController)
+            }
+            composable(AppScreens.LOGIN_SELECTION.name) {
+                LoginSelectionScreen(navController)
+            }
+            composable(AppScreens.REGISTRATION.name) {
+                RegistrationScreen(navController)
+            }
+            composable(AppScreens.TEXT.name) {
+                TextScreen(navController)
             }
 
         }

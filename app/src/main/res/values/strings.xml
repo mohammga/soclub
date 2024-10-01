@@ -1,6 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Soclub</string>
+    <string name="todo">Todo</string>
+    <string name="delete_text">Delete Text</string>
+    <string name="refresh">Refresh</string>
+    <string name="enter_text">Enter Text</string>
+    <string name="no_text_available_please_upload_some_text">No text available. Please upload some text.</string>
+    <string name="no_text">No Text</string>
+    <string name="upload">Upload</string>
+    <string name="sign_out">Sign out</string>
+    <string name="email">Email</string>
+    <string name="confirm_email">Confirm email</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm password</string>
+    <string name="cancel">Cancel</string>
+    <string name="register">Register</string>
+    <string name="sign_in">Sign in</string>
+    <string name="forgot_password">Forgot password</string>
+    <string name="choose_sign_in_method">Choose sign in method</string>
+    <string name="sign_in_with_email_and_password">Sign in with Email and Password</string>
+    <string name="sign_in_anonymously">Sign in Anonymously</string>
+    <string name="register_new_user">Register New User</string>
+
+
+
+    //MINE STRINGS LIGGER HER
     <string name="see_image">Continue</string>
     <string name="back_button">Back button</string>
     <string name="home">Hjem</string>
