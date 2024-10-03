@@ -4,7 +4,8 @@ import com.example.soclub.models.User
 import com.example.soclub.models.UserInfo
 import com.example.soclub.service.AccountService
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore // Import Firestore
+import com.google.firebase.auth.EmailAuthProvider
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -13,7 +14,7 @@ import javax.inject.Inject
 
 class AccountServiceImpl @Inject constructor(
     private val auth: FirebaseAuth,
-    private val firestore: FirebaseFirestore // Inject Firestore
+    private val firestore: FirebaseFirestore
 ) : AccountService {
 
     override val currentUserId: String
@@ -58,23 +59,19 @@ class AccountServiceImpl @Inject constructor(
     override suspend fun createEmailAccount(
         email: String,
         password: String,
-        name: String, // Add name parameter
+        name: String,
         onResult: (Throwable?) -> Unit
     ) {
-        // Create the user account
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    // If the account creation is successful, save the user information in Firestore
                     val user = auth.currentUser
                     user?.let {
                         val userData = hashMapOf(
                             "email" to email,
-                            "name" to name // Store the name in Firestore
+                            "name" to name
                         )
-
-                        // Save user data in Firestore
-                        firestore.collection("users").document(it.uid) // Use the injected Firestore instance
+                        firestore.collection("users").document(it.uid)
                             .set(userData)
                             .addOnCompleteListener { firestoreTask ->
                                 onResult(firestoreTask.exception)
@@ -94,5 +91,61 @@ class AccountServiceImpl @Inject constructor(
         auth.sendPasswordResetEmail(email)
             .addOnCompleteListener { onResult(it.exception) }
             .await()
+    }
+
+    // Implementasjon for å oppdatere brukerprofilen (navn og e-post)
+    override suspend fun updateProfile(name: String, email: String, onResult: (Throwable?) -> Unit) {
+        val user = auth.currentUser
+        user?.let {
+            val profileUpdates = hashMapOf(
+                "name" to name
+            )
+            // Oppdater Firestore med nytt navn
+            firestore.collection("users").document(it.uid).update(profileUpdates as Map<String, Any>)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        // Oppdater e-posten i Firebase Authentication
+                        it.updateEmail(email)
+                            .addOnCompleteListener { emailUpdateTask ->
+                                onResult(emailUpdateTask.exception)
+                            }
+                    } else {
+                        onResult(task.exception)
+                    }
+                }.await()
+        }
+    }
+
+    override suspend fun changePassword(
+        oldPassword: String,
+        newPassword: String,
+        onResult: (Throwable?) -> Unit
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    // Implementasjon for å endre passord
+    suspend fun updatePassword(
+        oldPassword: String,
+        newPassword: String,
+        onResult: (Throwable?) -> Unit
+    ) {
+        val user = auth.currentUser
+        user?.let {
+            val credential = EmailAuthProvider.getCredential(it.email!!, oldPassword)
+
+            // Re-autentiser brukeren med det gamle passordet før du endrer passordet
+            it.reauthenticate(credential)
+                .addOnCompleteListener { reauthTask ->
+                    if (reauthTask.isSuccessful) {
+                        it.updatePassword(newPassword)
+                            .addOnCompleteListener { passwordUpdateTask ->
+                                onResult(passwordUpdateTask.exception)
+                            }
+                    } else {
+                        onResult(reauthTask.exception)
+                    }
+                }.await()
+        }
     }
 }

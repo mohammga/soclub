@@ -5,61 +5,56 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-
+import com.example.soclub.R
 
 @Composable
-fun ChangePasswordScreen(navController: NavController) {
-    var oldPassword by remember { mutableStateOf("") }
-    var newPassword by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+fun ChangePasswordScreen(navController: NavController, viewModel: ChangePasswordViewModel = hiltViewModel()) {
+    val uiState by viewModel.uiState
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
-
         PasswordInputField(
-            label = "Gammelt passord",
-            password = oldPassword,
-            onPasswordChange = { oldPassword = it }
+            label = stringResource(id = R.string.old_password_label),
+            password = uiState.oldPassword,
+            onPasswordChange = { viewModel.onOldPasswordChange(it) }
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
         PasswordInputField(
-            label = "Nytt passord",
-            password = newPassword,
-            onPasswordChange = { newPassword = it }
+            label = stringResource(id = R.string.new_password_label),
+            password = uiState.newPassword,
+            onPasswordChange = { viewModel.onNewPasswordChange(it) }
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
         PasswordInputField(
-            label = "Bekreft nytt passord",
-            password = confirmPassword,
-            onPasswordChange = { confirmPassword = it }
+            label = stringResource(id = R.string.confirm_new_password_label),
+            password = uiState.confirmPassword,
+            onPasswordChange = { viewModel.onConfirmPasswordChange(it) }
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
+        if (uiState.errorMessage != 0) {
+            Text(
+                text = stringResource(id = uiState.errorMessage),
+                color = Color.Red
+            )
+        }
+
         Button(
-            onClick = {
-                if (newPassword == confirmPassword) {
-                    // Her kan du legge til logikk for å oppdatere passordet
-                    navController.popBackStack()
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+            onClick = { viewModel.onChangePasswordClick() },
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = "Oppdater passord", color = Color.White)
+            Text(text = stringResource(id = R.string.update_password_button))
         }
     }
 }
@@ -68,15 +63,18 @@ fun ChangePasswordScreen(navController: NavController) {
 fun PasswordInputField(
     label: String,
     password: String,
-    onPasswordChange: (String) -> Unit
+    onPasswordChange: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     OutlinedTextField(
         value = password,
         onValueChange = onPasswordChange,
         label = { Text(label) },
-        visualTransformation = PasswordVisualTransformation(),
-        modifier = Modifier.fillMaxWidth(),
-        singleLine = true
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        singleLine = true,
+        visualTransformation = PasswordVisualTransformation()
     )
 }
 
