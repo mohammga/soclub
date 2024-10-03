@@ -111,4 +111,3 @@ class SigninViewModel @Inject constructor(private val accountService: AccountSer
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 }
-}

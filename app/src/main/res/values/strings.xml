@@ -2,6 +2,10 @@
 <resources>
     <string name="location_permission_not_granted">Location Permission not granted</string>
 
+    <string name="home">Hjem</string>
+    <string name="entries">Mine Påmeldinger</string>
+    <string name="profile">Profil</string>
+
     <!--StartScreen -->
     <string name="app_name">SoClub</string>
     <string name="welcome_message">Velkommen til SoClub-app for sosialisering\nog deltakelse i ulike aktiviteter.</string>
@@ -13,6 +17,8 @@
     <string name="create_account">Opprett en konto</string>
     <string name="hide_password">Skjul passord</string>
     <string name="show_password">Vis passord</string>
+    <string name="email">EPosst Adresse</string>
+    <string name="password">Password</string>
 
     <!--SigninViewModel-->
     <string name="error_please_insert_valid_email">Vennligst skriv inn en gyldig e-post</string>
