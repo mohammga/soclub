@@ -67,7 +67,7 @@ fun ProfileImageSection(onImageClick: () -> Unit) {
         modifier = Modifier.fillMaxWidth()
     ) {
         Image(
-            painter = painterResource(id = R.drawable.user2),
+            painter = painterResource(id = R.drawable.user),
             contentDescription = "Profilbilde",
             modifier = Modifier
                 .fillMaxWidth()
