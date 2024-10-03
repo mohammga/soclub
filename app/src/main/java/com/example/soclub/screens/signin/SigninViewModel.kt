@@ -10,6 +10,7 @@ import com.example.soclub.common.ext.isValidEmail
 import com.example.soclub.common.ext.isValidPassword
 import com.example.soclub.service.AccountService
 import com.example.soclub.components.navigation.AppScreens
+import com.example.soclub.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -42,24 +43,22 @@ class SigninViewModel @Inject constructor(private val accountService: AccountSer
     fun onLoginClick(context: Context, navController: NavController) {
 
         if (!email.isValidEmail()) {
-            Toast.makeText(context, "Invalid email", Toast.LENGTH_SHORT).show()
-            uiState.value = uiState.value.copy(errorMessage = "Please insert a valid email")
+            Toast.makeText(context, R.string.error_invalid_email, Toast.LENGTH_SHORT).show()
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_please_insert_valid_email.toString())
             return
         }
 
         if (!password.isValidPassword()) {
-            Toast.makeText(context, "Invalid password", Toast.LENGTH_SHORT).show()
-            uiState.value = uiState.value.copy(errorMessage = "Your password should have at least six digits and include one digit, one lower case letter and one upper case letter.")
+            Toast.makeText(context, R.string.error_invalid_password, Toast.LENGTH_SHORT).show()
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_password_details.toString())
             return
         }
 
         viewModelScope.launch {
-
             try {
                 accountService.authenticateWithEmail(email, password) { error ->
-
                     if (error == null) {
-                        Toast.makeText(context, "Signing in as $email...", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, R.string.signing_in_as.toString(), Toast.LENGTH_SHORT).show()
                         viewModelScope.launch {
                             accountService.currentUser.collectLatest { user ->
                                 if (user.id?.isNotEmpty() == true) {
@@ -70,28 +69,25 @@ class SigninViewModel @Inject constructor(private val accountService: AccountSer
                             }
                         }
                     } else {
-                        uiState.value = uiState.value.copy(errorMessage = "Could not log in")
+                        uiState.value = uiState.value.copy(errorMessage = R.string.error_could_not_log_in.toString())
                     }
-
                 }
-            } catch(e: Exception) {
-                uiState.value = uiState.value.copy(errorMessage = "Could not log in")
+            } catch (e: Exception) {
+                uiState.value = uiState.value.copy(errorMessage = R.string.error_could_not_log_in.toString())
             }
-
         }
-
     }
 
     fun onForgotPasswordClick() {
         try {
             val email = uiState.value.email
             if (email.isEmpty()) {
-                uiState.value = uiState.value.copy(errorMessage = "Please enter the email address you want to reset")
+                uiState.value = uiState.value.copy(errorMessage = R.string.error_enter_reset_email.toString())
                 return
             }
 
             if (!isValidEmail(email)) {
-                uiState.value = uiState.value.copy(errorMessage = "Please enter a valid email address")
+                uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_email_address.toString())
                 return
             }
 
@@ -99,7 +95,7 @@ class SigninViewModel @Inject constructor(private val accountService: AccountSer
                 accountService.sendPasswordResetEmail(email) { error ->
                     uiState.value = uiState.value.copy(
                         errorMessage = if (error == null) {
-                            "Password reset email sent, please check your inbox"
+                            R.string.password_reset_email_sent.toString()
                         } else {
                             error.message.orEmpty()
                         }
@@ -107,12 +103,12 @@ class SigninViewModel @Inject constructor(private val accountService: AccountSer
                 }
             }
         } catch (e: Exception) {
-            uiState.value = uiState.value.copy(errorMessage = "Could not send reset email")
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_could_not_send_reset_email.toString())
         }
     }
 
     fun isValidEmail(email: String): Boolean {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
-
+}
 }

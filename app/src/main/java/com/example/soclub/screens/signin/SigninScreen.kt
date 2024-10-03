@@ -26,9 +26,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -86,7 +83,7 @@ fun EmailField(value: String, onNewValue: (String) -> Unit) {
             .padding(vertical = 8.dp),
         value = value,
         onValueChange = { onNewValue(it) },
-        placeholder = { Text("E-postadresse") },
+        placeholder = { Text(stringResource(id = R.string.email)) },
     )
 }
 
@@ -112,20 +109,19 @@ fun PasswordField(
             onNewValue(it)
             if (!isVisibleToggled) isVisible = it == ""
         }               ,
-        placeholder = { Text("Passord") },
+        placeholder = { Text(stringResource(id = R.string.password)) },
         trailingIcon = {
             IconButton(onClick = {
                 isVisible = !isVisible
                 if (!isVisibleToggled) isVisibleToggled = true
             }) {
-                Icon(painter = icon, contentDescription = if (isVisible) "Hide password" else "Show password")
+                Icon(painter = icon, contentDescription = if (isVisible) stringResource(id = R.string.hide_password) else stringResource(id = R.string.show_password))
             }
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         visualTransformation = visualTransformation
     )
 }
-
 
 @Composable
 private fun SignInButton(navController: NavController, viewModel: SigninViewModel, context: Context) {
@@ -135,7 +131,7 @@ private fun SignInButton(navController: NavController, viewModel: SigninViewMode
             .fillMaxWidth()
             .height(48.dp)
     ) {
-        Text(text = "Logg inn")
+        Text(text = stringResource(id = R.string.sign_in))
     }
 }
 
@@ -145,10 +141,10 @@ fun SignUpText(navController: NavController) {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center
     ) {
-        Text(text = "Har du ikke en konto?")
+        Text(text = stringResource(id = R.string.dont_have_account))
         Spacer(modifier = Modifier.width(4.dp))
         Text(
-            text = "Opprett en konto",
+            text = stringResource(id = R.string.create_account),
             fontWeight = FontWeight.Bold,
             color = Color.Black,
             modifier = Modifier.clickable {

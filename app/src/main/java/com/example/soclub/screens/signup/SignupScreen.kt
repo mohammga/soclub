@@ -1,6 +1,5 @@
 package com.example.soclub.screens.signup
 
-import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -15,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -27,7 +27,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.soclub.R
-
 
 @Composable
 fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hiltViewModel()) {
@@ -72,7 +71,7 @@ fun NameField(value: String, onNewValue: (String) -> Unit) {
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
-        placeholder = { Text("Navn") },
+        placeholder = { Text(stringResource(id = R.string.placeholder_name)) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
@@ -89,7 +88,7 @@ fun EmailField(value: String, onNewValue: (String) -> Unit) {
             .padding(vertical = 8.dp),
         value = value,
         onValueChange = { onNewValue(it) },
-        placeholder = { Text("E-postadresse") },
+        placeholder = { Text(stringResource(id = R.string.placeholder_email)) },
     )
 }
 
@@ -114,14 +113,14 @@ fun PasswordField(
         onValueChange ={
             onNewValue(it)
             if (!isVisibleToggled) isVisible = it == ""
-        }               ,
-        placeholder = { Text("Passord") },
+        },
+        placeholder = { Text(stringResource(id = R.string.placeholder_password)) },
         trailingIcon = {
             IconButton(onClick = {
                 isVisible = !isVisible
                 if (!isVisibleToggled) isVisibleToggled = true
             }) {
-                Icon(painter = icon, contentDescription = if (isVisible) "Hide password" else "Show password")
+                Icon(painter = icon, contentDescription = if (isVisible) stringResource(R.string.hide_password) else stringResource(R.string.show_password))
             }
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -132,7 +131,7 @@ fun PasswordField(
 @Composable
 fun TermsAndConditions() {
     Text(
-        text = "Ved å fortsette, godtar du Vilkår for bruk og retningslinjer for personvern.",
+        text = stringResource(id = R.string.terms_and_conditions),
         fontSize = 12.sp,
         color = Color.Gray,
         textAlign = TextAlign.Center,
@@ -146,10 +145,10 @@ fun SignInText(navController: NavController) {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Center
     ) {
-        Text(text = "Har du allerede en konto?")
+        Text(text = stringResource(id = R.string.already_have_account))
         Spacer(modifier = Modifier.width(4.dp))
         Text(
-            text = "Logg inn",
+            text = stringResource(id = R.string.sign_in),
             fontWeight = FontWeight.Bold,
             color = Color.Black,
             modifier = Modifier.clickable {
@@ -159,8 +158,6 @@ fun SignInText(navController: NavController) {
     }
 }
 
-
-
 @Composable
 private fun RegisterButton(navController: NavController, viewModel: SignupViewModel) {
     Button(
@@ -169,10 +166,9 @@ private fun RegisterButton(navController: NavController, viewModel: SignupViewMo
             .fillMaxWidth()
             .height(48.dp)
     ) {
-        Text(text = "Registrer deg")
+        Text(text = stringResource(id = R.string.register))
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable

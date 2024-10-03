@@ -7,8 +7,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,13 +28,10 @@ import androidx.navigation.compose.rememberNavController
 import com.example.soclub.R
 import com.example.soclub.components.navigation.AppScreens
 import com.example.soclub.models.UserInfo
-import com.example.soclub.screens.signin.SigninViewModel
-
-
 
 @Composable
 fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel = hiltViewModel()) {
-    val userInfo = viewModel.userInfo // Get the user info from the ViewModel
+    val userInfo = viewModel.userInfo
 
     Column(
         modifier = Modifier
@@ -68,7 +64,7 @@ fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel 
 fun ProfileImage() {
     Image(
         painter = painterResource(R.drawable.user),
-        contentDescription = "Profile Picture",
+        contentDescription = stringResource(id = R.string.profile_picture_description),
         modifier = Modifier
             .size(100.dp)
             .clip(CircleShape),
@@ -92,7 +88,7 @@ fun EditProfileButton(navController: NavHostController) {
         shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
     ) {
-        Text(text = "Rediger profil")
+        Text(text = stringResource(id = R.string.edit_profile_button))
     }
 }
 
@@ -102,7 +98,7 @@ fun AccountInfoSection(navController: NavHostController, userInfo: UserInfo?) {
         modifier = Modifier.fillMaxWidth()
     ) {
         Text(
-            text = "Min konto",
+            text = stringResource(id = R.string.account_info_section),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.fillMaxWidth(),
@@ -111,12 +107,12 @@ fun AccountInfoSection(navController: NavHostController, userInfo: UserInfo?) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        ProfileInfoRow(label = "Navn", value = userInfo?.name ?: "Laster...")
-        ProfileInfoRow(label = "E-post", value = userInfo?.email ?: "Laster...")
-        ProfileInfoRow(label = "Passord", onClick = {
+        ProfileInfoRow(label = stringResource(id = R.string.label_name), value = userInfo?.name ?: stringResource(id = R.string.loading))
+        ProfileInfoRow(label = stringResource(id = R.string.label_email), value = userInfo?.email ?: stringResource(id = R.string.loading))
+        ProfileInfoRow(label = stringResource(id = R.string.label_password), onClick = {
             navController.navigate("change_password")
         })
-        ProfileInfoRow(label = "Tillatelser", onClick = {
+        ProfileInfoRow(label = stringResource(id = R.string.label_permissions), onClick = {
             navController.navigate("edit_permission")
         })
     }
@@ -133,12 +129,11 @@ fun LogoutButton(navController: NavHostController, viewModel: ProfileViewModel) 
             .height(48.dp)
     ) {
         Text(
-            text = "Logg ut",
+            text = stringResource(id = R.string.logout_button),
             style = MaterialTheme.typography.labelLarge
         )
     }
 }
-
 
 @Composable
 fun ProfileInfoRow(label: String, value: String = "", onClick: (() -> Unit)? = null) {
@@ -162,7 +157,7 @@ fun ProfileInfoRow(label: String, value: String = "", onClick: (() -> Unit)? = n
                 onClick = { onClick?.invoke() }
             )
         } else {
-            Icon(imageVector = Icons.Default.ArrowForward, contentDescription = null)
+            Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
         }
     }
 }
