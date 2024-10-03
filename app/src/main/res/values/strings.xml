@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Generelle strenger -->
     <string name="location_permission_not_granted">Location Permission not granted</string>
 
     <string name="home">Hjem</string>
@@ -17,8 +18,8 @@
     <string name="create_account">Opprett en konto</string>
     <string name="hide_password">Skjul passord</string>
     <string name="show_password">Vis passord</string>
-    <string name="email">EPosst Adresse</string>
-    <string name="password">Password</string>
+    <string name="email">E-postadresse</string>
+    <string name="password">Passord</string>
 
     <!--SigninViewModel-->
     <string name="error_please_insert_valid_email">Vennligst skriv inn en gyldig e-post</string>
@@ -56,4 +57,20 @@
     <string name="logout_button">Logg ut</string>
     <string name="loading">Laster...</string>
 
+    <!-- EditProfileScreen -->
+    <string name="edit_profile_screen_title">Rediger profil</string>
+    <string name="profile_name_label">Navn</string>
+    <string name="profile_email_label">E-postadresse</string>
+    <string name="change_profile_picture">Bytt Profilbilde</string>
+    <string name="upload_new_picture">Last opp et nytt bilde</string>
+    <string name="save_changes_button">Lagre endringer</string>
+
+
+    <!-- ChangePasswordScreen -->
+    <string name="change_password_screen_title">Endre passord</string>
+    <string name="old_password_label">Gammelt passord</string>
+    <string name="new_password_label">Nytt passord</string>
+    <string name="confirm_new_password_label">Bekreft nytt passord</string>
+    <string name="update_password_button">Oppdater passord</string>
+    <string name="password_mismatch_error">Passordene stemmer ikke overens</string>
 </resources>
