@@ -10,6 +10,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import com.example.soclub.service.ActivityService
+import com.example.soclub.service.impl.ActivityServiceImpl
+
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -20,5 +23,13 @@ object FirebaseModule {
     @Singleton
     @Provides
     fun firestore(): FirebaseFirestore = Firebase.firestore
+
+    @Provides
+    @Singleton
+    fun provideActivityService(firestore: FirebaseFirestore): ActivityService {
+        return ActivityServiceImpl(firestore)
+    }
+
+
 }
 
