@@ -65,7 +65,6 @@
     <string name="upload_new_picture">Last opp et nytt bilde</string>
     <string name="save_changes_button">Lagre endringer</string>
 
-
     <!-- ChangePasswordScreen -->
     <string name="change_password_screen_title">Endre passord</string>
     <string name="old_password_label">Gammelt passord</string>

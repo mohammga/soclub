@@ -14,8 +14,6 @@ interface AccountService {
     suspend fun signOut()
     suspend fun getUserInfo(): UserInfo
     suspend fun sendPasswordResetEmail(email: String, onResult: (Throwable?) -> Unit)
-
-
     suspend fun updateProfile(name: String, email: String, onResult: (Throwable?) -> Unit)
     suspend fun changePassword(oldPassword: String, newPassword: String, onResult: (Throwable?) -> Unit)
 }

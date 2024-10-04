@@ -5,6 +5,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
 import com.example.soclub.R
 import com.example.soclub.service.AccountService
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -42,7 +43,7 @@ class ChangePasswordViewModel @Inject constructor(
         uiState.value = uiState.value.copy(confirmPassword = newValue)
     }
 
-    fun onChangePasswordClick() {
+    fun onChangePasswordClick(navController: NavController) {
         if (newPassword != confirmPassword) {
             uiState.value = uiState.value.copy(errorMessage = R.string.password_mismatch_error)
             return
