@@ -1,130 +1,50 @@
 package com.example.soclub.screens.home
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.launch
-import com.example.soclub.R
+import androidx.compose.foundation.layout.*   // For layout-elementer som Column, Row, etc.
+import androidx.compose.material3.*   // For Material Design-komponenter som Text, Tab, etc.
+import androidx.compose.runtime.Composable   // For å bruke Composable-funksjoner
+import androidx.compose.runtime.livedata.observeAsState   // For å observere LiveData i Jetpack Compose
+import androidx.compose.ui.Modifier   // For modifikatorer som fillMaxSize, padding, etc.
+import androidx.compose.ui.unit.dp   // For å spesifisere dimensjoner i dp
+import androidx.hilt.navigation.compose.hiltViewModel   // For å bruke Hilt ViewModel i Jetpack Compose
+import androidx.navigation.NavHostController   // For navigasjon mellom skjermer i Jetpack Compose
+import com.example.soclub.models.Activity   // Importer Activity-modellen
 
-data class Activity(
-    val imageResId: Int,
-    val title: String,
-    val description: String,
-    val ageGroup: Any,
-    val maxParticipants: Any,
-    val location: Any
-)
-
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun HomeScreen(navController: NavHostController) {
-    val activities = listOf(
-        Activity(R.drawable.yoga, "Yoga", "Beskrivelse", "18+", 20, "Oslo"),
-        Activity(R.drawable.kaffe, "Kaffe", "Beskrivelse", "Alle aldre", 10, "Bergen"),
-        Activity(R.drawable.svomming, "Svømming", "Beskrivelse", "Alle aldre", 30, "Stavanger"),
-        Activity(R.drawable.svomming, "Svømming", "Beskrivelse", "Alle aldre", 30, "Stavanger")
-    )
-    val tabTitles = listOf("Forslag", "Fest", "Festival", "Trening", "Mat")
-    val pagerState = rememberPagerState(pageCount = { tabTitles.size })
-    val coroutineScope = rememberCoroutineScope()
-    val title = remember { mutableStateOf("Populære aktiviteter") }
+fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hiltViewModel()) {
+    // Observer kategorier fra ViewModel
+    val categories = viewModel.getCategories().observeAsState(initial = emptyList())
+    // Observer aktiviteter for den valgte kategorien ("Festivaler" som et eksempel)
+    val activities = viewModel.getActivities("Festivaler").observeAsState(initial = emptyList())
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Tab row
-        ScrollableTabRow(selectedTabIndex = pagerState.currentPage, edgePadding = 2.dp) {
-            tabTitles.forEachIndexed { index, tabTitle ->
-                Tab(
-                    text = { Text(tabTitle) },
-                    selected = pagerState.currentPage == index,
-                    modifier = Modifier.padding(10.dp),
-                    onClick = {
-                        coroutineScope.launch {
-                            pagerState.animateScrollToPage(index)
-                        }
-                        title.value = tabTitle
-                    }
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Title for the section
+    // Viser kategorien og aktivitetene på skjermen
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        // Vis kategorien
         Text(
-            text = title.value,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .padding(start = 16.dp)
-                .align(Alignment.Start)
+            text = if (categories.value.isNotEmpty()) categories.value[0] else "Ingen kategorier funnet",
+            style = MaterialTheme.typography.headlineLarge
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // List of activities
-        LazyColumn(
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(activities) { activity ->
-                ActivityItem(activity = activity) {
-                    // Naviger til detaljskjermen med aktivitetens informasjon
-                    navController.navigate("detail")
-                }
-            }
+        // Sjekker om det er aktiviteter og viser dem
+        if (activities.value.isNotEmpty()) {
+            // Vis detaljer om den første aktiviteten i listen
+            val activity = activities.value[0]   // Henter den første aktiviteten
+            ActivityDetails(activity = activity)
+        } else {
+            Text(text = "Ingen aktiviteter funnet", style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
 
 @Composable
-fun ActivityItem(activity: Activity, onClick: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-    ) {
-        Image(
-            painter = painterResource(id = activity.imageResId),
-            contentDescription = activity.title,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .clip(RoundedCornerShape(16.dp)),
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = activity.title,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.align(Alignment.Start)
-        )
+fun ActivityDetails(activity: Activity) {
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text(text = "Tittel: ${activity.title}", style = MaterialTheme.typography.titleLarge)
+        Text(text = "Beskrivelse: ${activity.description}", style = MaterialTheme.typography.bodyMedium)
+        Text(text = "Sted: ${activity.location}", style = MaterialTheme.typography.bodySmall)
+        Text(text = "Aldersgruppe: ${activity.ageGroup}", style = MaterialTheme.typography.bodySmall)
+        Text(text = "Maks deltakere: ${activity.maxParticipants}", style = MaterialTheme.typography.bodySmall)
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    HomeScreen(rememberNavController())
 }

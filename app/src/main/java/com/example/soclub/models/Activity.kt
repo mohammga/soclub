@@ -5,6 +5,6 @@ data class Activity(
     val title: String = "",
     val description: String = "",
     val ageGroup: String = "",
-    val maxParticipants: Int = 0,
+    val maxParticipants: String = "",
     val location: String = ""
 )
