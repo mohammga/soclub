@@ -24,6 +24,10 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import com.example.soclub.R
+import androidx.compose.foundation.pager.HorizontalPager
+
+
+
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -31,30 +35,25 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
     // Henter kategorier fra ViewModel (som blir brukt som tabs)
     val categories by viewModel.getCategories().observeAsState(emptyList())
 
-    // Henter aktiviteter for valgt kategori fra ViewModel
-    var selectedCategory by remember { mutableStateOf("Festivaler") }
-    val activities by viewModel.getActivities(selectedCategory).observeAsState(emptyList())
-
-    val pagerState = rememberPagerState(pageCount = { categories.size })
+    // Behandler hvilken kategori som er valgt
     val coroutineScope = rememberCoroutineScope()
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { categories.size })
 
     Column(modifier = Modifier.fillMaxSize()) {
 
         // Dynamisk Tab row for kategoriene fra databasen
         if (categories.isNotEmpty()) {
             ScrollableTabRow(
-                selectedTabIndex = categories.indexOf(selectedCategory),
+                selectedTabIndex = pagerState.currentPage,  // Synkronisert med PagerState
                 edgePadding = 2.dp
             ) {
                 categories.forEachIndexed { index, category ->
                     Tab(
                         text = { Text(category) },
-                        selected = selectedCategory == category,
-                        modifier = Modifier.padding(10.dp),
+                        selected = pagerState.currentPage == index,  // Vis den riktige linjen
                         onClick = {
                             coroutineScope.launch {
-                                pagerState.animateScrollToPage(index)
-                                selectedCategory = category
+                                pagerState.scrollToPage(index)  // Oppdater siden basert på valgt kategori
                             }
                         }
                     )
@@ -64,27 +63,26 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Tittel for den valgte kategorien
-        Text(
-            text = "Populære aktiviteter i $selectedCategory",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .padding(start = 16.dp)
-                .align(Alignment.Start)
-        )
+        // Innholdet basert på valgt kategori
+        HorizontalPager(
+            state = pagerState,
 
-        Spacer(modifier = Modifier.height(16.dp))
+        ) { page ->
+            // Henter aktiviteter basert på den valgte kategorien (via index)
+            val selectedCategory = categories[page]
+            val activities by viewModel.getActivities(selectedCategory).observeAsState(emptyList())
 
-        // Liste over aktiviteter hentet fra Firestore for den valgte kategorien
-        LazyColumn(
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(activities) { activity ->
-                ActivityItem(activity = activity) {
-                    // Naviger til detaljskjerm med aktivitetens informasjon
-                    navController.navigate("detail")
+            // Liste over aktiviteter for valgt kategori
+            LazyColumn(
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(activities) { activity ->
+                    ActivityItem(activity = activity) {
+                        // Naviger til detaljskjerm med aktivitetens informasjon
+                        navController.navigate("detail")
+                    }
                 }
             }
         }
@@ -98,10 +96,10 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable { onClick() }
     ) {
-        // Statisk placeholder bilde
+
         Image(
-            painter = painterResource(id = R.drawable.yoga), // Bytt med ditt eget statiske bilde
-            contentDescription = activity.title ?: "Aktivitet",
+            painter = painterResource(id = R.drawable.yoga), // Bruk et statisk bilde som placeholder
+            contentDescription = activity.title,
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
