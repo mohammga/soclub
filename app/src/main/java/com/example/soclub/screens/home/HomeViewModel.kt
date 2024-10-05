@@ -22,6 +22,9 @@ class HomeViewModel @Inject constructor(
     // Hent aktiviteter for en valgt kategori fra Firestore, returnerer LiveData
     fun getActivities(category: String) = liveData(Dispatchers.IO) {
         val activities = activityService.getActivities(category)
+        println("Henter aktiviteter for kategori: $category")
+        println("Antall aktiviteter hentet: ${activities.size}")
         emit(activities)
     }
+
 }

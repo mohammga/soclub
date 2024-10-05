@@ -114,11 +114,15 @@ fun AppNavigation(navController: NavHostController, activityService: ActivitySer
                 HomeScreen(navController)
             }
             composable(
-                route = "detail/{activityId}",
-                arguments = listOf(navArgument("activityId") { type = NavType.StringType })
+                route = "detail/{category}/{activityId}",
+                arguments = listOf(
+                    navArgument("category") { type = NavType.StringType },
+                    navArgument("activityId") { type = NavType.StringType }
+                )
             ) { backStackEntry ->
+                val category = backStackEntry.arguments?.getString("category")
                 val activityId = backStackEntry.arguments?.getString("activityId")
-                ActivityDetailScreen(navController, activityId, activityService)
+                ActivityDetailScreen(navController, category, activityId, activityService)
             }
             composable(AppScreens.ENTRIES.name) {
                 EntriesScreen(navController)

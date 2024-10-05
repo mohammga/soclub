@@ -32,17 +32,17 @@ import com.example.soclub.service.ActivityService
 @Composable
 fun ActivityDetailScreen(
     navController: NavController,
+    category: String?,   // Ta imot kategori
     activityId: String?,
     activityService: ActivityService
 ) {
     val activity = remember { mutableStateOf<Activity?>(null) }
 
-    LaunchedEffect(activityId) {
-        if (activityId != null) {
-            val fetchedActivity = activityService.getActivityById("Festivaler", activityId) // Du må sende inn riktig kategori her
+    LaunchedEffect(activityId, category) {
+        if (activityId != null && category != null) {
+            val fetchedActivity = activityService.getActivityById(category, activityId) // Bruk riktig kategori
+            println("Hentet aktivitet: $fetchedActivity")
             activity.value = fetchedActivity
-
-            println("Hentet aktivitet: ${activity.value}")
         }
     }
 

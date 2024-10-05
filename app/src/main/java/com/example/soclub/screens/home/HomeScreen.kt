@@ -69,8 +69,9 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
             ) {
                 items(activities) { activity ->
                     ActivityItem(activity = activity) {
-                        // Navigasjon til detaljskjerm, bruk aktivitetens Firestore-ID
-                        navController.navigate("detail/${activity.id}")
+
+                        navController.navigate("detail/${selectedCategory}/${activity.id}")
+
                     }
                 }
             }
@@ -107,7 +108,7 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             modifier = Modifier.align(Alignment.Start)
         )
         Text(text = activity.description ?: "Ingen beskrivelse", style = MaterialTheme.typography.bodyMedium)
-        Text(text = "Sted: ${activity.location ?: "Ukjent"}", style = MaterialTheme.typography.bodySmall)
-        Text(text = "Aldersgruppe: ${activity.ageGroup ?: "Uspesifisert"}", style = MaterialTheme.typography.bodySmall)
+//        Text(text = "Sted: ${activity.location ?: "Ukjent"}", style = MaterialTheme.typography.bodySmall)
+//        Text(text = "Aldersgruppe: ${activity.ageGroup ?: "Uspesifisert"}", style = MaterialTheme.typography.bodySmall)
     }
 }
