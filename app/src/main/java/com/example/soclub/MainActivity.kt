@@ -9,13 +9,19 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.navigation.compose.rememberNavController
 import com.example.soclub.components.navigation.AppNavigation
+import com.example.soclub.service.ActivityService
 import com.example.soclub.ui.theme.SoclubTheme
 import dagger.hilt.android.AndroidEntryPoint
-
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    // Injiser ActivityService via Hilt
+    @Inject
+    lateinit var activityService: ActivityService
 
     private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
     private var isLocationPermissionGranted = false
@@ -37,7 +43,8 @@ class MainActivity : ComponentActivity() {
         // Set the content of the activity
         setContent {
             SoclubTheme {
-                AppNavigation()
+                val navController = rememberNavController()
+                AppNavigation(navController, activityService)  // Passer ActivityService til AppNavigation
             }
         }
     }
@@ -59,4 +66,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-

@@ -8,4 +8,5 @@ interface ActivityService {
     suspend fun getCategories(): List<String>
     suspend fun updateActivity(category: String, documentId: String, activity: Activity)
     suspend fun deleteActivity(category: String, documentId: String)
+    suspend fun getActivityById(category: String, activityId: String): Activity?
 }

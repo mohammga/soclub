@@ -15,16 +15,29 @@ class ActivityServiceImpl @Inject constructor(
             .collection("activities").add(activity).await()
     }
 
+
     override suspend fun getActivities(category: String): List<Activity> {
-        val snapshot = firestore.collection("activities").document(category)
+        val snapshot = firestore.collection("category").document(category)
             .collection("activities").get().await()
         return snapshot.documents.mapNotNull { document ->
-            document.toObject(Activity::class.java)
+            val activity = document.toObject(Activity::class.java)
+            activity?.copy(id = document.id)  // Legger til Firestore-dokument-ID-en som aktivitetens ID
         }
     }
 
+    override suspend fun getActivityById(category: String, activityId: String): Activity? {
+        val document = firestore.collection("category")
+            .document(category)
+            .collection("activities")
+            .document(activityId)
+            .get()
+            .await()
+
+        return document.toObject(Activity::class.java)
+    }
+
     override suspend fun getCategories(): List<String> {
-        val snapshot = firestore.collection("activities").get().await()
+        val snapshot = firestore.collection("category").get().await()
         return snapshot.documents.map { document ->
             document.id  // Returnerer dokument-ID-ene som tilsvarer kategorinavnene
         }

@@ -28,32 +28,27 @@ import androidx.compose.foundation.pager.HorizontalPager
 
 
 
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hiltViewModel()) {
-    // Henter kategorier fra ViewModel (som blir brukt som tabs)
     val categories by viewModel.getCategories().observeAsState(emptyList())
-
-    // Behandler hvilken kategori som er valgt
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { categories.size })
 
     Column(modifier = Modifier.fillMaxSize()) {
 
-        // Dynamisk Tab row for kategoriene fra databasen
         if (categories.isNotEmpty()) {
             ScrollableTabRow(
-                selectedTabIndex = pagerState.currentPage,  // Synkronisert med PagerState
+                selectedTabIndex = pagerState.currentPage,
                 edgePadding = 2.dp
             ) {
                 categories.forEachIndexed { index, category ->
                     Tab(
                         text = { Text(category) },
-                        selected = pagerState.currentPage == index,  // Vis den riktige linjen
+                        selected = pagerState.currentPage == index,
                         onClick = {
                             coroutineScope.launch {
-                                pagerState.scrollToPage(index)  // Oppdater siden basert på valgt kategori
+                                pagerState.scrollToPage(index)
                             }
                         }
                     )
@@ -63,16 +58,10 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Innholdet basert på valgt kategori
-        HorizontalPager(
-            state = pagerState,
-
-        ) { page ->
-            // Henter aktiviteter basert på den valgte kategorien (via index)
+        HorizontalPager(state = pagerState) { page ->
             val selectedCategory = categories[page]
             val activities by viewModel.getActivities(selectedCategory).observeAsState(emptyList())
 
-            // Liste over aktiviteter for valgt kategori
             LazyColumn(
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -80,14 +69,15 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
             ) {
                 items(activities) { activity ->
                     ActivityItem(activity = activity) {
-                        // Naviger til detaljskjerm med aktivitetens informasjon
-                        navController.navigate("detail")
+                        // Navigasjon til detaljskjerm, bruk aktivitetens Firestore-ID
+                        navController.navigate("detail/${activity.id}")
                     }
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun ActivityItem(activity: Activity, onClick: () -> Unit) {
