@@ -38,10 +38,16 @@ class ActivityServiceImpl @Inject constructor(
 
     override suspend fun getCategories(): List<String> {
         val snapshot = firestore.collection("category").get().await()
-        return snapshot.documents.map { document ->
+
+        // Hent alle kategorier (dokument-ID-er)
+        val categories = snapshot.documents.map { document ->
             document.id  // Returnerer dokument-ID-ene som tilsvarer kategorinavnene
         }
+
+        // Sorter slik at "Forslag" kommer først
+        return categories.sortedByDescending { it == "Forslag" }
     }
+
 
     override suspend fun updateActivity(category: String, documentId: String, activity: Activity) {
         firestore.collection("activities").document(category)

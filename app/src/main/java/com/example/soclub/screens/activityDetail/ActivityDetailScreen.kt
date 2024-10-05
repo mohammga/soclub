@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
@@ -49,17 +50,26 @@ fun ActivityDetailScreen(
     // Render innholdet basert på aktivitetens data
     LazyColumn(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
+            .fillMaxSize(),
         horizontalAlignment = Alignment.Start
     ) {
         item { ActivityImage() }
-        item { ActivityTitle(activity.value?.title ?: "Ingen tittel") }
-        item { ActivityDate() }
-        item { InfoRow(activity.value?.location ?: "Ukjent", activity.value?.ageGroup ?: "Alle") }
-        item { ActivityDescription(activity.value?.description ?: "Ingen beskrivelse") }
-        item { ActivityGPSImage() }
-        item { ActivityRegisterButton() }
+
+        item {
+            Box(
+                modifier = Modifier
+                    .padding(16.dp)
+            ) {
+                Column {
+                    ActivityTitle(activity.value?.title ?: "Ingen tittel")
+                    ActivityDate()
+                    InfoRow(activity.value?.location ?: "Ukjent", activity.value?.ageGroup ?: "Alle")
+                    ActivityDescription(activity.value?.description ?: "Ingen beskrivelse")
+                    ActivityGPSImage()
+                    ActivityRegisterButton()
+                }
+            }
+        }
     }
 }
 
@@ -109,6 +119,7 @@ fun ActivityGPSImage() {
         modifier = Modifier
             .fillMaxWidth()
             .height(250.dp)
+            .clip(RoundedCornerShape(16.dp))
             .padding(vertical = 8.dp),
         contentScale = ContentScale.Crop
     )
