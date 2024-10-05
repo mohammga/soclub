@@ -9,93 +9,76 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
+import com.example.soclub.models.Activity
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import com.example.soclub.R
+import androidx.compose.foundation.pager.HorizontalPager
 
-data class Activity(
-    val imageResId: Int,
-    val title: String,
-    val description: String,
-    val ageGroup: Any,
-    val maxParticipants: Any,
-    val location: Any
-)
+
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun HomeScreen(navController: NavHostController) {
-    val activities = listOf(
-        Activity(R.drawable.yoga, "Yoga", "Beskrivelse", "18+", 20, "Oslo"),
-        Activity(R.drawable.kaffe, "Kaffe", "Beskrivelse", "Alle aldre", 10, "Bergen"),
-        Activity(R.drawable.svomming, "Svømming", "Beskrivelse", "Alle aldre", 30, "Stavanger"),
-        Activity(R.drawable.svomming, "Svømming", "Beskrivelse", "Alle aldre", 30, "Stavanger")
-    )
-    val tabTitles = listOf("Forslag", "Fest", "Festival", "Trening", "Mat")
-    val pagerState = rememberPagerState(pageCount = { tabTitles.size })
+fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hiltViewModel()) {
+    val categories by viewModel.getCategories().observeAsState(emptyList())
     val coroutineScope = rememberCoroutineScope()
-    val title = remember { mutableStateOf("Populære aktiviteter") }
+    val pagerState = rememberPagerState(initialPage = 0, pageCount = { categories.size })
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Tab row
-        ScrollableTabRow(selectedTabIndex = pagerState.currentPage, edgePadding = 2.dp) {
-            tabTitles.forEachIndexed { index, tabTitle ->
-                Tab(
-                    text = { Text(tabTitle) },
-                    selected = pagerState.currentPage == index,
-                    modifier = Modifier.padding(10.dp),
-                    onClick = {
-                        coroutineScope.launch {
-                            pagerState.animateScrollToPage(index)
+
+        if (categories.isNotEmpty()) {
+            ScrollableTabRow(
+                selectedTabIndex = pagerState.currentPage,
+                edgePadding = 2.dp
+            ) {
+                categories.forEachIndexed { index, category ->
+                    Tab(
+                        text = { Text(category) },
+                        selected = pagerState.currentPage == index,
+                        onClick = {
+                            coroutineScope.launch {
+                                pagerState.scrollToPage(index)
+                            }
                         }
-                        title.value = tabTitle
-                    }
-                )
+                    )
+                }
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Title for the section
-        Text(
-            text = title.value,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .padding(start = 16.dp)
-                .align(Alignment.Start)
-        )
+        HorizontalPager(state = pagerState) { page ->
+            val selectedCategory = categories[page]
+            val activities by viewModel.getActivities(selectedCategory).observeAsState(emptyList())
 
-        Spacer(modifier = Modifier.height(16.dp))
+            LazyColumn(
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(activities) { activity ->
+                    ActivityItem(activity = activity) {
 
-        // List of activities
-        LazyColumn(
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(activities) { activity ->
-                ActivityItem(activity = activity) {
-                    // Naviger til detaljskjermen med aktivitetens informasjon
-                    navController.navigate("detail")
+                        navController.navigate("detail/${selectedCategory}/${activity.id}")
+
+                    }
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun ActivityItem(activity: Activity, onClick: () -> Unit) {
@@ -104,27 +87,28 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable { onClick() }
     ) {
+
         Image(
-            painter = painterResource(id = activity.imageResId),
+            painter = painterResource(id = R.drawable.yoga), // Bruk et statisk bilde som placeholder
             contentDescription = activity.title,
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp)
-                .clip(RoundedCornerShape(16.dp)),
+                .clip(RoundedCornerShape(16.dp))
         )
+
         Spacer(modifier = Modifier.height(8.dp))
+
+        // Viser aktivitetens tittel og informasjon hentet fra Firestore
         Text(
-            text = activity.title,
+            text = activity.title ?: "Ingen tittel",
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.align(Alignment.Start)
         )
+//        Text(text = activity.description ?: "Ingen beskrivelse", style = MaterialTheme.typography.bodyMedium)
+//        Text(text = "Sted: ${activity.location ?: "Ukjent"}", style = MaterialTheme.typography.bodySmall)
+//        Text(text = "Aldersgruppe: ${activity.ageGroup ?: "Uspesifisert"}", style = MaterialTheme.typography.bodySmall)
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    HomeScreen(rememberNavController())
 }

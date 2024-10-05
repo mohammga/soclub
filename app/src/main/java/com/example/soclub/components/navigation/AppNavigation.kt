@@ -7,9 +7,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.soclub.components.navigation.navBars.BottomNavBar
 import com.example.soclub.components.navigation.navBars.TopBar
 import com.example.soclub.components.navigation.navBars.getCurrentScreen
@@ -23,11 +26,12 @@ import com.example.soclub.screens.profile.ProfileScreen
 import com.example.soclub.screens.signin.SigninScreen
 import com.example.soclub.screens.signup.SignupScreen;
 import com.example.soclub.screens.start.StartScreen;
+import com.example.soclub.service.ActivityService
 import com.example.soclub.service.impl.AccountServiceImpl
 import com.example.soclub.service.module.FirebaseModule
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(navController: NavHostController, activityService: ActivityService) {
     val navController = rememberNavController()
     val currentScreen = getCurrentScreen(navController)
 
@@ -109,8 +113,16 @@ fun AppNavigation() {
             composable(AppScreens.HOME.name) {
                 HomeScreen(navController)
             }
-            composable(AppScreens.DETAIL.name) {
-                ActivityDetailScreen(navController)
+            composable(
+                route = "detail/{category}/{activityId}",
+                arguments = listOf(
+                    navArgument("category") { type = NavType.StringType },
+                    navArgument("activityId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val category = backStackEntry.arguments?.getString("category")
+                val activityId = backStackEntry.arguments?.getString("activityId")
+                ActivityDetailScreen(navController, category, activityId, activityService)
             }
             composable(AppScreens.ENTRIES.name) {
                 EntriesScreen(navController)
