@@ -31,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material3.Icon
+import coil.compose.rememberImagePainter
 
 @Composable
 fun ActivityDetailScreen(
@@ -55,7 +56,7 @@ fun ActivityDetailScreen(
             .fillMaxSize(),
         horizontalAlignment = Alignment.Start
     ) {
-        item { ActivityImage() }
+        item { ActivityImage(imageUrl = activity.value?.imageUrl ?: "") }
 
         item {
             Box(
@@ -87,13 +88,15 @@ fun ActivityDetailScreen(
 }
 
 @Composable
-fun ActivityImage() {
+fun ActivityImage(imageUrl: String) {
     Image(
-        painter = painterResource(id = R.drawable.yoga),
-        contentDescription = "Welcome Image",
+        painter = rememberImagePainter(imageUrl),
+        contentDescription = "Activity Image",
         modifier = Modifier
             .fillMaxWidth()
-            .height(300.dp),
+            .height(300.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .padding(vertical = 8.dp),
         contentScale = ContentScale.Crop
     )
 }
