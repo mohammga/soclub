@@ -32,7 +32,7 @@ fun EditPermissionScreen(
             .fillMaxSize()
             .padding(15.dp)
     ) {
-        // UI for plasseringstillatelse
+
         Text(
             text = "Plassering",
             style = MaterialTheme.typography.bodyLarge.copy(
@@ -56,7 +56,7 @@ fun EditPermissionScreen(
             )
         }
 
-        // UI for kamera
+
         Text(
             text = "Kamera",
             style = MaterialTheme.typography.bodyLarge.copy(
@@ -80,7 +80,7 @@ fun EditPermissionScreen(
             )
         }
 
-        // UI for varslinger
+
         Text(
             text = "Varsling",
             style = MaterialTheme.typography.bodyLarge.copy(
@@ -104,10 +104,10 @@ fun EditPermissionScreen(
             )
         }
 
-        // Lagre-knapp for å lagre endringer
+
         Button(
             onClick = {
-                navController.popBackStack()  // Gå tilbake etter lagring
+                navController.popBackStack()
             },
             modifier = Modifier
                 .padding(top = 20.dp)
@@ -116,7 +116,7 @@ fun EditPermissionScreen(
             Text(text = "Lagre")
         }
 
-        // Tilbakestill-knapp for å sette alle tillatelser tilbake til standard
+
         Button(
             onClick = {
                 viewModel.setLocationPermission(true)
