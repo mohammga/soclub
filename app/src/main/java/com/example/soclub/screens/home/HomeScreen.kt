@@ -107,7 +107,7 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             fontWeight = FontWeight.Medium,
             modifier = Modifier.align(Alignment.Start)
         )
-        Text(text = activity.description ?: "Ingen beskrivelse", style = MaterialTheme.typography.bodyMedium)
+//        Text(text = activity.description ?: "Ingen beskrivelse", style = MaterialTheme.typography.bodyMedium)
 //        Text(text = "Sted: ${activity.location ?: "Ukjent"}", style = MaterialTheme.typography.bodySmall)
 //        Text(text = "Aldersgruppe: ${activity.ageGroup ?: "Uspesifisert"}", style = MaterialTheme.typography.bodySmall)
     }
