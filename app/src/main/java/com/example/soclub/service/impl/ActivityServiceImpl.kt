@@ -19,11 +19,22 @@ class ActivityServiceImpl @Inject constructor(
     override suspend fun getActivities(category: String): List<Activity> {
         val snapshot = firestore.collection("category").document(category)
             .collection("activities").get().await()
+
         return snapshot.documents.mapNotNull { document ->
             val activity = document.toObject(Activity::class.java)
-            activity?.copy(id = document.id)  // Legger til Firestore-dokument-ID-en som aktivitetens ID
+
+            val fullLocation = activity?.location ?: "Ukjent"
+            val lastWord = fullLocation.substringAfterLast(" ")
+            val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
+
+            activity?.copy(
+                id = document.id,
+                location = lastWord,  // Her setter vi siste ord som location
+                description = restOfAddress // Bruker beskrivelsefeltet midlertidig for resten av adressen
+            )
         }
     }
+
 
     override suspend fun getActivityById(category: String, activityId: String): Activity? {
         val documentSnapshot = firestore.collection("category")
@@ -33,8 +44,20 @@ class ActivityServiceImpl @Inject constructor(
             .get()
             .await()
 
-        return documentSnapshot.toObject(Activity::class.java)
+        val activity = documentSnapshot.toObject(Activity::class.java)
+
+        val fullLocation = activity?.location ?: "Ukjent"
+        val lastWord = fullLocation.substringAfterLast(" ")
+        val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
+
+        return activity?.copy(
+            location = lastWord,
+            restOfAddress = restOfAddress  // Fyll inn resten av adressen her
+        )
     }
+
+
+
 
     override suspend fun getCategories(): List<String> {
         val snapshot = firestore.collection("category").get().await()

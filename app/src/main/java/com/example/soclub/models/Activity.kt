@@ -10,7 +10,8 @@ data class Activity(
     val description: String = "",
     val ageGroup: String = "",
     val maxParticipants: String = "",
-    val location: String = ""
+    val location: String = "",
+    val restOfAddress: String = ""
 )
 
 //data class Activity2(

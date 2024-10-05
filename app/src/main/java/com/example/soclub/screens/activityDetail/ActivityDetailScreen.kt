@@ -9,7 +9,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,13 +21,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.soclub.R
 import com.example.soclub.models.Activity
 import com.example.soclub.service.ActivityService
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.People
+import androidx.compose.material3.Icon
 
 @Composable
 fun ActivityDetailScreen(
@@ -63,8 +65,19 @@ fun ActivityDetailScreen(
                 Column {
                     ActivityTitle(activity.value?.title ?: "Ingen tittel")
                     ActivityDate()
-                    InfoRow(activity.value?.location ?: "Ukjent", activity.value?.ageGroup ?: "Alle")
+                    InfoRow(
+                        icon = Icons.Default.LocationOn,
+                        mainText = activity.value?.location ?: "Ukjent",
+                        subText = activity.value?.restOfAddress ?: "Ukjent adresse"
+                    )
+                    // Andre InfoRow med personer-ikon
+                    InfoRow(
+                        icon = Icons.Default.People,
+                        mainText = "Maks ${activity.value?.maxParticipants ?: "Ukjent"}",
+                        subText = "Aldersgruppe: ${activity.value?.ageGroup ?: "Alle"}"
+                    )
                     ActivityDescription(activity.value?.description ?: "Ingen beskrivelse")
+
                     ActivityGPSImage()
                     ActivityRegisterButton()
                 }
@@ -141,7 +154,7 @@ fun ActivityRegisterButton() {
 
 
 @Composable
-fun InfoRow(mainText: String, subText: String) {
+fun InfoRow(icon: androidx.compose.ui.graphics.vector.ImageVector, mainText: String, subText: String) {
     Row(
         modifier = Modifier.padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -149,7 +162,7 @@ fun InfoRow(mainText: String, subText: String) {
         Box(
             modifier = Modifier.padding(end = 16.dp)
         ) {
-            ElevatedCardExample()
+            ElevatedCardExample(icon = icon)
         }
         Column {
             Text(
@@ -166,7 +179,7 @@ fun InfoRow(mainText: String, subText: String) {
 }
 
 @Composable
-fun ElevatedCardExample() {
+fun ElevatedCardExample(icon:androidx.compose.ui.graphics.vector.ImageVector) {
     ElevatedCard(
         modifier = Modifier.size(50.dp),
         colors = CardDefaults.elevatedCardColors(containerColor = Color.LightGray)
@@ -175,13 +188,12 @@ fun ElevatedCardExample() {
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(R.drawable.ic_action_name),
-                contentDescription = "Profile Picture",
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
                 modifier = Modifier
                     .size(30.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
+
             )
         }
     }
