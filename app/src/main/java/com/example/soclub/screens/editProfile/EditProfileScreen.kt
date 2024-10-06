@@ -8,8 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,6 +29,11 @@ import com.example.soclub.R
 @Composable
 fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState
+
+    // Bruk LaunchedEffect for å hente profilinformasjonen når skjermen vises
+    LaunchedEffect(Unit) {
+        viewModel.loadUserProfile()
+    }
 
     Column(
         modifier = Modifier
@@ -86,6 +90,7 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Brukerens navn og e-post vises nå automatisk i input-feltene
         ProfileTextField(
             label = stringResource(id = R.string.profile_name_label),
             value = uiState.name,
@@ -107,7 +112,7 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
             )
         }
 
-        SaveButton(onClick = { viewModel.onSaveProfileClick() })
+        SaveButton(onClick = { viewModel.onSaveProfileClick(navController) })
     }
 }
 
