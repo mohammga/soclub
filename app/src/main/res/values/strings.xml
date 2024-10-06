@@ -3,19 +3,27 @@
     <!-- Generelle strenger -->
     <string name="location_permission_not_granted">Location Permission not granted</string>
 
-    <string name="home">Hjem</string>
-    <string name="entries">Mine Påmeldinger</string>
+    <string name="home">Forside</string>
+    <string name="notifications">Varslinger</string>
+    <string name="new_activity">Ny annonse</string>
+    <string name="entries">Påmeldinger</string>
     <string name="profile">Profil</string>
 
     <!--StartScreen -->
     <string name="app_name">SoClub</string>
-    <string name="welcome_message">Velkommen til SoClub-app for sosialisering\nog deltakelse i ulike aktiviteter.</string>
-    <string name="continue_button">Fortsett</string>
-    <string name="welcome_image_description">Velkomstbilde</string>
+    <string name="welcome_message">
+        Logg på for å få<br />
+        tilgang til det beste av<br />
+        SoClub.
+    </string>
+    <string name="signing_in">Logger inn...</string>
+    <string name="error_google_signin_failed">Innlogging med Google feilet</string>
+    <string name="continue_with_email_button">Fortsett med e-postadresse</string>
+    <string name="continue_with_google_button">Fortsett med Google</string>
 
     <!--SigninScreen-->
-    <string name="dont_have_account">Har du ikke en konto?</string>
-    <string name="create_account">Opprett en konto</string>
+    <string name="welcome_back">Velkommen tilbake.</string>
+    <string name="reset">Har du glemt passordet?</string>
     <string name="hide_password">Skjul passord</string>
     <string name="show_password">Vis passord</string>
     <string name="email">E-postadresse</string>
@@ -32,6 +40,7 @@
     <string name="error_could_not_send_reset_email">Kunne ikke sende tilbakestillingsmail</string>
 
     <!--SignupScreen-->
+    <string name="join_us">Bli SoClub-medlem.</string>
     <string name="placeholder_name">Navn</string>
     <string name="placeholder_email">E-postadresse</string>
     <string name="placeholder_password">Passord</string>
@@ -46,12 +55,19 @@
     <string name="error_invalid_password">Passordet er ugyldig</string>
     <string name="error_account_creation">Kunne ikke opprette konto</string>
 
+    <!--ResetPasswordScreen-->
+    <string name="reset_password_text">Skriv inn e-postadressen du brukte til å registrere deg.</string>
+    <string name="reset_password_info">Vi sender deg en e-postmelding med tilbakestilling av passord.</string>
+    <string name="send_email">Send e-post</string>
+
+
     <!--ProfileScreen-->
     <string name="profile_picture_description">Profilbilde</string>
     <string name="edit_profile_button">Rediger profil</string>
     <string name="account_info_section">Min konto</string>
     <string name="label_name">Navn</string>
     <string name="label_email">E-post</string>
+    <string name="label_ads">Mine annonser</string>
     <string name="label_password">Passord</string>
     <string name="label_permissions">Tillatelser</string>
     <string name="logout_button">Logg ut</string>
@@ -72,4 +88,6 @@
     <string name="confirm_new_password_label">Bekreft nytt passord</string>
     <string name="update_password_button">Oppdater passord</string>
     <string name="password_mismatch_error">Passordene stemmer ikke overens</string>
+    <string name="placeholder_age">Alder</string>
+    <string name="error_age_required">Alder er påkrevd</string>
 </resources>

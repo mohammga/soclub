@@ -12,7 +12,20 @@
           "package_name": "com.example.soclub"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "673560655609-2u3p2gcjfh496f0raapcqsi3tnntbqbe.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.soclub",
+            "certificate_hash": "de4676b707205203f8936278ad4457549df89cbe"
+          }
+        },
+        {
+          "client_id": "673560655609-vm7rb0618an58b8r4m35a0m2olcn64a0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCWjZFBZhMs5PcmlNAOgI5BHkIHAOEfLjU"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "673560655609-vm7rb0618an58b8r4m35a0m2olcn64a0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

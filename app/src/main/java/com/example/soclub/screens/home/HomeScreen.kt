@@ -58,6 +58,19 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        //lagt til tittel sjekk om riktig
+        val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
+        Text(
+            text = selectedCategory,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .padding(start = 16.dp)
+                .align(Alignment.Start)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         HorizontalPager(state = pagerState) { page ->
             val selectedCategory = categories[page]
             val activities by viewModel.getActivities(selectedCategory).observeAsState(emptyList())
