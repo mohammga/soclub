@@ -5,6 +5,7 @@ import com.example.soclub.models.UserInfo
 import com.example.soclub.service.AccountService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.EmailAuthProvider
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -43,10 +44,6 @@ class AccountServiceImpl @Inject constructor(
         return documentSnapshot.toObject(UserInfo::class.java) ?: throw Exception("User data not found")
     }
 
-    override suspend fun createAnonymousAccount() {
-        auth.signInAnonymously().await()
-    }
-
     override suspend fun authenticateWithEmail(
         email: String,
         password: String,
@@ -60,6 +57,7 @@ class AccountServiceImpl @Inject constructor(
         email: String,
         password: String,
         name: String,
+        age: String,
         onResult: (Throwable?) -> Unit
     ) {
         auth.createUserWithEmailAndPassword(email, password)
@@ -69,19 +67,23 @@ class AccountServiceImpl @Inject constructor(
                     user?.let {
                         val userData = hashMapOf(
                             "email" to email,
-                            "name" to name
+                            "name" to name,
+                            "age" to age
                         )
                         firestore.collection("users").document(it.uid)
                             .set(userData)
                             .addOnCompleteListener { firestoreTask ->
                                 onResult(firestoreTask.exception)
                             }
+                    } ?: run {
+                        onResult(Exception("User is null after registration"))
                     }
                 } else {
                     onResult(task.exception)
                 }
             }.await()
     }
+
 
     override suspend fun signOut() {
         auth.signOut()
@@ -105,7 +107,7 @@ class AccountServiceImpl @Inject constructor(
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         // Oppdater e-posten i Firebase Authentication
-                        it.updateEmail(email)
+                        it.verifyBeforeUpdateEmail(email)
                             .addOnCompleteListener { emailUpdateTask ->
                                 onResult(emailUpdateTask.exception)
                             }
@@ -116,16 +118,8 @@ class AccountServiceImpl @Inject constructor(
         }
     }
 
-    override suspend fun changePassword(
-        oldPassword: String,
-        newPassword: String,
-        onResult: (Throwable?) -> Unit
-    ) {
-        TODO("Not yet implemented")
-    }
-
     // Implementasjon for å endre passord
-    suspend fun updatePassword(
+    override suspend fun changePassword(
         oldPassword: String,
         newPassword: String,
         onResult: (Throwable?) -> Unit

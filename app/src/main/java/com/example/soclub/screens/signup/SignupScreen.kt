@@ -1,6 +1,5 @@
 package com.example.soclub.screens.signup
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -19,10 +18,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -38,16 +35,26 @@ fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hilt
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
+        Text(
+            text = stringResource(id = R.string.join_us),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
         NameField(value = uiState.name, viewModel::onNameChange)
+
+        AgeField(value = uiState.age, viewModel::onAgeChange)
+
         EmailField(value = uiState.email, viewModel::onEmailChange)
+
         PasswordField(value = uiState.password, viewModel::onPasswordChange)
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
-        TermsAndConditions()
 
         if (errorMessage.isNotEmpty()) {
             Text(
@@ -58,11 +65,12 @@ fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hilt
                     .padding(top = 10.dp)
             )
         }
-        SignInText(navController)
 
-        Spacer(modifier = Modifier.weight(1f))
+        SignUpButton(navController, viewModel)
 
-        RegisterButton(navController, viewModel)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        SignInButton(navController)
     }
 }
 
@@ -75,6 +83,20 @@ fun NameField(value: String, onNewValue: (String) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
+        singleLine = true
+    )
+}
+
+@Composable
+fun AgeField(value: String, onNewValue: (String) -> Unit) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = { onNewValue(it) },
+        placeholder = { Text(stringResource(id = R.string.placeholder_age)) }, // Ensure you have this string defined
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), // Set keyboard type to Number
         singleLine = true
     )
 }
@@ -129,46 +151,32 @@ fun PasswordField(
 }
 
 @Composable
-fun TermsAndConditions() {
-    Text(
-        text = stringResource(id = R.string.terms_and_conditions),
-        fontSize = 12.sp,
-        color = Color.Gray,
-        textAlign = TextAlign.Center,
-        modifier = Modifier.padding(vertical = 8.dp)
-    )
-}
-
-@Composable
-fun SignInText(navController: NavController) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Text(text = stringResource(id = R.string.already_have_account))
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(
-            text = stringResource(id = R.string.sign_in),
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
-            modifier = Modifier.clickable {
-                navController.navigate("signin")
-            }
-        )
-    }
-}
-
-@Composable
-private fun RegisterButton(navController: NavController, viewModel: SignupViewModel) {
+private fun SignUpButton(navController: NavController, viewModel: SignupViewModel) {
     Button(
         onClick = { viewModel.onSignUpClick(navController) },
         modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp)
+            .height(60.dp)
     ) {
         Text(text = stringResource(id = R.string.register))
     }
 }
+
+
+@Composable
+fun SignInButton(navController: NavController) {
+    OutlinedButton(
+        onClick = {
+            navController.navigate("signin")
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp)
+    ) {
+        Text(text = stringResource(id = R.string.sign_in))
+    }
+}
+
 
 @Preview(showBackground = true)
 @Composable
