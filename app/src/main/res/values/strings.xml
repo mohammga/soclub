@@ -88,6 +88,17 @@
     <string name="confirm_new_password_label">Bekreft nytt passord</string>
     <string name="update_password_button">Oppdater passord</string>
     <string name="password_mismatch_error">Passordene stemmer ikke overens</string>
+
+
+    <!-- editPermissionScreen  -->
+    <string name="change_plassering_screen_title">Plassering</string>
+    <string name="change_plassering_Promission_screen">Tillat tilgang til plassering</string>
+    <string name="change_Camera_screen_title">Kamera</string>
+    <string name="change_Camera_promission_screen">Tillat tilgang til Kamera</string>
+    <string name="change_notificationPermission_screen_title">Varsling</string>
+    <string name="change_notificationPermission_Promission_screen">Tillat tilgang til Varsling</string>
+
     <string name="placeholder_age">Alder</string>
     <string name="error_age_required">Alder er påkrevd</string>
+
 </resources>
