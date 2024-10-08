@@ -9,4 +9,9 @@ interface ActivityService {
     suspend fun updateActivity(category: String, documentId: String, activity: Activity)
     suspend fun deleteActivity(category: String, documentId: String)
     suspend fun getActivityById(category: String, activityId: String): Activity?
+
+    // Nye metoder for påmelding og avmelding
+    suspend fun isUserRegisteredForActivity(userId: String, activityId: String): Boolean
+    suspend fun registerUserForActivity(userId: String, activityId: String)
+    suspend fun unregisterUserFromActivity(userId: String, activityId: String)
 }

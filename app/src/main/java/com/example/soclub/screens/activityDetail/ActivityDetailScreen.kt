@@ -31,22 +31,34 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material3.Icon
+import androidx.compose.runtime.rememberCoroutineScope
 import coil.compose.rememberImagePainter
+import com.example.soclub.service.AccountService
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
 
 @Composable
 fun ActivityDetailScreen(
     navController: NavController,
     category: String?,   // Ta imot kategori
     activityId: String?,
-    activityService: ActivityService
+    activityService: ActivityService,
+    accountService: AccountService
 ) {
     val activity = remember { mutableStateOf<Activity?>(null) }
+    val isRegistered = remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(activityId, category) {
         if (activityId != null && category != null) {
             val fetchedActivity = activityService.getActivityById(category, activityId) // Bruk riktig kategori
             println("Hentet aktivitet: $fetchedActivity")
             activity.value = fetchedActivity
+
+            // Sjekk om brukeren allerede er påmeldt
+            val userId = accountService.currentUserId
+            val registrationExists = activityService.isUserRegisteredForActivity(userId, activityId)
+            isRegistered.value = registrationExists
         }
     }
 
@@ -80,7 +92,23 @@ fun ActivityDetailScreen(
                     ActivityDescription(activity.value?.description ?: "Ingen beskrivelse")
 
                     ActivityGPSImage()
-                    ActivityRegisterButton()
+                    ActivityRegisterButton(
+                        isRegistered = isRegistered.value,
+                        onRegisterClick = {
+                            coroutineScope.launch {
+                                val userId = accountService.currentUserId
+                                activityService.registerUserForActivity(userId, activityId!!)
+                                isRegistered.value = true  // Oppdater statusen til "påmeldt"
+                            }
+                        },
+                        onUnregisterClick = {
+                            coroutineScope.launch {
+                                val userId = accountService.currentUserId
+                                activityService.unregisterUserFromActivity(userId, activityId!!)
+                                isRegistered.value = false  // Oppdater statusen til "ikke påmeldt"
+                            }
+                        }
+                    )
                 }
             }
         }
@@ -142,18 +170,34 @@ fun ActivityGPSImage() {
 }
 
 @Composable
-fun ActivityRegisterButton() {
+fun ActivityRegisterButton(
+    isRegistered: Boolean,              // Sjekker om brukeren allerede er påmeldt
+    onRegisterClick: () -> Unit,        // Funksjon som utføres ved påmelding
+    onUnregisterClick: () -> Unit       // Funksjon som utføres ved avmelding
+) {
     Button(
-        onClick = { /* Legg til handling for knappen */ },
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+        onClick = {
+            if (isRegistered) {
+                onUnregisterClick()  // Hvis brukeren er påmeldt, meld brukeren av
+            } else {
+                onRegisterClick()  // Hvis brukeren ikke er påmeldt, meld brukeren på
+            }
+        },
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (isRegistered) Color.Red else Color.Black  // Farge basert på tilstanden
+        ),
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 16.dp)
             .height(48.dp)
     ) {
-        Text(text = "Meld deg", color = Color.White)
+        Text(
+            text = if (isRegistered) "Meld deg ut" else "Meld deg på",  // Tekst basert på tilstanden
+            color = Color.White
+        )
     }
 }
+
 
 
 @Composable
