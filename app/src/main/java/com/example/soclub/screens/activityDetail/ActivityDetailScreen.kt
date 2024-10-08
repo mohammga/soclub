@@ -92,23 +92,31 @@ fun ActivityDetailScreen(
                     ActivityDescription(activity.value?.description ?: "Ingen beskrivelse")
 
                     ActivityGPSImage()
+
                     ActivityRegisterButton(
                         isRegistered = isRegistered.value,
                         onRegisterClick = {
                             coroutineScope.launch {
                                 val userId = accountService.currentUserId
-                                activityService.registerUserForActivity(userId, activityId!!)
-                                isRegistered.value = true  // Oppdater statusen til "påmeldt"
+                                if (!isRegistered.value) {
+                                    // Hvis brukeren ikke er registrert, opprett registreringen med status "aktiv"
+                                    activityService.updateRegistrationStatus(userId, activityId!!, "aktiv")
+                                    isRegistered.value = true
+                                }
                             }
                         },
                         onUnregisterClick = {
                             coroutineScope.launch {
                                 val userId = accountService.currentUserId
-                                activityService.unregisterUserFromActivity(userId, activityId!!)
-                                isRegistered.value = false  // Oppdater statusen til "ikke påmeldt"
+                                if (isRegistered.value) {
+                                    // Hvis brukeren er registrert, oppdater statusen til "notAktiv"
+                                    activityService.updateRegistrationStatus(userId, activityId!!, "notAktiv")
+                                    isRegistered.value = false
+                                }
                             }
                         }
                     )
+
                 }
             }
         }
@@ -171,30 +179,25 @@ fun ActivityGPSImage() {
 
 @Composable
 fun ActivityRegisterButton(
-    isRegistered: Boolean,              // Sjekker om brukeren allerede er påmeldt
-    onRegisterClick: () -> Unit,        // Funksjon som utføres ved påmelding
-    onUnregisterClick: () -> Unit       // Funksjon som utføres ved avmelding
+    isRegistered: Boolean,
+    onRegisterClick: () -> Unit,
+    onUnregisterClick: () -> Unit
 ) {
     Button(
         onClick = {
             if (isRegistered) {
-                onUnregisterClick()  // Hvis brukeren er påmeldt, meld brukeren av
+                onUnregisterClick()
             } else {
-                onRegisterClick()  // Hvis brukeren ikke er påmeldt, meld brukeren på
+                onRegisterClick()
             }
         },
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (isRegistered) Color.Red else Color.Black  // Farge basert på tilstanden
-        ),
+        colors = ButtonDefaults.buttonColors(containerColor = if (isRegistered) Color.Red else Color.Black),
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 16.dp)
             .height(48.dp)
     ) {
-        Text(
-            text = if (isRegistered) "Meld deg ut" else "Meld deg på",  // Tekst basert på tilstanden
-            color = Color.White
-        )
+        Text(text = if (isRegistered) "Meld deg ut" else "Meld deg", color = Color.White)
     }
 }
 

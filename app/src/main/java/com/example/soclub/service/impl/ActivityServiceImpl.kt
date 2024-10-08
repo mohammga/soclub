@@ -83,24 +83,43 @@ class ActivityServiceImpl @Inject constructor(
     }
 
     override suspend fun isUserRegisteredForActivity(userId: String, activityId: String): Boolean {
-        val snapshot = firestore.collection("registrations")
+        val registrationRef = firestore.collection("registrations")
             .whereEqualTo("userId", userId)
             .whereEqualTo("activityId", activityId)
-            .get()
-            .await()
+            .get().await()
 
-        return !snapshot.isEmpty
+        return !registrationRef.isEmpty
     }
 
-    override suspend fun registerUserForActivity(userId: String, activityId: String) {
+
+    override suspend fun createRegistration(userId: String, activityId: String, status: String, timestamp: Long) {
         val registrationData = mapOf(
             "userId" to userId,
             "activityId" to activityId,
-            "timestamp" to System.currentTimeMillis()
+            "status" to status,
+            "timestamp" to timestamp
         )
-        firestore.collection("registrations")
-            .add(registrationData)
-            .await()
+        firestore.collection("registrations").add(registrationData).await()
+    }
+
+
+    override suspend fun updateRegistrationStatus(userId: String, activityId: String, status: String): Boolean {
+        val registrationRef = firestore.collection("registrations")
+            .whereEqualTo("userId", userId)
+            .whereEqualTo("activityId", activityId)
+            .get().await()
+
+        return if (!registrationRef.isEmpty) {
+            for (document in registrationRef.documents) {
+                firestore.collection("registrations")
+                    .document(document.id)
+                    .update("status", status).await()
+            }
+            true
+        } else {
+            createRegistration(userId, activityId, status, System.currentTimeMillis())
+            false
+        }
     }
 
     override suspend fun unregisterUserFromActivity(userId: String, activityId: String) {
@@ -114,4 +133,17 @@ class ActivityServiceImpl @Inject constructor(
             firestore.collection("registrations").document(document.id).delete().await()
         }
     }
+
+    override suspend fun registerUserForActivity(userId: String, activityId: String) {
+        val registrationData = mapOf(
+            "userId" to userId,
+            "activityId" to activityId,
+            "timestamp" to System.currentTimeMillis()
+        )
+        firestore.collection("registrations")
+            .add(registrationData)
+            .await()
+    }
+
+
 }
