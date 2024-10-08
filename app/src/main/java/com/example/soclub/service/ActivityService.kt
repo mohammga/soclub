@@ -15,7 +15,7 @@ interface ActivityService {
     suspend fun isUserRegisteredForActivity(userId: String, activityId: String): Boolean
     suspend fun registerUserForActivity(userId: String, activityId: String)
     suspend fun unregisterUserFromActivity(userId: String, activityId: String)
-    suspend fun updateRegistrationStatus(userId: String, activityId: String, status: String): Boolean
     suspend fun createRegistration(userId: String, activityId: String, status: String, timestamp: Long)
+    suspend fun updateRegistrationStatus(userId: String, activityId: String, status: String): Boolean
 
 }

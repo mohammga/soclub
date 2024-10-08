@@ -98,20 +98,34 @@ fun ActivityDetailScreen(
                         onRegisterClick = {
                             coroutineScope.launch {
                                 val userId = accountService.currentUserId
-                                if (!isRegistered.value) {
+                                // Sjekk først om brukeren er registrert
+                                val isAlreadyRegistered = activityService.isUserRegisteredForActivity(userId, activityId!!)
+                                if (!isAlreadyRegistered) {
                                     // Hvis brukeren ikke er registrert, opprett registreringen med status "aktiv"
-                                    activityService.updateRegistrationStatus(userId, activityId!!, "aktiv")
-                                    isRegistered.value = true
+                                    val success = activityService.updateRegistrationStatus(userId, activityId, "aktiv")
+                                    if (success) {
+                                        isRegistered.value = true
+                                    }
+                                } else {
+                                    // Hvis brukeren allerede er registrert, bare oppdater statusen til "aktiv"
+                                    val success = activityService.updateRegistrationStatus(userId, activityId, "aktiv")
+                                    if (success) {
+                                        isRegistered.value = true
+                                    }
                                 }
                             }
                         },
                         onUnregisterClick = {
                             coroutineScope.launch {
                                 val userId = accountService.currentUserId
-                                if (isRegistered.value) {
+                                // Sjekk først om brukeren er registrert
+                                val isAlreadyRegistered = activityService.isUserRegisteredForActivity(userId, activityId!!)
+                                if (isAlreadyRegistered) {
                                     // Hvis brukeren er registrert, oppdater statusen til "notAktiv"
-                                    activityService.updateRegistrationStatus(userId, activityId!!, "notAktiv")
-                                    isRegistered.value = false
+                                    val success = activityService.updateRegistrationStatus(userId, activityId, "notAktiv")
+                                    if (success) {
+                                        isRegistered.value = false
+                                    }
                                 }
                             }
                         }
@@ -186,9 +200,9 @@ fun ActivityRegisterButton(
     Button(
         onClick = {
             if (isRegistered) {
-                onUnregisterClick()
+                onUnregisterClick()  // Brukeren er allerede registrert, melder seg ut
             } else {
-                onRegisterClick()
+                onRegisterClick()  // Brukeren melder seg på
             }
         },
         colors = ButtonDefaults.buttonColors(containerColor = if (isRegistered) Color.Red else Color.Black),
@@ -197,7 +211,10 @@ fun ActivityRegisterButton(
             .padding(vertical = 16.dp)
             .height(48.dp)
     ) {
-        Text(text = if (isRegistered) "Meld deg ut" else "Meld deg", color = Color.White)
+        Text(
+            text = if (isRegistered) "Meld deg ut" else "Meld deg på",
+            color = Color.White
+        )
     }
 }
 
