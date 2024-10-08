@@ -1,5 +1,6 @@
 package com.example.soclub.screens.editProfile
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
@@ -25,95 +26,111 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.soclub.R
+import kotlinx.coroutines.launch
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     // Bruk LaunchedEffect for å hente profilinformasjonen når skjermen vises
     LaunchedEffect(Unit) {
         viewModel.loadUserProfile()
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Box(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.user),
-                contentDescription = stringResource(id = R.string.change_profile_picture),
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        content = {
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp)
-                    .clip(RoundedCornerShape(16.dp)),
-                contentScale = ContentScale.Crop
-            )
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.user),
+                        contentDescription = stringResource(id = R.string.change_profile_picture),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(300.dp)
+                            .clip(RoundedCornerShape(16.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = stringResource(id = R.string.change_profile_picture),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {},
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    ClickableText(
+                        text = AnnotatedString(stringResource(id = R.string.upload_new_picture)),
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            color = Color.Gray,
+                            fontSize = 14.sp
+                        ),
+                        onClick = {}
+                    )
+
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = stringResource(id = R.string.upload_new_picture),
+                        tint = Color.Gray
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Brukerens navn og e-post vises nå automatisk i input-feltene
+                ProfileTextField(
+                    label = stringResource(id = R.string.profile_name_label),
+                    value = uiState.name,
+                    onValueChange = { viewModel.onNameChange(it) }
+                )
+
+                ProfileTextField(
+                    label = stringResource(id = R.string.profile_email_label),
+                    value = uiState.email,
+                    onValueChange = { viewModel.onEmailChange(it) }
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                if (uiState.errorMessage != 0) {
+                    Text(
+                        text = stringResource(id = uiState.errorMessage),
+                        color = Color.Red
+                    )
+                }
+
+                SaveButton(onClick = {
+                    viewModel.onSaveProfileClick(navController)
+                    coroutineScope.launch {
+                        // Henter strengen fra strings.xml og viser snackbar
+                        snackbarHostState.showSnackbar(
+                            message = "Personlig info er endret"
+                        )
+                    }
+                })
+            }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = stringResource(id = R.string.change_profile_picture),
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp
-        )
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {},
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            ClickableText(
-                text = AnnotatedString(stringResource(id = R.string.upload_new_picture)),
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    color = Color.Gray,
-                    fontSize = 14.sp
-                ),
-                onClick = {}
-            )
-
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = stringResource(id = R.string.upload_new_picture),
-                tint = Color.Gray
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Brukerens navn og e-post vises nå automatisk i input-feltene
-        ProfileTextField(
-            label = stringResource(id = R.string.profile_name_label),
-            value = uiState.name,
-            onValueChange = { viewModel.onNameChange(it) }
-        )
-
-        ProfileTextField(
-            label = stringResource(id = R.string.profile_email_label),
-            value = uiState.email,
-            onValueChange = { viewModel.onEmailChange(it) }
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        if (uiState.errorMessage != 0) {
-            Text(
-                text = stringResource(id = uiState.errorMessage),
-                color = Color.Red
-            )
-        }
-
-        SaveButton(onClick = { viewModel.onSaveProfileClick(navController) })
-    }
+    )
 }
 
 @Composable
@@ -145,6 +162,8 @@ fun SaveButton(onClick: () -> Unit) {
         Text(text = stringResource(id = R.string.save_changes_button), color = Color.White)
     }
 }
+
+
 
 @Preview(showBackground = true)
 @Composable

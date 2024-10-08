@@ -64,6 +64,10 @@
     <string name="change_profile_picture">Bytt Profilbilde</string>
     <string name="upload_new_picture">Last opp et nytt bilde</string>
     <string name="save_changes_button">Lagre endringer</string>
+    <string name="profile_info_updated">Personlig info er endret</string>
+    <string name="take_new_picture">Personlig info er endret</string>
+
+    take_new_picture
 
     <!-- ChangePasswordScreen -->
     <string name="change_password_screen_title">Endre passord</string>
