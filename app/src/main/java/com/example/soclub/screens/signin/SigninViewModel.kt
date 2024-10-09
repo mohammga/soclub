@@ -2,7 +2,9 @@ package com.example.soclub.screens.signin
 
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.material3.Text
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController

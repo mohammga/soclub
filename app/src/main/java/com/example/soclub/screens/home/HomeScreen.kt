@@ -25,7 +25,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import com.example.soclub.R
 import androidx.compose.foundation.pager.HorizontalPager
-
+import coil.compose.rememberImagePainter
 
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -55,6 +55,19 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        //lagt til tittel sjekk om riktig
+        val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
+        Text(
+            text = selectedCategory,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .padding(start = 16.dp)
+                .align(Alignment.Start)
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -89,7 +102,7 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
     ) {
 
         Image(
-            painter = painterResource(id = R.drawable.yoga), // Bruk et statisk bilde som placeholder
+            painter = rememberImagePainter(activity.imageUrl), // Dynamisk bilde fra Firestore
             contentDescription = activity.title,
             contentScale = ContentScale.Crop,
             modifier = Modifier
