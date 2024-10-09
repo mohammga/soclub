@@ -31,22 +31,34 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material3.Icon
+import androidx.compose.runtime.rememberCoroutineScope
 import coil.compose.rememberImagePainter
+import com.example.soclub.service.AccountService
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
 
 @Composable
 fun ActivityDetailScreen(
     navController: NavController,
     category: String?,   // Ta imot kategori
     activityId: String?,
-    activityService: ActivityService
+    activityService: ActivityService,
+    accountService: AccountService
 ) {
     val activity = remember { mutableStateOf<Activity?>(null) }
+    val isRegistered = remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(activityId, category) {
         if (activityId != null && category != null) {
             val fetchedActivity = activityService.getActivityById(category, activityId) // Bruk riktig kategori
             println("Hentet aktivitet: $fetchedActivity")
             activity.value = fetchedActivity
+
+            // Sjekk om brukeren allerede er påmeldt
+            val userId = accountService.currentUserId
+            val registrationExists = activityService.isUserRegisteredForActivity(userId, activityId)
+            isRegistered.value = registrationExists
         }
     }
 
@@ -80,7 +92,45 @@ fun ActivityDetailScreen(
                     ActivityDescription(activity.value?.description ?: "Ingen beskrivelse")
 
                     ActivityGPSImage()
-                    ActivityRegisterButton()
+
+                    ActivityRegisterButton(
+                        isRegistered = isRegistered.value,
+                        onRegisterClick = {
+                            coroutineScope.launch {
+                                val userId = accountService.currentUserId
+                                // Sjekk først om brukeren er registrert
+                                val isAlreadyRegistered = activityService.isUserRegisteredForActivity(userId, activityId!!)
+                                if (!isAlreadyRegistered) {
+                                    // Hvis brukeren ikke er registrert, opprett registreringen med status "aktiv"
+                                    val success = activityService.updateRegistrationStatus(userId, activityId, "aktiv")
+                                    if (success) {
+                                        isRegistered.value = true
+                                    }
+                                } else {
+                                    // Hvis brukeren allerede er registrert, bare oppdater statusen til "aktiv"
+                                    val success = activityService.updateRegistrationStatus(userId, activityId, "aktiv")
+                                    if (success) {
+                                        isRegistered.value = true
+                                    }
+                                }
+                            }
+                        },
+                        onUnregisterClick = {
+                            coroutineScope.launch {
+                                val userId = accountService.currentUserId
+                                // Sjekk først om brukeren er registrert
+                                val isAlreadyRegistered = activityService.isUserRegisteredForActivity(userId, activityId!!)
+                                if (isAlreadyRegistered) {
+                                    // Hvis brukeren er registrert, oppdater statusen til "notAktiv"
+                                    val success = activityService.updateRegistrationStatus(userId, activityId, "notAktiv")
+                                    if (success) {
+                                        isRegistered.value = false
+                                    }
+                                }
+                            }
+                        }
+                    )
+
                 }
             }
         }
@@ -142,18 +192,32 @@ fun ActivityGPSImage() {
 }
 
 @Composable
-fun ActivityRegisterButton() {
+fun ActivityRegisterButton(
+    isRegistered: Boolean,
+    onRegisterClick: () -> Unit,
+    onUnregisterClick: () -> Unit
+) {
     Button(
-        onClick = { /* Legg til handling for knappen */ },
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+        onClick = {
+            if (isRegistered) {
+                onUnregisterClick()  // Brukeren er allerede registrert, melder seg ut
+            } else {
+                onRegisterClick()  // Brukeren melder seg på
+            }
+        },
+        colors = ButtonDefaults.buttonColors(containerColor = if (isRegistered) Color.Red else Color.Black),
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 16.dp)
             .height(48.dp)
     ) {
-        Text(text = "Meld deg", color = Color.White)
+        Text(
+            text = if (isRegistered) "Meld deg ut" else "Meld deg på",
+            color = Color.White
+        )
     }
 }
+
 
 
 @Composable

@@ -25,7 +25,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import com.example.soclub.R
 import androidx.compose.foundation.pager.HorizontalPager
-
+import coil.compose.rememberImagePainter
 
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -102,7 +102,7 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
     ) {
 
         Image(
-            painter = painterResource(id = R.drawable.yoga), // Bruk et statisk bilde som placeholder
+            painter = rememberImagePainter(activity.imageUrl), // Dynamisk bilde fra Firestore
             contentDescription = activity.title,
             contentScale = ContentScale.Crop,
             modifier = Modifier

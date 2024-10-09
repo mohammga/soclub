@@ -1,4 +1,6 @@
 package com.example.soclub.service.impl
+import com.google.firebase.Timestamp
+import java.util.Date
 
 import com.example.soclub.models.Activity
 import com.example.soclub.service.ActivityService
@@ -81,4 +83,86 @@ class ActivityServiceImpl @Inject constructor(
         firestore.collection("activities").document(category)
             .collection("activities").document(documentId).delete().await()
     }
+
+    override suspend fun isUserRegisteredForActivity(userId: String, activityId: String): Boolean {
+        val registrationRef = firestore.collection("registrations")
+            .whereEqualTo("userId", userId)
+            .whereEqualTo("activityId", activityId)
+            .get().await()
+
+        return !registrationRef.isEmpty
+    }
+
+
+    override suspend fun createRegistration(userId: String, activityId: String, status: String, timestamp: Long) {
+        val registrationData = mapOf(
+            "userId" to userId,
+            "activityId" to activityId,
+            "status" to status,
+            "timestamp" to timestamp
+        )
+        firestore.collection("registrations").add(registrationData).await()
+    }
+
+
+    override suspend fun updateRegistrationStatus(userId: String, activityId: String, status: String): Boolean {
+        return try {
+            val registrationRef = firestore.collection("registrations")
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("activityId", activityId)
+                .get()
+                .await()
+
+            if (!registrationRef.isEmpty) {
+                // Hvis registreringen allerede finnes, oppdater status og dato
+                for (document in registrationRef.documents) {
+                    firestore.collection("registrations")
+                        .document(document.id)
+                        .update(mapOf(
+                            "status" to status,
+                            "timestamp" to Timestamp(Date()) // Oppdater påmeldingsdato
+                        )).await()
+                }
+            } else {
+                // Hvis ingen registrering finnes, opprett en ny
+                val newRegistration = hashMapOf(
+                    "userId" to userId,
+                    "activityId" to activityId,
+                    "status" to status,
+                    "timestamp" to Timestamp(Date()) // Lagre påmeldingsdato
+                )
+
+                firestore.collection("registrations").add(newRegistration).await()
+            }
+            true  // Operasjonen var vellykket
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false  // Noe gikk galt
+        }
+    }
+
+    override suspend fun unregisterUserFromActivity(userId: String, activityId: String) {
+        val snapshot = firestore.collection("registrations")
+            .whereEqualTo("userId", userId)
+            .whereEqualTo("activityId", activityId)
+            .get()
+            .await()
+
+        for (document in snapshot.documents) {
+            firestore.collection("registrations").document(document.id).delete().await()
+        }
+    }
+
+    override suspend fun registerUserForActivity(userId: String, activityId: String) {
+        val registrationData = mapOf(
+            "userId" to userId,
+            "activityId" to activityId,
+            "timestamp" to System.currentTimeMillis()
+        )
+        firestore.collection("registrations")
+            .add(registrationData)
+            .await()
+    }
+
+
 }

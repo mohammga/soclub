@@ -146,7 +146,13 @@ fun AppNavigation(navController: NavHostController, activityService: ActivitySer
             ) { backStackEntry ->
                 val category = backStackEntry.arguments?.getString("category")
                 val activityId = backStackEntry.arguments?.getString("activityId")
-                ActivityDetailScreen(navController, category, activityId, activityService)
+                ActivityDetailScreen(
+                    navController = navController,
+                    category = category,
+                    activityId = activityId,
+                    activityService = activityService,
+                    accountService = accountService  // Passer inn accountService
+                )
             }
             composable(AppScreens.ENTRIES.name) {
                 EntriesScreen(navController)
