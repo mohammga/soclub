@@ -16,7 +16,10 @@ import javax.inject.Inject
 class AccountServiceImpl @Inject constructor(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore
+
 ) : AccountService {
+
+
 
     override val currentUserId: String
         get() = auth.currentUser?.uid.orEmpty()
@@ -97,26 +100,27 @@ class AccountServiceImpl @Inject constructor(
 
     // Implementasjon for å oppdatere brukerprofilen (navn og e-post)
     override suspend fun updateProfile(name: String, email: String, onResult: (Throwable?) -> Unit) {
-        val user = auth.currentUser
-        user?.let {
-            val profileUpdates = hashMapOf(
-                "name" to name
-            )
-            // Oppdater Firestore med nytt navn
-            firestore.collection("users").document(it.uid).update(profileUpdates as Map<String, Any>)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        // Oppdater e-posten i Firebase Authentication
-                        it.verifyBeforeUpdateEmail(email)
-                            .addOnCompleteListener { emailUpdateTask ->
-                                onResult(emailUpdateTask.exception)
-                            }
-                    } else {
-                        onResult(task.exception)
-                    }
-                }.await()
-        }
+        val userId = auth.currentUser?.uid ?: throw Exception("User not logged in")
+
+        // Lag en oppdateringsdata som inneholder både navn og e-post
+        val updates = hashMapOf(
+            "name" to name,
+            "email" to email
+        )
+
+        // Oppdater brukerens dokument i Firestore
+        firestore.collection("users").document(userId)
+            .update(updates as Map<String, Any>)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    onResult(null)
+                } else {
+                    onResult(task.exception)
+                }
+            }
     }
+
+
 
     // Implementasjon for å endre passord
     override suspend fun changePassword(

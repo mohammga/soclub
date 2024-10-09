@@ -62,20 +62,25 @@ class EditProfileViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                accountService.updateProfile(uiState.value.name, uiState.value.email) { error ->
+                // Oppdater Firestore med nytt navn og ny e-post
+                accountService.updateProfile(
+                    name = uiState.value.name,
+                    email = uiState.value.email
+                ) { error ->
                     if (error == null) {
-                        // Naviger til profilsiden etter vellykket oppdatering
+                        // Naviger tilbake til profilsiden ved vellykket oppdatering
                         navController.navigate("profile") {
                             popUpTo("edit_profile") { inclusive = true }
                         }
                     } else {
-                        uiState.value = uiState.value.copy(errorMessage = R.string.error_account_creation)
+                        uiState.value = uiState.value.copy(errorMessage = R.string.error_profile_creation)
                     }
                 }
             } catch (e: Exception) {
-                uiState.value = uiState.value.copy(errorMessage = R.string.error_account_creation)
+                uiState.value = uiState.value.copy(errorMessage = R.string.error_profile_creation)
             }
         }
     }
+
 
 }

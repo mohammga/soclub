@@ -82,6 +82,7 @@
     <string name="save_changes_button">Lagre endringer</string>
     <string name="profile_info_updated">Personlig info er endret</string>
     <string name="take_new_picture">Personlig info er endret</string>
+    <string name="error_profile_creation">Kunne ikke endre informasjon</string>
 
     take_new_picture
 
