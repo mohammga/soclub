@@ -32,6 +32,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
     private var isLocationPermissionGranted = false
     private var isCameraPermissionGranted = false
+    private var isPOST_NOTIFICATIONS = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +44,8 @@ class MainActivity : ComponentActivity() {
         permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             isLocationPermissionGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: isLocationPermissionGranted
             isCameraPermissionGranted = permissions[Manifest.permission.CAMERA]?:isCameraPermissionGranted
+            isPOST_NOTIFICATIONS = permissions[Manifest.permission.CAMERA]?:isPOST_NOTIFICATIONS
+
 
         }
 
@@ -70,6 +73,9 @@ class MainActivity : ComponentActivity() {
 
         if (!isLocationPermissionGranted) {
             permissionRequest.add(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+        if (!isPOST_NOTIFICATIONS) {
+            permissionRequest.add(Manifest.permission.POST_NOTIFICATIONS)
         }
 
         if (!isCameraPermissionGranted){
@@ -104,6 +110,8 @@ class MainActivity : ComponentActivity() {
             // Here you can do something with the image, e.g. show it in an ImageView
             Toast.makeText(this, "Image captured!", Toast.LENGTH_SHORT).show()
         }
+
+
     }
 
 

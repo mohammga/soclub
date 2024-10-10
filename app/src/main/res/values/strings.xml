@@ -95,8 +95,8 @@
 
 
     <!-- editPermissionScreen  -->
-    <string name="change_plassering_screen_title">Plassering</string>
-    <string name="change_plassering_Promission_screen">Tillat tilgang til plassering</string>
+    <string name="change_location_screen_title">Plassering</string>
+    <string name="change_location_Promission_screen">Tillat tilgang til plassering</string>
     <string name="change_Camera_screen_title">Kamera</string>
     <string name="change_Camera_promission_screen">Tillat tilgang til Kamera</string>
     <string name="change_notificationPermission_screen_title">Varsling</string>
