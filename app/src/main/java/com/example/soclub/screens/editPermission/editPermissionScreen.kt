@@ -1,58 +1,32 @@
 package com.example.soclub.screens.editPermission
 
-<<<<<<< Updated upstream
 import android.content.Context
-=======
-
-
->>>>>>> Stashed changes
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-<<<<<<< Updated upstream
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.soclub.R
 import kotlinx.coroutines.delay
-=======
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.res.stringResource
-import com.example.soclub.R
-
->>>>>>> Stashed changes
 
 @Composable
 fun EditPermissionScreen(
     navController: NavController,
-<<<<<<< Updated upstream
     viewModel: EditPermissionViewModel = hiltViewModel()
-=======
-    viewModel: EditPermissionViewModel = viewModel()
->>>>>>> Stashed changes
 ) {
     val context = LocalContext.current
     val locationPermission by viewModel.locationPermission.collectAsState()
     val cameraPermission by viewModel.cameraPermission.collectAsState()
     val notificationPermission by viewModel.notificationPermission.collectAsState()
 
-<<<<<<< Updated upstream
-    // Collect permission states from ViewModel
-    val locationPermission by viewModel.locationPermission.collectAsState()
-    val cameraPermission by viewModel.cameraPermission.collectAsState()
-    val notificationPermission by viewModel.notificationPermission.collectAsState()
-
-    // Update permissions when the screen becomes visible again
-=======
-
->>>>>>> Stashed changes
+    // Bruk LaunchedEffect for å hente informasjonen når skjermen vises
     LaunchedEffect(Unit) {
         viewModel.checkPermissions(context)
     }
@@ -64,7 +38,7 @@ fun EditPermissionScreen(
     ) {
         // UI for plasseringstillatelse med Switch
         Text(
-            text = stringResource(R.string.change_location_screen_title),
+            text = stringResource(id = R.string.change_location_screen_title),
             style = MaterialTheme.typography.bodyLarge.copy(
                 fontWeight = FontWeight.Bold
             ),
@@ -77,7 +51,7 @@ fun EditPermissionScreen(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = stringResource(R.string.change_location_Promission_screen),
+                text = stringResource(id = R.string.change_location_Promission_screen),
                 style = MaterialTheme.typography.labelLarge
             )
             Switch(
@@ -90,7 +64,7 @@ fun EditPermissionScreen(
 
         // UI for kameratillatelse med Switch
         Text(
-            text = stringResource(R.string.change_Camera_screen_title),
+            text = stringResource(id = R.string.change_Camera_screen_title),
             style = MaterialTheme.typography.bodyLarge.copy(
                 fontWeight = FontWeight.Bold
             ),
@@ -103,7 +77,7 @@ fun EditPermissionScreen(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = stringResource(R.string.change_Camera_promission_screen),
+                text = stringResource(id = R.string.change_Camera_promission_screen),
                 style = MaterialTheme.typography.labelLarge
             )
             Switch(
@@ -116,7 +90,7 @@ fun EditPermissionScreen(
 
         // UI for varsel tillatelse med Switch
         Text(
-            text = stringResource(R.string.change_notificationPermission_screen_title),
+            text = stringResource(id = R.string.change_notificationPermission_screen_title),
             style = MaterialTheme.typography.bodyLarge.copy(
                 fontWeight = FontWeight.Bold
             ),
@@ -129,7 +103,7 @@ fun EditPermissionScreen(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = stringResource(R.string.change_notificationPermission_Promission_screen),
+                text = stringResource(id = R.string.change_notificationPermission_Promission_screen),
                 style = MaterialTheme.typography.labelLarge
             )
             Switch(
@@ -140,10 +114,4 @@ fun EditPermissionScreen(
             )
         }
     }
-<<<<<<< Updated upstream
 }
-=======
-}
-
-
->>>>>>> Stashed changes
