@@ -1,20 +1,22 @@
 package com.example.soclub.screens.editPermission
 
-import android.content.Context
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.example.soclub.R
-import kotlinx.coroutines.delay
+import androidx.compose.runtime.DisposableEffect
+import androidx.lifecycle.Lifecycle
+
 
 @Composable
 fun EditPermissionScreen(
@@ -26,17 +28,35 @@ fun EditPermissionScreen(
     val cameraPermission by viewModel.cameraPermission.collectAsState()
     val notificationPermission by viewModel.notificationPermission.collectAsState()
 
-    // Bruk LaunchedEffect for å hente informasjonen når skjermen vises
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    // Bruk DisposableEffect for å oppdatere tillatelser når brukeren kommer tilbake til skjermen
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                // Oppdater tillatelser hver gang appen går tilbake til app
+                viewModel.checkPermissions(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     LaunchedEffect(Unit) {
+        // Opprinnelig sjekk av tillatelser når skjermen vises første gang
         viewModel.checkPermissions(context)
     }
 
+    // Resten av UI-koden
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(15.dp)
     ) {
-        // UI for plasseringstillatelse med Switch
+        // Plasseringstillatelse Switch
         Text(
             text = stringResource(id = R.string.change_location_screen_title),
             style = MaterialTheme.typography.bodyLarge.copy(
@@ -62,7 +82,7 @@ fun EditPermissionScreen(
             )
         }
 
-        // UI for kameratillatelse med Switch
+        // Kamera tillatelse Switch
         Text(
             text = stringResource(id = R.string.change_Camera_screen_title),
             style = MaterialTheme.typography.bodyLarge.copy(
@@ -88,7 +108,7 @@ fun EditPermissionScreen(
             )
         }
 
-        // UI for varsel tillatelse med Switch
+        // Varseltillatelse Switch
         Text(
             text = stringResource(id = R.string.change_notificationPermission_screen_title),
             style = MaterialTheme.typography.bodyLarge.copy(
