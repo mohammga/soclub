@@ -1,34 +1,58 @@
 package com.example.soclub.screens.editPermission
 
+<<<<<<< Updated upstream
 import android.content.Context
+=======
+
+
+>>>>>>> Stashed changes
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+<<<<<<< Updated upstream
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.soclub.R
 import kotlinx.coroutines.delay
+=======
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.res.stringResource
+import com.example.soclub.R
+
+>>>>>>> Stashed changes
 
 @Composable
 fun EditPermissionScreen(
     navController: NavController,
+<<<<<<< Updated upstream
     viewModel: EditPermissionViewModel = hiltViewModel()
+=======
+    viewModel: EditPermissionViewModel = viewModel()
+>>>>>>> Stashed changes
 ) {
     val context = LocalContext.current
+    val locationPermission by viewModel.locationPermission.collectAsState()
+    val cameraPermission by viewModel.cameraPermission.collectAsState()
+    val notificationPermission by viewModel.notificationPermission.collectAsState()
 
+<<<<<<< Updated upstream
     // Collect permission states from ViewModel
     val locationPermission by viewModel.locationPermission.collectAsState()
     val cameraPermission by viewModel.cameraPermission.collectAsState()
     val notificationPermission by viewModel.notificationPermission.collectAsState()
 
     // Update permissions when the screen becomes visible again
+=======
+
+>>>>>>> Stashed changes
     LaunchedEffect(Unit) {
         viewModel.checkPermissions(context)
     }
@@ -116,4 +140,10 @@ fun EditPermissionScreen(
             )
         }
     }
+<<<<<<< Updated upstream
 }
+=======
+}
+
+
+>>>>>>> Stashed changes

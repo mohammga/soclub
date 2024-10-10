@@ -105,4 +105,14 @@
     <string name="placeholder_age">Alder</string>
     <string name="error_age_required">Alder er påkrevd</string>
 
+    <!-- editPermissionScreen -->
+    <string name="location_titel">Plassering</string>
+    <string name="location_permissions_text">Tillat tilgang til plassering</string>
+    <string name="kamera_titel">Kamera</string>
+    <string name="kamera_permissions_text">Tillat tilgang til kamera</string>
+    <string name="notification_titel">Kamera</string>
+    <string name="notification_permissions_text">Tillat tilgang til varsling</string>
+
+
+
 </resources>
