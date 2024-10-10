@@ -11,7 +11,9 @@ data class Activity(
     val ageGroup: String = "",
     val maxParticipants: String = "",
     val location: String = "",
-    val restOfAddress: String = ""
+    val restOfAddress: String = "",
+    val date: String = ""
+
 )
 
 //data class Activity2(

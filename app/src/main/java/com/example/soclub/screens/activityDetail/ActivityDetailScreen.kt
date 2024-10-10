@@ -3,7 +3,6 @@ package com.example.soclub.screens.activityDetail
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -12,8 +11,6 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,120 +22,90 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.soclub.R
-import com.example.soclub.models.Activity
-import com.example.soclub.service.ActivityService
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material3.Icon
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberImagePainter
-import com.example.soclub.service.AccountService
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.launch
+import androidx.compose.runtime.collectAsState
+import com.example.soclub.models.Activity
 
 @Composable
 fun ActivityDetailScreen(
     navController: NavController,
-    category: String?,   // Ta imot kategori
+    category: String?,
     activityId: String?,
-    activityService: ActivityService,
-    accountService: AccountService
+    viewModel: ActivityDetailViewModel = hiltViewModel()
 ) {
-    val activity = remember { mutableStateOf<Activity?>(null) }
-    val isRegistered = remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
+    // Collecting the activity details and registration status from the ViewModel
+    val activity = viewModel.activity.collectAsState().value
+    val isRegistered = viewModel.isRegistered.collectAsState().value
 
+    // Fetch the activity details when the screen is first displayed
     LaunchedEffect(activityId, category) {
         if (activityId != null && category != null) {
-            val fetchedActivity = activityService.getActivityById(category, activityId) // Bruk riktig kategori
-            println("Hentet aktivitet: $fetchedActivity")
-            activity.value = fetchedActivity
-
-            // Sjekk om brukeren allerede er påmeldt
-            val userId = accountService.currentUserId
-            val registrationExists = activityService.isUserRegisteredForActivity(userId, activityId)
-            isRegistered.value = registrationExists
+            viewModel.loadActivity(category, activityId)
         }
     }
 
-    // Render innholdet basert på aktivitetens data
+    // Displaying the activity details using a lazy column for a scrollable layout
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.Start
     ) {
-        item { ActivityImage(imageUrl = activity.value?.imageUrl ?: "") }
+        item {
+            ActivityImage(imageUrl = activity?.imageUrl ?: "")  // Display the activity's image
+        }
 
         item {
-            Box(
-                modifier = Modifier
-                    .padding(16.dp)
-            ) {
-                Column {
-                    ActivityTitle(activity.value?.title ?: "Ingen tittel")
-                    ActivityDate()
-                    InfoRow(
-                        icon = Icons.Default.LocationOn,
-                        mainText = activity.value?.location ?: "Ukjent",
-                        subText = activity.value?.restOfAddress ?: "Ukjent adresse"
-                    )
-                    // Andre InfoRow med personer-ikon
-                    InfoRow(
-                        icon = Icons.Default.People,
-                        mainText = "Maks ${activity.value?.maxParticipants ?: "Ukjent"}",
-                        subText = "Aldersgruppe: ${activity.value?.ageGroup ?: "Alle"}"
-                    )
-                    ActivityDescription(activity.value?.description ?: "Ingen beskrivelse")
+            // Display the rest of the activity details such as title, location, and registration button
+            ActivityDetailsContent(
+                activity = activity,
+                isRegistered = isRegistered,
+                onRegisterClick = { viewModel.registerForActivity(activityId!!) },
+                onUnregisterClick = { viewModel.unregisterFromActivity(activityId!!) }
+            )
+        }
+    }
+}
 
-                    ActivityGPSImage()
-
-                    ActivityRegisterButton(
-                        isRegistered = isRegistered.value,
-                        onRegisterClick = {
-                            coroutineScope.launch {
-                                val userId = accountService.currentUserId
-                                // Sjekk først om brukeren er registrert
-                                val isAlreadyRegistered = activityService.isUserRegisteredForActivity(userId, activityId!!)
-                                if (!isAlreadyRegistered) {
-                                    // Hvis brukeren ikke er registrert, opprett registreringen med status "aktiv"
-                                    val success = activityService.updateRegistrationStatus(userId, activityId, "aktiv")
-                                    if (success) {
-                                        isRegistered.value = true
-                                    }
-                                } else {
-                                    // Hvis brukeren allerede er registrert, bare oppdater statusen til "aktiv"
-                                    val success = activityService.updateRegistrationStatus(userId, activityId, "aktiv")
-                                    if (success) {
-                                        isRegistered.value = true
-                                    }
-                                }
-                            }
-                        },
-                        onUnregisterClick = {
-                            coroutineScope.launch {
-                                val userId = accountService.currentUserId
-                                // Sjekk først om brukeren er registrert
-                                val isAlreadyRegistered = activityService.isUserRegisteredForActivity(userId, activityId!!)
-                                if (isAlreadyRegistered) {
-                                    // Hvis brukeren er registrert, oppdater statusen til "notAktiv"
-                                    val success = activityService.updateRegistrationStatus(userId, activityId, "notAktiv")
-                                    if (success) {
-                                        isRegistered.value = false
-                                    }
-                                }
-                            }
-                        }
-                    )
-
-                }
-            }
+@Composable
+fun ActivityDetailsContent(
+    activity: Activity?,
+    isRegistered: Boolean,
+    onRegisterClick: () -> Unit,
+    onUnregisterClick: () -> Unit
+) {
+    // Box layout for padding and alignment, using a column to organize content
+    Box(modifier = Modifier.padding(16.dp)) {
+        Column {
+            ActivityTitle(activity?.title ?: "Ingen tittel")  // Display the title of the activity
+            ActivityDate()  // Display the date of the activity (static for now)
+            InfoRow(
+                icon = Icons.Default.LocationOn,
+                mainText = activity?.location ?: "Ukjent",
+                subText = activity?.restOfAddress ?: "Ukjent adresse"
+            )  // Display the location of the activity
+            InfoRow(
+                icon = Icons.Default.People,
+                mainText = "Maks ${activity?.maxParticipants ?: "Ukjent"}",
+                subText = "Aldersgruppe: ${activity?.ageGroup ?: "Alle"}"
+            )  // Display the max participants and age group
+            ActivityDescription(activity?.description ?: "Ingen beskrivelse")  // Show activity description
+            ActivityGPSImage()  // Display a static GPS image for the activity location
+            ActivityRegisterButton(
+                isRegistered = isRegistered,
+                onRegisterClick = onRegisterClick,
+                onUnregisterClick = onUnregisterClick
+            )  // Register/unregister button depending on user status
         }
     }
 }
 
 @Composable
 fun ActivityImage(imageUrl: String) {
+    // Displays the activity image using Coil for image loading
     Image(
         painter = rememberImagePainter(imageUrl),
         contentDescription = "Activity Image",
@@ -147,12 +114,13 @@ fun ActivityImage(imageUrl: String) {
             .height(300.dp)
             .clip(RoundedCornerShape(16.dp))
             .padding(vertical = 8.dp),
-        contentScale = ContentScale.Crop
+        contentScale = ContentScale.Crop  // Makes the image fill the width of the screen while cropping excess
     )
 }
 
 @Composable
 fun ActivityTitle(title: String) {
+    // Displays the title of the activity
     Text(
         text = title,
         fontSize = 24.sp,
@@ -163,6 +131,7 @@ fun ActivityTitle(title: String) {
 
 @Composable
 fun ActivityDate() {
+    // Displays the activity date (currently static)
     Text(
         text = "Tirsdag. 28. august 2024",
         modifier = Modifier.padding(vertical = 4.dp)
@@ -171,6 +140,7 @@ fun ActivityDate() {
 
 @Composable
 fun ActivityDescription(description: String) {
+    // Displays the description of the activity
     Text(
         text = description,
         modifier = Modifier.padding(vertical = 16.dp)
@@ -179,6 +149,7 @@ fun ActivityDescription(description: String) {
 
 @Composable
 fun ActivityGPSImage() {
+    // Displays a static GPS image
     Image(
         painter = painterResource(R.drawable.gpsbilde1),
         contentDescription = "GPS-bilde",
@@ -187,7 +158,7 @@ fun ActivityGPSImage() {
             .height(250.dp)
             .clip(RoundedCornerShape(16.dp))
             .padding(vertical = 8.dp),
-        contentScale = ContentScale.Crop
+        contentScale = ContentScale.Crop  // Ensures the image scales and fits appropriately
     )
 }
 
@@ -197,56 +168,49 @@ fun ActivityRegisterButton(
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
+    // Changes button text and color depending on the registration status
+    val buttonText = if (isRegistered) "Meld deg ut" else "Meld deg på"
+    val buttonColor = if (isRegistered) Color.Red else Color.Black
+
+    // Button to register or unregister for the activity
     Button(
         onClick = {
-            if (isRegistered) {
-                onUnregisterClick()  // Brukeren er allerede registrert, melder seg ut
-            } else {
-                onRegisterClick()  // Brukeren melder seg på
-            }
+            if (isRegistered) onUnregisterClick() else onRegisterClick()
         },
-        colors = ButtonDefaults.buttonColors(containerColor = if (isRegistered) Color.Red else Color.Black),
+        colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 16.dp)
             .height(48.dp)
     ) {
-        Text(
-            text = if (isRegistered) "Meld deg ut" else "Meld deg på",
-            color = Color.White
-        )
+        Text(text = buttonText, color = Color.White)  // Button text is dynamic based on registration status
     }
 }
 
-
-
 @Composable
-fun InfoRow(icon: androidx.compose.ui.graphics.vector.ImageVector, mainText: String, subText: String) {
+fun InfoRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    mainText: String,
+    subText: String
+) {
+    // Displays an icon with main and sub text, used for location and participant info
     Row(
         modifier = Modifier.padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier.padding(end = 16.dp)
-        ) {
-            ElevatedCardExample(icon = icon)
+        Box(modifier = Modifier.padding(end = 16.dp)) {
+            ElevatedCardExample(icon = icon)  // Displays the icon inside an elevated card
         }
         Column {
-            Text(
-                text = mainText,
-                fontWeight = FontWeight.Bold,
-                fontSize = 17.sp,
-            )
-            Text(
-                text = subText,
-                color = Color.Gray
-            )
+            Text(text = mainText, fontWeight = FontWeight.Bold, fontSize = 17.sp)  // Main text (e.g., location)
+            Text(text = subText, color = Color.Gray)  // Subtext (e.g., address or age group)
         }
     }
 }
 
 @Composable
-fun ElevatedCardExample(icon:androidx.compose.ui.graphics.vector.ImageVector) {
+fun ElevatedCardExample(icon: androidx.compose.ui.graphics.vector.ImageVector) {
+    // Displays a circular elevated card with an icon in the center
     ElevatedCard(
         modifier = Modifier.size(50.dp),
         colors = CardDefaults.elevatedCardColors(containerColor = Color.LightGray)
@@ -258,10 +222,8 @@ fun ElevatedCardExample(icon:androidx.compose.ui.graphics.vector.ImageVector) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier
-                    .size(30.dp)
-
-            )
+                modifier = Modifier.size(30.dp)
+            )  // Icon displayed inside the elevated card
         }
     }
 }
