@@ -14,8 +14,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class EditProfileState(
-    val name: String = "",
-    val email: String = "",
+    val firstname: String = "",
+    val lastname: String = "",
     @StringRes val errorMessage: Int = 0
 )
 
@@ -27,55 +27,68 @@ class EditProfileViewModel @Inject constructor(
     var uiState: MutableState<EditProfileState> = mutableStateOf(EditProfileState())
         private set
 
-    // Funksjon for å laste inn brukerens profilinformasjon
     fun loadUserProfile() {
         viewModelScope.launch {
             try {
                 val userInfo: UserInfo = accountService.getUserInfo()
+
+                val nameParts = userInfo.name.split(" ")
+
+                val firstname = nameParts.firstOrNull() ?: ""
+                val lastname = nameParts.drop(1).joinToString(" ")
+
                 uiState.value = uiState.value.copy(
-                    name = userInfo.name,   // Sett brukerens navn
-                    email = userInfo.email  // Sett brukerens e-post
+                    firstname = firstname,
+                    lastname = lastname
                 )
             } catch (e: Exception) {
-                uiState.value = uiState.value.copy(errorMessage = R.string.error_could_not_log_in)
+                uiState.value = uiState.value.copy(errorMessage = R.string.error_profile_info)
             }
         }
     }
 
     fun onNameChange(newValue: String) {
-        uiState.value = uiState.value.copy(name = newValue)
+        uiState.value = uiState.value.copy(firstname = newValue)
     }
 
     fun onEmailChange(newValue: String) {
-        uiState.value = uiState.value.copy(email = newValue)
+        uiState.value = uiState.value.copy(lastname = newValue)
     }
 
     fun onSaveProfileClick(navController: NavController) {
-        if (uiState.value.name.isBlank()) {
+        if (uiState.value.firstname.isBlank()) {
             uiState.value = uiState.value.copy(errorMessage = R.string.error_name_required)
             return
         }
-        if (uiState.value.email.isBlank()) {
+        if (uiState.value.lastname.isBlank()) {
             uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_email)
             return
         }
 
+        // Kombiner fornavn og etternavn til fullt navn
+        val fullName = "${uiState.value.firstname} ${uiState.value.lastname}"
+
         viewModelScope.launch {
             try {
-                accountService.updateProfile(uiState.value.name, uiState.value.email) { error ->
+                // Oppdater Firestore med nytt navn og e-post
+                accountService.updateProfile(
+                    name = fullName,
+                ) { error ->
                     if (error == null) {
-                        // Naviger til profilsiden etter vellykket oppdatering
+                        // Naviger tilbake til profilsiden ved vellykket oppdatering
                         navController.navigate("profile") {
                             popUpTo("edit_profile") { inclusive = true }
                         }
                     } else {
-                        uiState.value = uiState.value.copy(errorMessage = R.string.error_account_creation)
+                        uiState.value = uiState.value.copy(errorMessage = R.string.error_profile_creation)
                     }
                 }
             } catch (e: Exception) {
-                uiState.value = uiState.value.copy(errorMessage = R.string.error_account_creation)
+                uiState.value = uiState.value.copy(errorMessage = R.string.error_profile_creation)
             }
         }
     }
+
+
 
 }
