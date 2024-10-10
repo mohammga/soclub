@@ -98,17 +98,13 @@ class AccountServiceImpl @Inject constructor(
             .await()
     }
 
-    // Implementasjon for å oppdatere brukerprofilen (navn og e-post)
-    override suspend fun updateProfile(name: String, email: String, onResult: (Throwable?) -> Unit) {
+    override suspend fun updateProfile(name: String, onResult: (Throwable?) -> Unit) {
         val userId = auth.currentUser?.uid ?: throw Exception("User not logged in")
 
-        // Lag en oppdateringsdata som inneholder både navn og e-post
         val updates = hashMapOf(
             "name" to name,
-            "email" to email
         )
 
-        // Oppdater brukerens dokument i Firestore
         firestore.collection("users").document(userId)
             .update(updates as Map<String, Any>)
             .addOnCompleteListener { task ->

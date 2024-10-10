@@ -100,13 +100,13 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                 // Brukerens navn og e-post vises nå automatisk i input-feltene
                 ProfileTextField(
                     label = stringResource(id = R.string.profile_name_label),
-                    value = uiState.name,
+                    value = uiState.firstname,
                     onValueChange = { viewModel.onNameChange(it) }
                 )
 
                 ProfileTextField(
-                    label = stringResource(id = R.string.profile_email_label),
-                    value = uiState.email,
+                    label = stringResource(id = R.string.profile_lastname_label),
+                    value = uiState.lastname,
                     onValueChange = { viewModel.onEmailChange(it) }
                 )
 
