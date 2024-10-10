@@ -31,14 +31,18 @@ class ActivityDetailViewModel @Inject constructor(
      */
     fun loadActivity(category: String, activityId: String) {
         viewModelScope.launch {
-            // Fetch activity details from the service
-            val fetchedActivity = activityService.getActivityById(category, activityId)
-            _activity.value = fetchedActivity  // Update the activity state
+            try {
+                val fetchedActivity = activityService.getActivityById(category, activityId)
+                _activity.value = fetchedActivity
 
-            // Check if the user is already registered for the activity
-            val userId = accountService.currentUserId
-            val registrationExists = activityService.isUserRegisteredForActivity(userId, activityId)
-            _isRegistered.value = registrationExists  // Update the registration status state
+                // Check if the user is registered
+                val userId = accountService.currentUserId
+                val registrationExists = activityService.isUserRegisteredForActivity(userId, activityId)
+                _isRegistered.value = registrationExists
+            } catch (e: Exception) {
+                // Handle the error, e.g., show a toast or update UI with error message
+                println("Error loading activity: ${e.message}")
+            }
         }
     }
 
