@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.soclub.R
+import com.example.soclub.models.Ad
 
 @Composable
 fun AdsScreen(navController: NavHostController) {
@@ -105,21 +106,16 @@ fun DeleteButton(onClick: () -> Unit) {
     }
 }
 
-data class Entry(
-    val imageRes: Int,
-    val title: String,
-    val time: String
-)
 
 val activeEntries = listOf(
-    Entry(R.drawable.event1, "Hvordan planlegge en tur til", "Ons, 19:00"),
-    Entry(R.drawable.event2, "Mestrer kunsten å lage pasta", "Tor, 18:00"),
-    Entry(R.drawable.event3, "Bygge en oppstartsbedrift", "Fre, 17:00"),
-    Entry(R.drawable.event4, "Investere i eiendom", "Lør, 16:00"),
-    Entry(R.drawable.event5, "Reise med barn", "Søn, 15:00"),
-    Entry(R.drawable.event3, "Bygge en oppstartsbedrift", "Fre, 17:00"),
-    Entry(R.drawable.event4, "Investere i eiendom", "Lør, 16:00"),
-    Entry(R.drawable.event5, "Reise med barn", "Søn, 15:00"),
+    Ad(R.drawable.event1, "Hvordan planlegge en tur til", "Ons, 19:00"),
+    Ad(R.drawable.event2, "Mestrer kunsten å lage pasta", "Tor, 18:00"),
+    Ad(R.drawable.event3, "Bygge en oppstartsbedrift", "Fre, 17:00"),
+    Ad(R.drawable.event4, "Investere i eiendom", "Lør, 16:00"),
+    Ad(R.drawable.event5, "Reise med barn", "Søn, 15:00"),
+    Ad(R.drawable.event3, "Bygge en oppstartsbedrift", "Fre, 17:00"),
+    Ad(R.drawable.event4, "Investere i eiendom", "Lør, 16:00"),
+    Ad(R.drawable.event5, "Reise med barn", "Søn, 15:00"),
 )
 
 @Preview(showBackground = true)
