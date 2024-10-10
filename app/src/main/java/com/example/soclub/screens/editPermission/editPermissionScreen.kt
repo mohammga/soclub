@@ -53,7 +53,7 @@ fun EditPermissionScreen(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Tillat tilgang til plassering",
+                text = stringResource(R.string.change_location_Promission_screen),
                 style = MaterialTheme.typography.labelLarge
             )
             Switch(
@@ -66,7 +66,7 @@ fun EditPermissionScreen(
 
         // UI for kameratillatelse med Switch
         Text(
-            text = "Kamera",
+            text = stringResource(R.string.change_Camera_screen_title),
             style = MaterialTheme.typography.bodyLarge.copy(
                 fontWeight = FontWeight.Bold
             ),
@@ -79,7 +79,7 @@ fun EditPermissionScreen(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Tillat tilgang til kamera",
+                text = stringResource(R.string.change_Camera_promission_screen),
                 style = MaterialTheme.typography.labelLarge
             )
             Switch(
@@ -92,7 +92,7 @@ fun EditPermissionScreen(
 
         // UI for varsel tillatelse med Switch
         Text(
-            text = "Varsling",
+            text = stringResource(R.string.change_notificationPermission_screen_title),
             style = MaterialTheme.typography.bodyLarge.copy(
                 fontWeight = FontWeight.Bold
             ),
@@ -105,7 +105,7 @@ fun EditPermissionScreen(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Tillat tilgang til varsling",
+                text = stringResource(R.string.change_notificationPermission_Promission_screen),
                 style = MaterialTheme.typography.labelLarge
             )
             Switch(
