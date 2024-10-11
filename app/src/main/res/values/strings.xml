@@ -51,15 +51,35 @@
 
     <!--SignupViewModel-->
     <string name="error_name_required">Navn er påkrevd</string>
+    <string name="error_email_required">E-post er påkrevd</string>
+    <string name="error_password_required">Passord er påkrevd</string>
+    <string name="error_new_password_required">Det nye passordet er påkrevd</string>
+    <string name="error_old_password_required">Det gamle passordet er påkrevd</string>
+    <string name="error_confirm_password_required">Det bekreftede passordet er påkrevd</string>
+    <string name="placeholder_age">Alder</string>
+    <string name="error_age_required">Alder er påkrevd</string>
+
     <string name="error_invalid_email">Ugyldig e-post</string>
     <string name="error_invalid_password">Passordet er ugyldig</string>
+    <string name="error_invalid_name">Navnet kan bare inneholde bokstaver</string>
+    <string name="error_invalid_firstname">Fornavnet kan bare inneholde bokstaver</string>
+    <string name="error_invalid_lastname">Etternavnet kan bare inneholde bokstaver</string>
+
+    <string name="error_invalid_age">Alder må være et gyldig tall</string>
+    <string name="error_age_minimum">Du må være minst 16 år</string>
     <string name="error_account_creation">Kunne ikke opprette konto</string>
+
+    <string name="error_password_too_short">Passordet må være minst 8 tegn langt</string>
+    <string name="error_password_missing_uppercase">Passordet må inneholde minst en stor bokstav</string>
+    <string name="error_password_missing_lowercase">Passordet må inneholde minst en liten bokstav</string>
+    <string name="error_password_missing_digit">Passordet må inneholde minst ett tall</string>
+    <string name="error_password_contains_whitespace">Passordet må ikke inneholde mellomrom</string>
+
 
     <!--ResetPasswordScreen-->
     <string name="reset_password_text">Skriv inn e-postadressen du brukte til å registrere deg.</string>
     <string name="reset_password_info">Vi sender deg en e-postmelding med tilbakestilling av passord.</string>
     <string name="send_email">Send e-post</string>
-
 
     <!--ProfileScreen-->
     <string name="profile_picture_description">Profilbilde</string>
@@ -80,7 +100,13 @@
     <string name="change_profile_picture">Bytt Profilbilde</string>
     <string name="upload_new_picture">Last opp et nytt bilde</string>
     <string name="save_changes_button">Lagre endringer</string>
-
+    <string name="profile_info_updated">Personlig info er endret</string>
+    <string name="take_new_picture">Personlig info er endret</string>
+    <string name="error_profile_creation">Kunne ikke endre informasjon</string>
+    <string name="error_profile_info">Kunne ikke hente bruker informasjon</string>
+    <string name="profile_lastname_label">Etternavnet</string>
+    <string name="error_last_name_required">Etternavn er påkrevd</string>
+    <string name="error_first_name_required">Fornavn er påkrevd</string>
     <!-- ChangePasswordScreen -->
     <string name="change_password_screen_title">Endre passord</string>
     <string name="old_password_label">Gammelt passord</string>
@@ -88,6 +114,9 @@
     <string name="confirm_new_password_label">Bekreft nytt passord</string>
     <string name="update_password_button">Oppdater passord</string>
     <string name="password_mismatch_error">Passordene stemmer ikke overens</string>
+    <string name="password_change">Passordet er endret</string>
+    <string name="error_could_not_change_password">Kunne ikke endre passordet</string>
+
 
 
     <!-- editPermissionScreen  -->
@@ -97,8 +126,5 @@
     <string name="change_Camera_promission_screen">Tillat tilgang til Kamera</string>
     <string name="change_notificationPermission_screen_title">Varsling</string>
     <string name="change_notificationPermission_Promission_screen">Tillat tilgang til Varsling</string>
-
-    <string name="placeholder_age">Alder</string>
-    <string name="error_age_required">Alder er påkrevd</string>
 
 </resources>

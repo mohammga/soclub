@@ -9,10 +9,10 @@ interface AccountService {
     val hasUser: Boolean
     val currentUser: Flow<User>
     suspend fun authenticateWithEmail(email: String, password: String, onResult: (Throwable?) -> Unit)
-    suspend fun createEmailAccount(email: String, password: String, name: String, age: String, onResult: (Throwable?) -> Unit)
+    suspend fun createEmailAccount(email: String, password: String, name: String, age: Int, onResult: (Throwable?) -> Unit)
     suspend fun signOut()
     suspend fun getUserInfo(): UserInfo
     suspend fun sendPasswordResetEmail(email: String, onResult: (Throwable?) -> Unit)
-    suspend fun updateProfile(name: String, email: String, onResult: (Throwable?) -> Unit)
+    suspend fun updateProfile(name: String, onResult: (Throwable?) -> Unit)
     suspend fun changePassword(oldPassword: String, newPassword: String, onResult: (Throwable?) -> Unit)
 }

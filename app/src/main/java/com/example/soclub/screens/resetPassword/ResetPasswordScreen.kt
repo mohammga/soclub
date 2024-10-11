@@ -32,8 +32,6 @@ import com.example.soclub.R
 @Composable
 fun ResetPasswordScreen(navController: NavController, viewModel: ResetPasswordViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState
-    val context = LocalContext.current
-    var errorMessage by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -52,10 +50,14 @@ fun ResetPasswordScreen(navController: NavController, viewModel: ResetPasswordVi
 
         EmailField(value = uiState.email, viewModel::onEmailChange)
 
-        // Show error message if exists
-        if (uiState.errorMessage.isNotEmpty()) {
-            Text(text = uiState.errorMessage, color = Color.Red)
+
+        if (uiState.errorMessage != 0) {
+            Text(
+                text = stringResource(id = uiState.errorMessage),
+                color = Color.Red
+            )
         }
+
 
         Spacer(modifier = Modifier.height(16.dp))
 

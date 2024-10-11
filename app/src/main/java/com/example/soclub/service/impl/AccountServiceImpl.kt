@@ -5,7 +5,6 @@ import com.example.soclub.models.UserInfo
 import com.example.soclub.service.AccountService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.EmailAuthProvider
-import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -16,7 +15,10 @@ import javax.inject.Inject
 class AccountServiceImpl @Inject constructor(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore
+
 ) : AccountService {
+
+
 
     override val currentUserId: String
         get() = auth.currentUser?.uid.orEmpty()
@@ -57,7 +59,7 @@ class AccountServiceImpl @Inject constructor(
         email: String,
         password: String,
         name: String,
-        age: String,
+        age: Int,
         onResult: (Throwable?) -> Unit
     ) {
         auth.createUserWithEmailAndPassword(email, password)
@@ -95,28 +97,25 @@ class AccountServiceImpl @Inject constructor(
             .await()
     }
 
-    // Implementasjon for å oppdatere brukerprofilen (navn og e-post)
-    override suspend fun updateProfile(name: String, email: String, onResult: (Throwable?) -> Unit) {
-        val user = auth.currentUser
-        user?.let {
-            val profileUpdates = hashMapOf(
-                "name" to name
-            )
-            // Oppdater Firestore med nytt navn
-            firestore.collection("users").document(it.uid).update(profileUpdates as Map<String, Any>)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        // Oppdater e-posten i Firebase Authentication
-                        it.verifyBeforeUpdateEmail(email)
-                            .addOnCompleteListener { emailUpdateTask ->
-                                onResult(emailUpdateTask.exception)
-                            }
-                    } else {
-                        onResult(task.exception)
-                    }
-                }.await()
-        }
+    override suspend fun updateProfile(name: String, onResult: (Throwable?) -> Unit) {
+        val userId = auth.currentUser?.uid ?: throw Exception("User not logged in")
+
+        val updates = hashMapOf(
+            "name" to name,
+        )
+
+        firestore.collection("users").document(userId)
+            .update(updates as Map<String, Any>)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    onResult(null)
+                } else {
+                    onResult(task.exception)
+                }
+            }
     }
+
+
 
     // Implementasjon for å endre passord
     override suspend fun changePassword(

@@ -1,5 +1,7 @@
 package com.example.soclub.models
+
 import com.google.firebase.firestore.FirebaseFirestore
+
 
 data class Activity(
     val id: String = "",
