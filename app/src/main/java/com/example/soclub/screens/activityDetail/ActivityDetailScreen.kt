@@ -102,7 +102,7 @@ fun ActivityDetailsContent(
             )
             InfoRow(
                 icon = Icons.Default.People,
-                mainText = "Maks ${activity?.maxParticipants ?: 0}", // Oppdater til int
+                mainText = "Maks ${activity?.maxParticipants ?: 0} personer", // Oppdater til int
                 subText = "Aldersgruppe: ${activity?.ageGroup ?: "Alle"}"
             )
             ActivityDescription(activity?.description ?: "Ingen beskrivelse")

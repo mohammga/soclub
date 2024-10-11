@@ -3,7 +3,6 @@ package com.example.soclub.screens.activityDetail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soclub.models.Activity
-import com.example.soclub.service.ActivityService
 import com.example.soclub.service.AccountService
 import com.example.soclub.service.ActivityDetaillService
 import dagger.hilt.android.lifecycle.HiltViewModel
