@@ -1,5 +1,6 @@
 package com.example.soclub.screens.changePassword
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -17,33 +18,43 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.soclub.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ChangePasswordScreen(navController: NavController, viewModel: ChangePasswordViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        PasswordField(label = stringResource(id = R.string.old_password_label), value = uiState.oldPassword, viewModel::onOldPasswordChange)
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        content = {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                PasswordField(label = stringResource(id = R.string.old_password_label), value = uiState.oldPassword, viewModel::onOldPasswordChange)
 
-        PasswordField(label = stringResource(id = R.string.new_password_label), value = uiState.newPassword, viewModel::onNewPasswordChange)
+                PasswordField(label = stringResource(id = R.string.new_password_label), value = uiState.newPassword, viewModel::onNewPasswordChange)
 
-        PasswordField(label = stringResource(id = R.string.confirm_new_password_label), value = uiState.confirmPassword, viewModel::onConfirmPasswordChange)
+                PasswordField(label = stringResource(id = R.string.confirm_new_password_label), value = uiState.confirmPassword, viewModel::onConfirmPasswordChange)
 
-        Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
-        if (uiState.errorMessage != 0) {
-            Text(
-                text = stringResource(id = uiState.errorMessage),
-                color = Color.Red
-            )
+                if (uiState.errorMessage != 0) {
+                    Text(
+                        text = stringResource(id = uiState.errorMessage),
+                        color = Color.Red
+                    )
+                }
+
+                ChangePasswordButton(navController, viewModel, snackbarHostState, coroutineScope)
+            }
         }
-
-        ChangePasswordButton(navController, viewModel)
-    }
+    )
 }
 
 @Composable
@@ -65,10 +76,10 @@ fun PasswordField(
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         value = value,
-        onValueChange ={
+        onValueChange = {
             onNewValue(it)
             if (!isVisibleToggled) isVisible = it == ""
-        }               ,
+        },
         placeholder = { Text(label) },
         trailingIcon = {
             IconButton(onClick = {
@@ -84,9 +95,36 @@ fun PasswordField(
 }
 
 @Composable
-private fun ChangePasswordButton(navController: NavController, viewModel: ChangePasswordViewModel) {
+private fun ChangePasswordButton(
+    navController: NavController,
+    viewModel: ChangePasswordViewModel,
+    snackbarHostState: SnackbarHostState,
+    coroutineScope: CoroutineScope
+) {
+    // Hent ressurser for meldinger før coroutineScope
+    val errorMessageText = viewModel.uiState.value.errorMessage.takeIf { it != 0 }
+        ?.let { stringResource(id = it) }
+    val successMessageText = stringResource(id = R.string.password_change)
+
     Button(
-        onClick = { viewModel.onChangePasswordClick(navController) },
+        onClick = {
+            viewModel.onChangePasswordClick()
+
+            coroutineScope.launch {
+                // Hvis det er feil, vis en feilmelding, ellers vis en suksessmelding
+                if (errorMessageText != null) {
+                    snackbarHostState.showSnackbar(
+                        message = errorMessageText,
+                        duration = SnackbarDuration.Long
+                    )
+                } else {
+                    snackbarHostState.showSnackbar(
+                        message = successMessageText,
+                        duration = SnackbarDuration.Long
+                    )
+                }
+            }
+        },
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp)
