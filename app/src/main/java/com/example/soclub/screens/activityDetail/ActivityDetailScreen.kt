@@ -50,22 +50,22 @@ fun ActivityDetailScreen(
         }
     }
 
-    // Displaying the activity details using a lazy column for a scrollable layout
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.Start
     ) {
         item {
-            ActivityImage(imageUrl = activity?.imageUrl ?: "")  // Display the activity's image
+            ActivityImage(imageUrl = activity?.imageUrl ?: "")
         }
 
         item {
-            // Display the rest of the activity details such as title, location, and registration button
+
             ActivityDetailsContent(
                 activity = activity,
                 isRegistered = isRegistered,
-                onRegisterClick = { viewModel.updateRegistrationForActivity(activityId!!, true) },  // Registrer
-                onUnregisterClick = { viewModel.updateRegistrationForActivity(activityId!!, false) }  // Avregistrer
+                onRegisterClick = { viewModel.updateRegistrationForActivity(activityId!!, true) },
+                onUnregisterClick = { viewModel.updateRegistrationForActivity(activityId!!, false) }
             )
         }
     }
@@ -78,35 +78,35 @@ fun ActivityDetailsContent(
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
-    // Box layout for padding and alignment, using a column to organize content
+
     Box(modifier = Modifier.padding(16.dp)) {
         Column {
-            ActivityTitle(activity?.title ?: "Ingen tittel")  // Display the title of the activity
-            ActivityDate()  // Display the date of the activity (static for now)
+            ActivityTitle(activity?.title ?: "Ingen tittel")
+            ActivityDate()
             InfoRow(
                 icon = Icons.Default.LocationOn,
                 mainText = activity?.location ?: "Ukjent",
                 subText = activity?.restOfAddress ?: "Ukjent adresse"
-            )  // Display the location of the activity
+            )
             InfoRow(
                 icon = Icons.Default.People,
                 mainText = "Maks ${activity?.maxParticipants ?: "Ukjent"}",
                 subText = "Aldersgruppe: ${activity?.ageGroup ?: "Alle"}"
-            )  // Display the max participants and age group
-            ActivityDescription(activity?.description ?: "Ingen beskrivelse")  // Show activity description
-            ActivityGPSImage()  // Display a static GPS image for the activity location
+            )
+            ActivityDescription(activity?.description ?: "Ingen beskrivelse")
+            ActivityGPSImage()
             ActivityRegisterButton(
                 isRegistered = isRegistered,
                 onRegisterClick = onRegisterClick,
                 onUnregisterClick = onUnregisterClick
-            )  // Register/unregister button depending on user status
+            )
         }
     }
 }
 
 @Composable
 fun ActivityImage(imageUrl: String) {
-    // Displays the activity image using Coil for image loading
+
     Image(
         painter = rememberAsyncImagePainter(imageUrl),
         contentDescription = "Activity Image",
@@ -115,13 +115,13 @@ fun ActivityImage(imageUrl: String) {
             .height(300.dp)
             .clip(RoundedCornerShape(16.dp))
             .padding(vertical = 8.dp),
-        contentScale = ContentScale.Crop  // Makes the image fill the width of the screen while cropping excess
+        contentScale = ContentScale.Crop
     )
 }
 
 @Composable
 fun ActivityTitle(title: String) {
-    // Displays the title of the activity
+
     Text(
         text = title,
         fontSize = 24.sp,
@@ -132,7 +132,7 @@ fun ActivityTitle(title: String) {
 
 @Composable
 fun ActivityDate() {
-    // Displays the activity date (currently static)
+
     Text(
         text = "Tirsdag. 28. august 2024",
         modifier = Modifier.padding(vertical = 4.dp)
@@ -141,7 +141,7 @@ fun ActivityDate() {
 
 @Composable
 fun ActivityDescription(description: String) {
-    // Displays the description of the activity
+
     Text(
         text = description,
         modifier = Modifier.padding(vertical = 16.dp)
@@ -150,7 +150,7 @@ fun ActivityDescription(description: String) {
 
 @Composable
 fun ActivityGPSImage() {
-    // Displays a static GPS image
+
     Image(
         painter = painterResource(R.drawable.gpsbilde1),
         contentDescription = "GPS-bilde",
@@ -159,7 +159,7 @@ fun ActivityGPSImage() {
             .height(250.dp)
             .clip(RoundedCornerShape(16.dp))
             .padding(vertical = 8.dp),
-        contentScale = ContentScale.Crop  // Ensures the image scales and fits appropriately
+        contentScale = ContentScale.Crop
     )
 }
 
@@ -169,11 +169,11 @@ fun ActivityRegisterButton(
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
-    // Endrer knappetekst og farge basert på registreringsstatus
+
     val buttonText = if (isRegistered) "Meld deg ut" else "Meld deg på"
     val buttonColor = if (isRegistered) Color.Red else Color.Black
 
-    // Knapp for å registrere eller avregistrere for aktiviteten
+
     Button(
         onClick = {
             if (isRegistered) onUnregisterClick() else onRegisterClick()
@@ -184,7 +184,7 @@ fun ActivityRegisterButton(
             .padding(vertical = 16.dp)
             .height(48.dp)
     ) {
-        Text(text = buttonText, color = Color.White)  // Dynamisk knappetekst basert på status
+        Text(text = buttonText, color = Color.White)
     }
 }
 
@@ -195,24 +195,24 @@ fun InfoRow(
     mainText: String,
     subText: String
 ) {
-    // Displays an icon with main and sub text, used for location and participant info
+
     Row(
         modifier = Modifier.padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(modifier = Modifier.padding(end = 16.dp)) {
-            ElevatedCardExample(icon = icon)  // Displays the icon inside an elevated card
+            ElevatedCardExample(icon = icon)
         }
         Column {
-            Text(text = mainText, fontWeight = FontWeight.Bold, fontSize = 17.sp)  // Main text (e.g., location)
-            Text(text = subText, color = Color.Gray)  // Subtext (e.g., address or age group)
+            Text(text = mainText, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+            Text(text = subText, color = Color.Gray)
         }
     }
 }
 
 @Composable
 fun ElevatedCardExample(icon: androidx.compose.ui.graphics.vector.ImageVector) {
-    // Displays a circular elevated card with an icon in the center
+
     ElevatedCard(
         modifier = Modifier.size(50.dp),
         colors = CardDefaults.elevatedCardColors(containerColor = Color.LightGray)
@@ -225,7 +225,7 @@ fun ElevatedCardExample(icon: androidx.compose.ui.graphics.vector.ImageVector) {
                 imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(30.dp)
-            )  // Icon displayed inside the elevated card
+            )
         }
     }
 }

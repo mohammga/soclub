@@ -25,8 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.pager.HorizontalPager
 import coil.compose.rememberImagePainter
 import androidx.compose.foundation.pager.PagerState
-
-
+import coil.compose.rememberAsyncImagePainter
 
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -131,7 +130,7 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
     ) {
 
         Image(
-            painter = rememberImagePainter(activity.imageUrl),
+            painter = rememberAsyncImagePainter(activity.imageUrl),
             contentDescription = activity.title,
             contentScale = ContentScale.Crop,
             modifier = Modifier

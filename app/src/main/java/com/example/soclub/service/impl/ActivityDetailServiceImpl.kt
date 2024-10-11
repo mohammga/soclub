@@ -59,7 +59,6 @@ class ActivityDetailServiceImpl @Inject constructor(
                         .document(document.id)
                         .update(mapOf(
                             "status" to status,
-                            "timestamp" to Timestamp(Date()) // Oppdater påmeldingsdato
                         )).await()
                 }
             } else {
