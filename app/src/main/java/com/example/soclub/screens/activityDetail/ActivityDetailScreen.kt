@@ -42,6 +42,8 @@ fun ActivityDetailScreen(
     // Collecting the activity details and registration status from the ViewModel
     val activity = viewModel.activity.collectAsState().value
     val isRegistered = viewModel.isRegistered.collectAsState().value
+    val canRegister = viewModel.canRegister.collectAsState().value  // Hent canRegister fra ViewModel
+
 
     // Fetch the activity details when the screen is first displayed
     LaunchedEffect(activityId, category) {
@@ -64,6 +66,10 @@ fun ActivityDetailScreen(
             ActivityDetailsContent(
                 activity = activity,
                 isRegistered = isRegistered,
+                canRegister = canRegister,  // Sender canRegister til knappen
+                ageGroup = activity?.ageGroup ?: 0,  // Passer inn aldersgrensen
+                activityId = activityId,   // Sender inn activityId
+                viewModel = viewModel,     // Sender inn ViewModel
                 onRegisterClick = { viewModel.updateRegistrationForActivity(activityId!!, true) },
                 onUnregisterClick = { viewModel.updateRegistrationForActivity(activityId!!, false) }
             )
@@ -75,6 +81,10 @@ fun ActivityDetailScreen(
 fun ActivityDetailsContent(
     activity: Activity?,
     isRegistered: Boolean,
+    canRegister: Boolean,      // Legg til canRegister som parameter
+    ageGroup: Int,             // Passer inn aldersgrensen
+    activityId: String?,       // Legg til activityId som parameter
+    viewModel: ActivityDetailViewModel, // Legg til viewModel som parameter
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
@@ -97,8 +107,18 @@ fun ActivityDetailsContent(
             ActivityGPSImage()
             ActivityRegisterButton(
                 isRegistered = isRegistered,
-                onRegisterClick = onRegisterClick,
-                onUnregisterClick = onUnregisterClick
+                canRegister = canRegister,  // Passer canRegister-verdien til knappen
+                ageGroup = ageGroup,        // Passer aldersgrensen for sjekk
+                onRegisterClick = {
+                    if (activityId != null) {
+                        viewModel.updateRegistrationForActivity(activityId, true)
+                    }
+                },
+                onUnregisterClick = {
+                    if (activityId != null) {
+                        viewModel.updateRegistrationForActivity(activityId, false)
+                    }
+                }
             )
         }
     }
@@ -166,23 +186,32 @@ fun ActivityGPSImage() {
 @Composable
 fun ActivityRegisterButton(
     isRegistered: Boolean,
+    canRegister: Boolean,
+    ageGroup: Int,
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
+    val buttonText = if (isRegistered) {
+        "Meld deg ut"
+    } else if (!canRegister) {
+        "Du er under aldersgrensen ($ageGroup)"
+    } else {
+        "Meld deg på"
+    }
 
-    val buttonText = if (isRegistered) "Meld deg ut" else "Meld deg på"
-    val buttonColor = if (isRegistered) Color.Red else Color.Black
-
+    val buttonColor = if (isRegistered || !canRegister) Color.Red else Color.Black
 
     Button(
         onClick = {
+            if (!canRegister) return@Button  // Hvis brukeren ikke kan melde seg, gjør ingenting
             if (isRegistered) onUnregisterClick() else onRegisterClick()
         },
         colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 16.dp)
-            .height(48.dp)
+            .height(48.dp),
+        enabled = canRegister  // Deaktiver knappen hvis brukeren ikke oppfyller alderskravet
     ) {
         Text(text = buttonText, color = Color.White)
     }
