@@ -66,12 +66,13 @@ fun ActivityDetailScreen(
             ActivityDetailsContent(
                 activity = activity,
                 isRegistered = isRegistered,
-                canRegister = canRegister,  // Sender canRegister til knappen
-                ageGroup = activity?.ageGroup ?: 0,  // Passer inn aldersgrensen
-                activityId = activityId,   // Sender inn activityId
-                viewModel = viewModel,     // Sender inn ViewModel
-                onRegisterClick = { viewModel.updateRegistrationForActivity(activityId!!, true) },
-                onUnregisterClick = { viewModel.updateRegistrationForActivity(activityId!!, false) }
+                canRegister = canRegister,
+                ageGroup = activity?.ageGroup ?: 0,
+                activityId = activityId,
+                category = category,       // Sender kategori videre
+                viewModel = viewModel,
+                onRegisterClick = { viewModel.updateRegistrationForActivity(category!!, activityId!!, true) },
+                onUnregisterClick = { viewModel.updateRegistrationForActivity(category!!, activityId!!, false) }
             )
         }
     }
@@ -81,10 +82,11 @@ fun ActivityDetailScreen(
 fun ActivityDetailsContent(
     activity: Activity?,
     isRegistered: Boolean,
-    canRegister: Boolean,      // Legg til canRegister som parameter
-    ageGroup: Int,             // Passer inn aldersgrensen
-    activityId: String?,       // Legg til activityId som parameter
-    viewModel: ActivityDetailViewModel, // Legg til viewModel som parameter
+    canRegister: Boolean,
+    ageGroup: Int,
+    activityId: String?,
+    category: String?,        // Legg til category som parameter
+    viewModel: ActivityDetailViewModel,
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
@@ -100,25 +102,26 @@ fun ActivityDetailsContent(
             )
             InfoRow(
                 icon = Icons.Default.People,
-                mainText = "Maks ${activity?.maxParticipants ?: "Ukjent"}",
+                mainText = "Maks ${activity?.maxParticipants ?: 0}", // Oppdater til int
                 subText = "Aldersgruppe: ${activity?.ageGroup ?: "Alle"}"
             )
             ActivityDescription(activity?.description ?: "Ingen beskrivelse")
             ActivityGPSImage()
             ActivityRegisterButton(
                 isRegistered = isRegistered,
-                canRegister = canRegister,  // Passer canRegister-verdien til knappen
-                ageGroup = ageGroup,        // Passer aldersgrensen for sjekk
+                canRegister = canRegister,
+                ageGroup = ageGroup,
                 onRegisterClick = {
-                    if (activityId != null) {
-                        viewModel.updateRegistrationForActivity(activityId, true)
+                    if (activityId != null && category != null) {
+                        viewModel.updateRegistrationForActivity(category, activityId, true)
                     }
                 },
                 onUnregisterClick = {
-                    if (activityId != null) {
-                        viewModel.updateRegistrationForActivity(activityId, false)
+                    if (activityId != null && category != null) {
+                        viewModel.updateRegistrationForActivity(category, activityId, false)
                     }
                 }
+
             )
         }
     }

@@ -53,16 +53,36 @@ class ActivityDetailViewModel @Inject constructor(
     }
 
 
-    fun updateRegistrationForActivity(activityId: String, isRegistering: Boolean) {
+    fun updateRegistrationForActivity(category: String, activityId: String, isRegistering: Boolean) {
         viewModelScope.launch {
             val userId = accountService.currentUserId
             val status = if (isRegistering) "aktiv" else "notAktiv"
 
-            // Oppdater brukerens registreringsstatus basert på isRegistering
+            // Oppdater brukerens registreringsstatus
             val success = activityDetaillService.updateRegistrationStatus(userId, activityId, status)
+
             if (success) {
-                _isRegistered.value = isRegistering  // Oppdaterer til riktig status basert på handlingen
+                _isRegistered.value = isRegistering
+
+                // Hent nåværende aktivitet
+                val currentActivity = _activity.value
+
+                // Reduser antall deltakere hvis brukeren melder seg på, eller øk hvis brukeren melder seg av
+                if (currentActivity != null && isRegistering) {
+                    val updatedMaxParticipants = currentActivity.maxParticipants - 1
+                    _activity.value = currentActivity.copy(maxParticipants = updatedMaxParticipants)
+
+                    // Oppdater maxParticipants i databasen med kategori
+                    activityDetaillService.updateMaxParticipants(category, activityId, updatedMaxParticipants)
+                } else if (currentActivity != null && !isRegistering) {
+                    val updatedMaxParticipants = currentActivity.maxParticipants + 1
+                    _activity.value = currentActivity.copy(maxParticipants = updatedMaxParticipants)
+
+                    // Oppdater maxParticipants i databasen med kategori
+                    activityDetaillService.updateMaxParticipants(category, activityId, updatedMaxParticipants)
+                }
             }
         }
     }
+
 }
