@@ -97,7 +97,6 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Brukerens navn og etternavn vises nå automatisk i input-feltene
                 ProfileTextField(
                     label = stringResource(id = R.string.profile_name_label),
                     value = uiState.firstname,

@@ -59,7 +59,7 @@ class AccountServiceImpl @Inject constructor(
         email: String,
         password: String,
         name: String,
-        age: String,
+        age: Int,
         onResult: (Throwable?) -> Unit
     ) {
         auth.createUserWithEmailAndPassword(email, password)

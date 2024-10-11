@@ -1,15 +1,13 @@
 package com.example.soclub.models
 //import com.google.firebase.firestore.FirebaseFirestore
 
-
-
 data class Activity(
     val id: String = "",
     val imageUrl: String = "",
     val title: String = "",
     val description: String = "",
     val ageGroup: Int = 0,
-    val maxParticipants: String = "",
+    val maxParticipants: Int = 0,
     val location: String = "",
     val restOfAddress: String = ""
 )
