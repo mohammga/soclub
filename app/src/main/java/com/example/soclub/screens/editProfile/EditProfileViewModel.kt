@@ -80,7 +80,7 @@ class EditProfileViewModel @Inject constructor(
                     if (error == null) {
 
                         viewModelScope.launch {
-                            kotlinx.coroutines.delay(5000)
+                            kotlinx.coroutines.delay(2000)
                             navController.navigate("profile") {
                                 popUpTo("edit_profile") { inclusive = true }
                             }
