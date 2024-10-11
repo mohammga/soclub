@@ -102,6 +102,7 @@
     <string name="error_profile_creation">Kunne ikke endre informasjon</string>
     <string name="error_profile_info">Kunne ikke hente bruker informasjon</string>
     <string name="profile_lastname_label">Etternavnet</string>
+    <string name="error_lastNmae_required">Etternavn er påkrevd</string>
 
 
     <!-- ChangePasswordScreen -->
@@ -111,6 +112,9 @@
     <string name="confirm_new_password_label">Bekreft nytt passord</string>
     <string name="update_password_button">Oppdater passord</string>
     <string name="password_mismatch_error">Passordene stemmer ikke overens</string>
+    <string name="password_change">Passordet er endret</string>
+    <string name="error_could_not_change_password">Kunne ikke endre passordet</string>
+
 
 
     <!-- editPermissionScreen  -->

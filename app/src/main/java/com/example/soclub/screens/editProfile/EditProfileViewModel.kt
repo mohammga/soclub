@@ -16,7 +16,8 @@ import javax.inject.Inject
 data class EditProfileState(
     val firstname: String = "",
     val lastname: String = "",
-    @StringRes val errorMessage: Int = 0
+    @StringRes val errorMessage: Int = 0,
+    val isDirty: Boolean = false // Ny variabel for å spore endringer
 )
 
 @HiltViewModel
@@ -48,11 +49,13 @@ class EditProfileViewModel @Inject constructor(
     }
 
     fun onNameChange(newValue: String) {
-        uiState.value = uiState.value.copy(firstname = newValue)
+        val isNameDirty = newValue != uiState.value.firstname
+        uiState.value = uiState.value.copy(firstname = newValue, isDirty = isNameDirty)
     }
 
-    fun onEmailChange(newValue: String) {
-        uiState.value = uiState.value.copy(lastname = newValue)
+    fun onLastnameChange(newValue: String) {
+        val isLastnameDirty = newValue != uiState.value.lastname
+        uiState.value = uiState.value.copy(lastname = newValue, isDirty = isLastnameDirty)
     }
 
     fun onSaveProfileClick(navController: NavController) {
@@ -61,7 +64,7 @@ class EditProfileViewModel @Inject constructor(
             return
         }
         if (uiState.value.lastname.isBlank()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_email)
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_lastNmae_required)
             return
         }
 
@@ -70,14 +73,17 @@ class EditProfileViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                // Oppdater Firestore med nytt navn og e-post
+
                 accountService.updateProfile(
                     name = fullName,
                 ) { error ->
                     if (error == null) {
-                        // Naviger tilbake til profilsiden ved vellykket oppdatering
-                        navController.navigate("profile") {
-                            popUpTo("edit_profile") { inclusive = true }
+
+                        viewModelScope.launch {
+                            kotlinx.coroutines.delay(2000)
+                            navController.navigate("profile") {
+                                popUpTo("edit_profile") { inclusive = true }
+                            }
                         }
                     } else {
                         uiState.value = uiState.value.copy(errorMessage = R.string.error_profile_creation)
@@ -88,7 +94,5 @@ class EditProfileViewModel @Inject constructor(
             }
         }
     }
-
-
-
 }
+

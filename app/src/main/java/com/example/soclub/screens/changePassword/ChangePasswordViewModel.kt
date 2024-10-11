@@ -5,7 +5,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
 import com.example.soclub.R
 import com.example.soclub.service.AccountService
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,7 +42,7 @@ class ChangePasswordViewModel @Inject constructor(
         uiState.value = uiState.value.copy(confirmPassword = newValue)
     }
 
-    fun onChangePasswordClick(navController: NavController) {
+    fun onChangePasswordClick() {
         if (newPassword != confirmPassword) {
             uiState.value = uiState.value.copy(errorMessage = R.string.password_mismatch_error)
             return
@@ -53,12 +52,17 @@ class ChangePasswordViewModel @Inject constructor(
             try {
                 accountService.changePassword(oldPassword, newPassword) { error ->
                     if (error == null) {
-                        uiState.value = uiState.value.copy(errorMessage = 0) // Clear errors on success
+                        // Tømmer inputfeltene etter vellykket endring
+                        uiState.value = ChangePasswordState() // Tilbakestill til tomme verdier
+                    } else {
+                        uiState.value = uiState.value.copy(errorMessage = R.string.error_could_not_change_password)
                     }
                 }
             } catch (e: Exception) {
-                uiState.value = uiState.value.copy(errorMessage = R.string.error_could_not_send_reset_email)
+                uiState.value = uiState.value.copy(errorMessage = R.string.error_could_not_change_password)
             }
         }
     }
 }
+
+
