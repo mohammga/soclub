@@ -153,9 +153,7 @@ fun AppNavigation(navController: NavHostController, activityService: ActivitySer
                 ActivityDetailScreen(
                     navController = navController,
                     category = category,
-                    activityId = activityId,
-                    activityService = activityService,
-                    accountService = accountService  // Passer inn accountService
+                    activityId = activityId
                 )
             }
             composable(AppScreens.ENTRIES.name) {

@@ -12,6 +12,8 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import com.example.soclub.service.ActivityService
 import com.example.soclub.service.impl.ActivityServiceImpl
+import com.example.soclub.service.impl.ActivityDetailServiceImpl
+import com.example.soclub.service.ActivityDetaillService
 
 
 @Module
@@ -29,6 +31,15 @@ object FirebaseModule {
     fun provideActivityService(firestore: FirebaseFirestore): ActivityService {
         return ActivityServiceImpl(firestore)
     }
+    @Provides
+    @Singleton
+    fun provideActivityDetaillService(firestore: FirebaseFirestore): ActivityDetaillService {
+        return ActivityDetailServiceImpl(firestore)
+    }
+
+
+
+
 
 
 }
