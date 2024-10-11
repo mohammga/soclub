@@ -6,7 +6,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.example.soclub.R
+import com.example.soclub.common.ext.containsDigit
+import com.example.soclub.common.ext.containsLowerCase
+import com.example.soclub.common.ext.containsNoWhitespace
+import com.example.soclub.common.ext.containsUpperCase
+import com.example.soclub.common.ext.isAgeNumeric
+import com.example.soclub.common.ext.isAgeValidMinimum
+import com.example.soclub.common.ext.isPasswordLongEnough
 import com.example.soclub.common.ext.isValidEmail
+import com.example.soclub.common.ext.isValidName
 import com.example.soclub.common.ext.isValidPassword
 import com.example.soclub.service.AccountService
 import com.example.soclub.components.navigation.AppScreens
@@ -62,19 +70,63 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
             return
         }
 
+        if (email.isBlank()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_email_required)
+            return
+        }
+
+        if (password.isBlank()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_required)
+            return
+        }
+
+        if (!name.isValidName()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_name)
+            return
+        }
+
+        if (!age.isAgeNumeric()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_age)
+            return
+        }
+
+        if (!age.isAgeValidMinimum()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_age_minimum)
+            return
+        }
+
         if (!email.isValidEmail()) {
             uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_email)
             return
         }
 
-        if (!password.isValidPassword()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_password)
+        if (!password.isPasswordLongEnough()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_too_short)
+            return
+        }
+
+        if (!password.containsUpperCase()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_missing_uppercase)
+            return
+        }
+
+        if (!password.containsLowerCase()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_missing_lowercase)
+            return
+        }
+
+        if (!password.containsDigit()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_missing_digit)
+            return
+        }
+
+        if (!password.containsNoWhitespace()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_contains_whitespace)
             return
         }
 
         viewModelScope.launch {
             try {
-                // Pass the name and age to the createEmailAccount function
                 accountService.createEmailAccount(email, password, name, age) { error ->
                     if (error == null)
                         navController.navigate(AppScreens.HOME.name)

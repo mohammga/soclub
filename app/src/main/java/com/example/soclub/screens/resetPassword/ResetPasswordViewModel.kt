@@ -36,13 +36,13 @@ class ResetPasswordViewModel @Inject constructor(private val accountService: Acc
 
     fun onForgotPasswordClick() {
         try {
-            if (email.isEmpty()) {
-                uiState.value = uiState.value.copy(errorMessage = R.string.error_enter_reset_email.toString())
+            if (email.isBlank()) {
+                uiState.value = uiState.value.copy(errorMessage = R.string.error_email_required.toString())
                 return
             }
 
-            if (!isValidEmail(email)) {
-                uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_email_address.toString())
+            if (!email.isValidEmail()) {
+                uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_email.toString())
                 return
             }
 
@@ -60,9 +60,5 @@ class ResetPasswordViewModel @Inject constructor(private val accountService: Acc
         } catch (e: Exception) {
             uiState.value = uiState.value.copy(errorMessage = R.string.error_could_not_send_reset_email.toString())
         }
-    }
-
-    private fun isValidEmail(email: String): Boolean {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 }

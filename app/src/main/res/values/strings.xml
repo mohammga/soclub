@@ -51,15 +51,32 @@
 
     <!--SignupViewModel-->
     <string name="error_name_required">Navn er påkrevd</string>
+    <string name="error_email_required">E-post er påkrevd</string>
+    <string name="error_password_required">Passord er påkrevd</string>
+    <string name="placeholder_age">Alder</string>
+    <string name="error_age_required">Alder er påkrevd</string>
+
     <string name="error_invalid_email">Ugyldig e-post</string>
     <string name="error_invalid_password">Passordet er ugyldig</string>
+    <string name="error_invalid_name">Navnet kan bare inneholde bokstaver</string>
+
+    <string name="error_invalid_age">Alder må være et gyldig tall</string>
+    <string name="error_age_minimum">Du må være minst 16 år</string>
     <string name="error_account_creation">Kunne ikke opprette konto</string>
+
+    <string name="error_password_too_short">Passordet må være minst 8 tegn langt</string>
+    <string name="error_password_missing_uppercase">Passordet må inneholde minst en stor bokstav</string>
+    <string name="error_password_missing_lowercase">Passordet må inneholde minst en liten bokstav</string>
+    <string name="error_password_missing_digit">Passordet må inneholde minst ett tall</string>
+    <string name="error_password_contains_whitespace">Passordet må ikke inneholde mellomrom</string>
+
+
+
 
     <!--ResetPasswordScreen-->
     <string name="reset_password_text">Skriv inn e-postadressen du brukte til å registrere deg.</string>
     <string name="reset_password_info">Vi sender deg en e-postmelding med tilbakestilling av passord.</string>
     <string name="send_email">Send e-post</string>
-
 
     <!--ProfileScreen-->
     <string name="profile_picture_description">Profilbilde</string>
@@ -107,8 +124,5 @@
     <string name="change_Camera_promission_screen">Tillat tilgang til Kamera</string>
     <string name="change_notificationPermission_screen_title">Varsling</string>
     <string name="change_notificationPermission_Promission_screen">Tillat tilgang til Varsling</string>
-
-    <string name="placeholder_age">Alder</string>
-    <string name="error_age_required">Alder er påkrevd</string>
 
 </resources>
