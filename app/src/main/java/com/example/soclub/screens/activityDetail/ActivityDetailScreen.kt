@@ -29,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberImagePainter
 import androidx.compose.runtime.collectAsState
+import coil.compose.rememberAsyncImagePainter
 import com.example.soclub.models.Activity
 
 @Composable
@@ -63,8 +64,8 @@ fun ActivityDetailScreen(
             ActivityDetailsContent(
                 activity = activity,
                 isRegistered = isRegistered,
-                onRegisterClick = { viewModel.registerForActivity(activityId!!) },
-                onUnregisterClick = { viewModel.unregisterFromActivity(activityId!!) }
+                onRegisterClick = { viewModel.updateRegistrationForActivity(activityId!!, true) },  // Registrer
+                onUnregisterClick = { viewModel.updateRegistrationForActivity(activityId!!, false) }  // Avregistrer
             )
         }
     }
@@ -107,7 +108,7 @@ fun ActivityDetailsContent(
 fun ActivityImage(imageUrl: String) {
     // Displays the activity image using Coil for image loading
     Image(
-        painter = rememberImagePainter(imageUrl),
+        painter = rememberAsyncImagePainter(imageUrl),
         contentDescription = "Activity Image",
         modifier = Modifier
             .fillMaxWidth()
@@ -168,11 +169,11 @@ fun ActivityRegisterButton(
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
-    // Changes button text and color depending on the registration status
+    // Endrer knappetekst og farge basert på registreringsstatus
     val buttonText = if (isRegistered) "Meld deg ut" else "Meld deg på"
     val buttonColor = if (isRegistered) Color.Red else Color.Black
 
-    // Button to register or unregister for the activity
+    // Knapp for å registrere eller avregistrere for aktiviteten
     Button(
         onClick = {
             if (isRegistered) onUnregisterClick() else onRegisterClick()
@@ -183,9 +184,10 @@ fun ActivityRegisterButton(
             .padding(vertical = 16.dp)
             .height(48.dp)
     ) {
-        Text(text = buttonText, color = Color.White)  // Button text is dynamic based on registration status
+        Text(text = buttonText, color = Color.White)  // Dynamisk knappetekst basert på status
     }
 }
+
 
 @Composable
 fun InfoRow(
