@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.example.soclub.R
+import com.example.soclub.common.ext.isValidName
 import com.example.soclub.models.UserInfo
 import com.example.soclub.service.AccountService
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -59,12 +60,27 @@ class EditProfileViewModel @Inject constructor(
     }
 
     fun onSaveProfileClick(navController: NavController) {
+        // Sjekk om fornavnet er tomt
         if (uiState.value.firstname.isBlank()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_name_required)
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_first_name_required)
             return
         }
+
+        // Sjekk om fornavnet inneholder kun gyldige tegn
+        if (!uiState.value.firstname.isValidName()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_firstname)
+            return
+        }
+
+        // Sjekk om etternavnet er tomt
         if (uiState.value.lastname.isBlank()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_lastNmae_required)
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_last_name_required)
+            return
+        }
+
+        // Sjekk om etternavnet inneholder kun gyldige tegn
+        if (!uiState.value.lastname.isValidName()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_lastname)
             return
         }
 
@@ -73,12 +89,8 @@ class EditProfileViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-
-                accountService.updateProfile(
-                    name = fullName,
-                ) { error ->
+                accountService.updateProfile(name = fullName) { error ->
                     if (error == null) {
-
                         viewModelScope.launch {
                             kotlinx.coroutines.delay(2000)
                             navController.navigate("profile") {
@@ -94,5 +106,6 @@ class EditProfileViewModel @Inject constructor(
             }
         }
     }
+
 }
 

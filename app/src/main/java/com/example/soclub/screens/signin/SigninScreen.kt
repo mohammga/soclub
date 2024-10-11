@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -61,9 +62,11 @@ fun SigninScreen(navController: NavController, viewModel: SigninViewModel = hilt
         EmailField(value = uiState.email, viewModel::onEmailChange)
         PasswordField(value = uiState.password, viewModel::onPasswordChange)
 
-        // Show error message if exists
-        if (uiState.errorMessage.isNotEmpty()) {
-            Text(text = uiState.errorMessage, color = Color.Red)
+        if (uiState.errorMessage != 0) {
+            Text(
+                text = stringResource(id = uiState.errorMessage),
+                color = Color.Red
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))

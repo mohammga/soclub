@@ -127,7 +127,8 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
 
         viewModelScope.launch {
             try {
-                accountService.createEmailAccount(email, password, name, age) { error ->
+                val convertedAge = age.toIntOrNull() ?: 0 // Sett til 0 hvis ikke konvertering er mulig
+                accountService.createEmailAccount(email, password, name, convertedAge) { error ->
                     if (error == null)
                         navController.navigate(AppScreens.HOME.name)
                 }

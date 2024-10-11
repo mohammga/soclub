@@ -43,7 +43,7 @@ class SigninViewModel @Inject constructor(private val accountService: AccountSer
         uiState.value = uiState.value.copy(password = newValue)
     }
 
-    fun onLoginClick(navController: NavController) {
+    fun onLoginClick(context: Context, navController: NavController) {
 
         if (email.isBlank()) {
             uiState.value = uiState.value.copy(errorMessage = R.string.error_email_required)

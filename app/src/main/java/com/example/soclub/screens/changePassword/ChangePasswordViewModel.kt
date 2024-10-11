@@ -6,10 +6,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soclub.R
+import com.example.soclub.common.ext.containsDigit
+import com.example.soclub.common.ext.containsLowerCase
+import com.example.soclub.common.ext.containsNoWhitespace
+import com.example.soclub.common.ext.containsUpperCase
+import com.example.soclub.common.ext.isPasswordLongEnough
 import com.example.soclub.service.AccountService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.example.soclub.common.ext.isValidPassword
 
 data class ChangePasswordState(
     val oldPassword: String = "",
@@ -43,6 +49,46 @@ class ChangePasswordViewModel @Inject constructor(
     }
 
     fun onChangePasswordClick() {
+        if (oldPassword.isBlank()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_old_password_required)
+            return
+        }
+
+        if (newPassword.isBlank()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_new_password_required)
+            return
+        }
+
+        if (confirmPassword.isBlank()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_confirm_password_required)
+            return
+        }
+
+        if (!newPassword.isPasswordLongEnough()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_too_short)
+            return
+        }
+
+        if (!newPassword.containsUpperCase()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_missing_uppercase)
+            return
+        }
+
+        if (!newPassword.containsLowerCase()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_missing_lowercase)
+            return
+        }
+
+        if (!newPassword.containsDigit()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_missing_digit)
+            return
+        }
+
+        if (!newPassword.containsNoWhitespace()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_contains_whitespace)
+            return
+        }
+
         if (newPassword != confirmPassword) {
             uiState.value = uiState.value.copy(errorMessage = R.string.password_mismatch_error)
             return
@@ -64,5 +110,3 @@ class ChangePasswordViewModel @Inject constructor(
         }
     }
 }
-
-
