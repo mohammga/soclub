@@ -90,19 +90,19 @@ class ActivityDetailServiceImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateMaxParticipants(category: String, activityId: String, updatedMaxParticipants: Int): Boolean {
-        return try {
-            // Oppdater maxParticipants-feltet i riktig kategori og aktivitet i Firestore
-            firestore.collection("category").document(category)
-                .collection("activities").document(activityId)
-                .update("maxParticipants", updatedMaxParticipants)
-                .await()
-            true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        }
-    }
+//    override suspend fun updateMaxParticipants(category: String, activityId: String, updatedMaxParticipants: Int): Boolean {
+//        return try {
+//            // Oppdater maxParticipants-feltet i riktig kategori og aktivitet i Firestore
+//            firestore.collection("category").document(category)
+//                .collection("activities").document(activityId)
+//                .update("maxParticipants", updatedMaxParticipants)
+//                .await()
+//            true
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//            false
+//        }
+//    }
 
 
     override suspend fun getRegisteredParticipantsCount(activityId: String): Int {

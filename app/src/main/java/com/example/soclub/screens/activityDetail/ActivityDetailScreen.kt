@@ -36,6 +36,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.*
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 
 
 @Composable
@@ -91,13 +92,13 @@ fun ActivityDetailScreen(
                         onRegisterClick = {
                             if (activityId != null && category != null) {
                                 viewModel.updateRegistrationForActivity(category, activityId, true)
-                                showSnackbar(true, snackbarHostState, scope, activity)  // Pass 'true' for registering
+                                showSnackbar(true, snackbarHostState, scope, activity, currentParticipants)  // Pass 'true' for registering
                             }
                         },
                         onUnregisterClick = {
                             if (activityId != null && category != null) {
                                 viewModel.updateRegistrationForActivity(category, activityId, false)
-                                showSnackbar(false, snackbarHostState, scope, activity)  // Pass 'false' for unregistering
+                                showSnackbar(false, snackbarHostState, scope, activity, currentParticipants)  // Pass 'false' for unregistering
                             }
                         }
                     )
@@ -108,14 +109,15 @@ fun ActivityDetailScreen(
 }
 
 
-fun showSnackbar(isRegistering: Boolean, snackbarHostState: SnackbarHostState, scope: CoroutineScope, activity: Activity?) {
+fun showSnackbar(isRegistering: Boolean, snackbarHostState: SnackbarHostState, scope: CoroutineScope, activity: Activity?, currentParticipants: Int) {
     val maxParticipants = activity?.maxParticipants ?: 0
-    val currentParticipants = activity?.currentParticipants ?: 0
     val remainingSlots = maxParticipants - currentParticipants
 
+    scope.launch {
+        delay(500)
     val message = if (isRegistering) {
         if (remainingSlots > 0) {
-            "Påmeldingen var vellykket. Det er $remainingSlots av $maxParticipants plasser igjen."
+            "Påmeldingen var vellykket."
         } else {
             "Påmeldingen var vellykket. Alle plasser er nå fylt opp."
         }
@@ -123,7 +125,8 @@ fun showSnackbar(isRegistering: Boolean, snackbarHostState: SnackbarHostState, s
         "Du har nå meldt deg ut av aktiviteten."
     }
 
-    scope.launch {
+
+
         snackbarHostState.showSnackbar(message)
     }
 }
@@ -148,15 +151,14 @@ fun ActivityDetailsContent(
             mainText = activity?.location ?: "Ukjent",
             subText = activity?.restOfAddress ?: "Ukjent adresse"
         )
-        InfoRow(
-            icon = Icons.Default.People,
-            mainText = "Maks ${activity?.maxParticipants ?: 0} tilgjenglig plasser",
-            subText = "Aldersgruppe: ${activity?.ageGroup ?: "Alle"}"
-        )
 
         InfoRow(
             icon = Icons.Default.People,
-            mainText = "Antall deltakere er $currentParticipants av ${activity?.maxParticipants?:0}",
+            mainText = if (currentParticipants == 0) {
+                "Maks ${activity?.maxParticipants ?: 0}"
+            } else {
+                "$currentParticipants deltaker${if (currentParticipants > 1) "e" else ""} av ${activity?.maxParticipants ?: 0}"
+            },
             subText = "Aldersgruppe: ${activity?.ageGroup ?: "Alle"}"
         )
 
@@ -169,9 +171,6 @@ fun ActivityDetailsContent(
             onRegisterClick = onRegisterClick,
             onUnregisterClick = onUnregisterClick
         )
-
-        Text(text = "Registrerte deltakere: $currentParticipants")
-        Text(text = "Maks antall deltakere: ${activity?.maxParticipants ?: 0}")
     }
 }
 

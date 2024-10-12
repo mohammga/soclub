@@ -88,15 +88,15 @@ class ActivityDetailViewModel @Inject constructor(
                 // Oppdater antall deltakere for aktiviteten
                 val currentActivity = _activity.value
                 if (currentActivity != null) {
-                    val updatedMaxParticipants = if (isRegistering) {
-                        currentActivity.maxParticipants - 1
-                    } else {
-                        currentActivity.maxParticipants + 1
-                    }
-                    _activity.value = currentActivity.copy(maxParticipants = updatedMaxParticipants)
-
-                    // Oppdater maxParticipants i databasen
-                    activityDetaillService.updateMaxParticipants(category, activityId, updatedMaxParticipants)
+//                    val updatedMaxParticipants = if (isRegistering) {
+//                        currentActivity.maxParticipants - 1
+//                    } else {
+//                        currentActivity.maxParticipants + 1
+//                    }
+//                    _activity.value = currentActivity.copy(maxParticipants = updatedMaxParticipants)
+//
+//                    // Oppdater maxParticipants i databasen
+//                    activityDetaillService.updateMaxParticipants(category, activityId, updatedMaxParticipants)
 
                     loadRegisteredParticipants(activityId)
                 }
