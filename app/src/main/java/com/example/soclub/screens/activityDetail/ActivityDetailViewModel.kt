@@ -28,28 +28,47 @@ class ActivityDetailViewModel @Inject constructor(
     private val _canRegister = MutableStateFlow(true)
     val canRegister: StateFlow<Boolean> = _canRegister
 
-    /**
-     * Fetches the details of an activity based on category and activityId.
-     * Also checks if the current user is already registered for this activity.
-     */
+
+    private val _currentParticipants = MutableStateFlow(0)
+    val currentParticipants: StateFlow<Int> = _currentParticipants
+
+    fun loadRegisteredParticipants(activityId: String) {
+        viewModelScope.launch {
+            val count = activityDetaillService.getRegisteredParticipantsCount(activityId)
+            _currentParticipants.value = count
+        }
+    }
+
+
 
     fun loadActivity(category: String, activityId: String) {
         viewModelScope.launch {
             val loadedActivity = activityDetaillService.getActivityById(category, activityId)
             _activity.value = loadedActivity
 
-            // Sjekk om brukeren er registrert
+            // Hent brukerens registreringsstatus og oppdater _isRegistered
             val userId = accountService.currentUserId
             val registered = activityDetaillService.isUserRegisteredForActivity(userId, activityId)
             _isRegistered.value = registered
 
-            // Sjekk aldersgrense
+
+
+            // Oppdater _canRegister basert på aldersgrense
             val userInfo = accountService.getUserInfo()
             if (loadedActivity != null) {
                 _canRegister.value = userInfo.age >= loadedActivity.ageGroup
             }
+
+            loadRegisteredParticipants(activityId)
+
+            activityDetaillService.listenToRegistrationUpdates(activityId) { count ->
+                _currentParticipants.value = count
+            }
+
         }
     }
+
+
 
 
     fun updateRegistrationForActivity(category: String, activityId: String, isRegistering: Boolean) {
@@ -60,28 +79,30 @@ class ActivityDetailViewModel @Inject constructor(
             // Oppdater brukerens registreringsstatus
             val success = activityDetaillService.updateRegistrationStatus(userId, activityId, status)
 
+
+
             if (success) {
-                _isRegistered.value = isRegistering
+                // Oppdater registreringsstatus
+                _isRegistered.value = isRegistering  // Sett ny verdi til _isRegistered
 
-                // Hent nåværende aktivitet
+                // Oppdater antall deltakere for aktiviteten
                 val currentActivity = _activity.value
-
-                // Reduser antall deltakere hvis brukeren melder seg på, eller øk hvis brukeren melder seg av
-                if (currentActivity != null && isRegistering) {
-                    val updatedMaxParticipants = currentActivity.maxParticipants - 1
+                if (currentActivity != null) {
+                    val updatedMaxParticipants = if (isRegistering) {
+                        currentActivity.maxParticipants - 1
+                    } else {
+                        currentActivity.maxParticipants + 1
+                    }
                     _activity.value = currentActivity.copy(maxParticipants = updatedMaxParticipants)
 
-                    // Oppdater maxParticipants i databasen med kategori
+                    // Oppdater maxParticipants i databasen
                     activityDetaillService.updateMaxParticipants(category, activityId, updatedMaxParticipants)
-                } else if (currentActivity != null && !isRegistering) {
-                    val updatedMaxParticipants = currentActivity.maxParticipants + 1
-                    _activity.value = currentActivity.copy(maxParticipants = updatedMaxParticipants)
 
-                    // Oppdater maxParticipants i databasen med kategori
-                    activityDetaillService.updateMaxParticipants(category, activityId, updatedMaxParticipants)
+                    loadRegisteredParticipants(activityId)
                 }
             }
         }
     }
+
 
 }

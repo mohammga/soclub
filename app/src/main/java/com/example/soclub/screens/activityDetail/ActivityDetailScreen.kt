@@ -49,6 +49,8 @@ fun ActivityDetailScreen(
     val activity = viewModel.activity.collectAsState().value
     val isRegistered = viewModel.isRegistered.collectAsState().value
     val canRegister = viewModel.canRegister.collectAsState().value
+    val currentParticipants = viewModel.currentParticipants.collectAsState().value
+
 
     // Snackbar state to show messages
     val snackbarHostState = remember { SnackbarHostState() }
@@ -79,6 +81,7 @@ fun ActivityDetailScreen(
                 item {
                     ActivityDetailsContent(
                         activity = activity,
+                        currentParticipants = currentParticipants,
                         isRegistered = isRegistered,
                         canRegister = canRegister,
                         ageGroup = activity?.ageGroup ?: 0,
@@ -127,6 +130,7 @@ fun showSnackbar(isRegistering: Boolean, snackbarHostState: SnackbarHostState, s
 @Composable
 fun ActivityDetailsContent(
     activity: Activity?,
+    currentParticipants: Int,
     isRegistered: Boolean,
     canRegister: Boolean,
     ageGroup: Int,
@@ -158,6 +162,9 @@ fun ActivityDetailsContent(
             onRegisterClick = onRegisterClick,
             onUnregisterClick = onUnregisterClick
         )
+
+        Text(text = "Registrerte deltakere: $currentParticipants")
+        Text(text = "Maks antall deltakere: ${activity?.maxParticipants ?: 0}")
     }
 }
 
@@ -224,15 +231,19 @@ fun ActivityRegisterButton(
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
-    val buttonText = if (isRegistered) {
-        "Meld deg ut"
-    } else if (!canRegister) {
-        "Du er under aldersgrensen ($ageGroup)"
-    } else {
-        "Meld deg på"
+    // Bestem teksten som skal vises på knappen
+    val buttonText = when {
+        !canRegister -> "Du er under aldersgrensen ($ageGroup)"  // Brukeren oppfyller ikke alderskravet
+        isRegistered -> "Meld deg ut"  // Brukeren er allerede registrert
+        else -> "Meld deg på"  // Brukeren kan melde seg på
     }
 
-    val buttonColor = if (isRegistered || !canRegister) Color.Red else Color.Black
+    // Bestem fargen på knappen
+    val buttonColor = when {
+        !canRegister -> Color.Gray  // Brukeren oppfyller ikke alderskravet, så knappen blir grå
+        isRegistered -> Color.Red  // Brukeren er registrert, så knappen blir rød
+        else -> Color.Black  // Brukeren kan melde seg på, så knappen blir svart
+    }
 
     Button(
         onClick = {
@@ -249,6 +260,7 @@ fun ActivityRegisterButton(
         Text(text = buttonText, color = Color.White)
     }
 }
+
 
 @Composable
 fun InfoRow(

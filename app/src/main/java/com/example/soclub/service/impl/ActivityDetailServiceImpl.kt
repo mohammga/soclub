@@ -40,8 +40,19 @@ class ActivityDetailServiceImpl @Inject constructor(
             .whereEqualTo("activityId", activityId)
             .get().await()
 
-        return !registrationRef.isEmpty
+        // Hvis dokumentet finnes, sjekk statusen
+        if (!registrationRef.isEmpty) {
+            // Anta at det kun finnes én registrering per bruker/aktivitet, hent første dokument
+            val document = registrationRef.documents.first()
+            val status = document.getString("status")
+
+            // Returner true hvis statusen er "aktiv"
+            return status == "aktiv"
+        }
+
+        return false  // Returner false hvis ingen registrering ble funnet
     }
+
 
 
     override suspend fun updateRegistrationStatus(userId: String, activityId: String, status: String): Boolean {
@@ -92,5 +103,32 @@ class ActivityDetailServiceImpl @Inject constructor(
             false
         }
     }
+
+
+    override suspend fun getRegisteredParticipantsCount(activityId: String): Int {
+        val registrationRef = firestore.collection("registrations")
+            .whereEqualTo("activityId", activityId)
+            .whereEqualTo("status", "aktiv") // Teller kun aktive registreringer
+            .get().await()
+
+        return registrationRef.size() // Returnerer antall aktive registreringer
+    }
+
+    override fun listenToRegistrationUpdates(activityId: String, onUpdate: (Int) -> Unit) {
+        firestore.collection("registrations")
+            .whereEqualTo("activityId", activityId)
+            .whereEqualTo("status", "aktiv")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    val count = snapshot.size()
+                    onUpdate(count)  // Send oppdatert antall til callback
+                }
+            }
+    }
+
 
 }
