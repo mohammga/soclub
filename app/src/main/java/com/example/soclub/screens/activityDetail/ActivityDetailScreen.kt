@@ -3,14 +3,14 @@ package com.example.soclub.screens.activityDetail
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -18,48 +18,135 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.soclub.R
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.People
+import androidx.compose.material3.Icon
+import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.rememberImagePainter
+import androidx.compose.runtime.collectAsState
+import coil.compose.rememberAsyncImagePainter
+import com.example.soclub.models.Activity
 
 @Composable
-fun ActivityDetailScreen(navController: NavController) {
+fun ActivityDetailScreen(
+    navController: NavController,
+    category: String?,
+    activityId: String?,
+    viewModel: ActivityDetailViewModel = hiltViewModel()
+) {
+    // Collecting the activity details and registration status from the ViewModel
+    val activity = viewModel.activity.collectAsState().value
+    val isRegistered = viewModel.isRegistered.collectAsState().value
+    val canRegister = viewModel.canRegister.collectAsState().value  // Hent canRegister fra ViewModel
+
+
+    // Fetch the activity details when the screen is first displayed
+    LaunchedEffect(activityId, category) {
+        if (activityId != null && category != null) {
+            viewModel.loadActivity(category, activityId)
+        }
+    }
+
+
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
+        modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.Start
     ) {
-        item { ActivityImage() }
-        item { ActivityTitle() }
-        item { ActivityDate() }
-        item { InfoRow("Tunevannet", "Sarpsborg") }
-        item { InfoRow("Maks 10 personer", "Aldersgruppe: Alle") }
-        item { ActivityDescription() }
-        item { ActivityGPSImage() }
-        item { ActivityRegisterButton() }
+        item {
+            ActivityImage(imageUrl = activity?.imageUrl ?: "")
+        }
+
+        item {
+
+            ActivityDetailsContent(
+                activity = activity,
+                isRegistered = isRegistered,
+                canRegister = canRegister,
+                ageGroup = activity?.ageGroup ?: 0,
+                activityId = activityId,
+                category = category,       // Sender kategori videre
+                viewModel = viewModel,
+                onRegisterClick = { viewModel.updateRegistrationForActivity(category!!, activityId!!, true) },
+                onUnregisterClick = { viewModel.updateRegistrationForActivity(category!!, activityId!!, false) }
+            )
+        }
     }
 }
 
 @Composable
-fun ActivityImage() {
+fun ActivityDetailsContent(
+    activity: Activity?,
+    isRegistered: Boolean,
+    canRegister: Boolean,
+    ageGroup: Int,
+    activityId: String?,
+    category: String?,        // Legg til category som parameter
+    viewModel: ActivityDetailViewModel,
+    onRegisterClick: () -> Unit,
+    onUnregisterClick: () -> Unit
+) {
+
+    Box(modifier = Modifier.padding(16.dp)) {
+        Column {
+            ActivityTitle(activity?.title ?: "Ingen tittel")
+            ActivityDate()
+            InfoRow(
+                icon = Icons.Default.LocationOn,
+                mainText = activity?.location ?: "Ukjent",
+                subText = activity?.restOfAddress ?: "Ukjent adresse"
+            )
+            InfoRow(
+                icon = Icons.Default.People,
+                mainText = "Maks ${activity?.maxParticipants ?: 0} personer", // Oppdater til int
+                subText = "Aldersgruppe: ${activity?.ageGroup ?: "Alle"}"
+            )
+            ActivityDescription(activity?.description ?: "Ingen beskrivelse")
+            ActivityGPSImage()
+            ActivityRegisterButton(
+                isRegistered = isRegistered,
+                canRegister = canRegister,
+                ageGroup = ageGroup,
+                onRegisterClick = {
+                    if (activityId != null && category != null) {
+                        viewModel.updateRegistrationForActivity(category, activityId, true)
+                    }
+                },
+                onUnregisterClick = {
+                    if (activityId != null && category != null) {
+                        viewModel.updateRegistrationForActivity(category, activityId, false)
+                    }
+                }
+
+            )
+        }
+    }
+}
+
+@Composable
+fun ActivityImage(imageUrl: String) {
+
     Image(
-        painter = painterResource(id = R.drawable.yoga),
-        contentDescription = "Welcome Image",
+        painter = rememberAsyncImagePainter(imageUrl),
+        contentDescription = "Activity Image",
         modifier = Modifier
             .fillMaxWidth()
-            .height(300.dp),
+            .height(300.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .padding(vertical = 8.dp),
         contentScale = ContentScale.Crop
     )
 }
 
 @Composable
-fun ActivityTitle() {
+fun ActivityTitle(title: String) {
+
     Text(
-        text = "Yoga ved Tunevannet",
+        text = title,
         fontSize = 24.sp,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(top = 16.dp)
@@ -68,6 +155,7 @@ fun ActivityTitle() {
 
 @Composable
 fun ActivityDate() {
+
     Text(
         text = "Tirsdag. 28. august 2024",
         modifier = Modifier.padding(vertical = 4.dp)
@@ -75,68 +163,88 @@ fun ActivityDate() {
 }
 
 @Composable
-fun ActivityDescription() {
+fun ActivityDescription(description: String) {
+
     Text(
-        text = "Bli med på sosialisering ved Tunevannet. Vi vil ha yoga og lek. Dette er en aktivitet for folk som liker å være sammen med andre mennesker.",
+        text = description,
         modifier = Modifier.padding(vertical = 16.dp)
     )
 }
 
 @Composable
 fun ActivityGPSImage() {
+
     Image(
         painter = painterResource(R.drawable.gpsbilde1),
         contentDescription = "GPS-bilde",
         modifier = Modifier
             .fillMaxWidth()
             .height(250.dp)
+            .clip(RoundedCornerShape(16.dp))
             .padding(vertical = 8.dp),
         contentScale = ContentScale.Crop
     )
 }
 
 @Composable
-fun ActivityRegisterButton() {
+fun ActivityRegisterButton(
+    isRegistered: Boolean,
+    canRegister: Boolean,
+    ageGroup: Int,
+    onRegisterClick: () -> Unit,
+    onUnregisterClick: () -> Unit
+) {
+    val buttonText = if (isRegistered) {
+        "Meld deg ut"
+    } else if (!canRegister) {
+        "Du er under aldersgrensen ($ageGroup)"
+    } else {
+        "Meld deg på"
+    }
+
+    val buttonColor = if (isRegistered || !canRegister) Color.Red else Color.Black
+
     Button(
-        onClick = { /* Legg til handling for knappen */ },
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+        onClick = {
+            if (!canRegister) return@Button  // Hvis brukeren ikke kan melde seg, gjør ingenting
+            if (isRegistered) onUnregisterClick() else onRegisterClick()
+        },
+        colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 16.dp)
-            .height(48.dp)
+            .height(48.dp),
+        enabled = canRegister  // Deaktiver knappen hvis brukeren ikke oppfyller alderskravet
     ) {
-        Text(text = "Meld deg", color = Color.White)
+        Text(text = buttonText, color = Color.White)
     }
 }
 
 
 @Composable
-fun InfoRow(mainText: String, subText: String) {
+fun InfoRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    mainText: String,
+    subText: String
+) {
+
     Row(
         modifier = Modifier.padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier.padding(end = 16.dp)
-        ) {
-            ElevatedCardExample()
+        Box(modifier = Modifier.padding(end = 16.dp)) {
+            ElevatedCardExample(icon = icon)
         }
         Column {
-            Text(
-                text = mainText,
-                fontWeight = FontWeight.Bold,
-                fontSize = 17.sp,
-            )
-            Text(
-                text = subText,
-                color = Color.Gray
-            )
+            Text(text = mainText, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+            Text(text = subText, color = Color.Gray)
         }
     }
 }
 
 @Composable
-fun ElevatedCardExample() {
+fun ElevatedCardExample(icon: androidx.compose.ui.graphics.vector.ImageVector) {
+
     ElevatedCard(
         modifier = Modifier.size(50.dp),
         colors = CardDefaults.elevatedCardColors(containerColor = Color.LightGray)
@@ -145,20 +253,11 @@ fun ElevatedCardExample() {
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(R.drawable.ic_action_name),
-                contentDescription = "Profile Picture",
-                modifier = Modifier
-                    .size(30.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(30.dp)
             )
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ActivityDetailScreenPreview() {
-    ActivityDetailScreen(rememberNavController())
 }

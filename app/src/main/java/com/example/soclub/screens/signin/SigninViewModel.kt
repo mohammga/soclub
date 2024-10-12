@@ -1,25 +1,29 @@
 package com.example.soclub.screens.signin
 
 import android.content.Context
-import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.example.soclub.common.ext.isValidEmail
-import com.example.soclub.common.ext.isValidPassword
+import com.example.soclub.common.ext.isPasswordLongEnough
+import com.example.soclub.common.ext.containsUpperCase
+import com.example.soclub.common.ext.containsLowerCase
+import com.example.soclub.common.ext.containsDigit
+
 import com.example.soclub.service.AccountService
 import com.example.soclub.components.navigation.AppScreens
 import com.example.soclub.R
+import com.example.soclub.common.ext.containsNoWhitespace
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class SigninUiState(
     val email: String = "",
     val password: String = "",
-    val errorMessage: String = ""
+    @StringRes val errorMessage: Int = 0
 )
 
 @HiltViewModel
@@ -30,7 +34,6 @@ class SigninViewModel @Inject constructor(private val accountService: AccountSer
 
     private val email get() = uiState.value.email
     private val password get() = uiState.value.password
-    private val errorMessage get() = uiState.value.errorMessage
 
     fun onEmailChange(newValue: String) {
         uiState.value = uiState.value.copy(email = newValue)
@@ -42,72 +45,61 @@ class SigninViewModel @Inject constructor(private val accountService: AccountSer
 
     fun onLoginClick(context: Context, navController: NavController) {
 
-        if (!email.isValidEmail()) {
-            Toast.makeText(context, R.string.error_invalid_email, Toast.LENGTH_SHORT).show()
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_please_insert_valid_email.toString())
+        if (email.isBlank()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_email_required)
             return
         }
 
-        if (!password.isValidPassword()) {
-            Toast.makeText(context, R.string.error_invalid_password, Toast.LENGTH_SHORT).show()
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_password_details.toString())
+        if (password.isBlank()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_required)
             return
         }
+
+        if (!email.isValidEmail()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_email)
+            return
+        }
+
+        if (!password.isPasswordLongEnough()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_too_short)
+            return
+        }
+
+        if (!password.containsUpperCase()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_missing_uppercase)
+            return
+        }
+
+        if (!password.containsLowerCase()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_missing_lowercase)
+            return
+        }
+
+        if (!password.containsDigit()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_missing_digit)
+            return
+        }
+
+        if (!password.containsNoWhitespace()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_contains_whitespace)
+            return
+        }
+
 
         viewModelScope.launch {
             try {
                 accountService.authenticateWithEmail(email, password) { error ->
                     if (error == null) {
-                        Toast.makeText(context, R.string.signing_in_as.toString(), Toast.LENGTH_SHORT).show()
-                        viewModelScope.launch {
-                            accountService.currentUser.collectLatest { user ->
-                                if (user.id?.isNotEmpty() == true) {
-                                    navController.navigate(AppScreens.HOME.name) {
-                                        popUpTo(AppScreens.SIGNIN.name) { inclusive = true }
-                                    }
-                                }
-                            }
+                        navController.navigate(AppScreens.HOME.name) {
+                            popUpTo(AppScreens.SIGNIN.name) { inclusive = true }
                         }
                     } else {
-                        uiState.value = uiState.value.copy(errorMessage = R.string.error_could_not_log_in.toString())
+                        uiState.value = uiState.value.copy(errorMessage = R.string.error_could_not_log_in)
                     }
                 }
             } catch (e: Exception) {
-                uiState.value = uiState.value.copy(errorMessage = R.string.error_could_not_log_in.toString())
+                uiState.value = uiState.value.copy(errorMessage = R.string.error_could_not_log_in)
             }
         }
-    }
-
-    fun onForgotPasswordClick() {
-        try {
-            val email = uiState.value.email
-            if (email.isEmpty()) {
-                uiState.value = uiState.value.copy(errorMessage = R.string.error_enter_reset_email.toString())
-                return
-            }
-
-            if (!isValidEmail(email)) {
-                uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_email_address.toString())
-                return
-            }
-
-            viewModelScope.launch {
-                accountService.sendPasswordResetEmail(email) { error ->
-                    uiState.value = uiState.value.copy(
-                        errorMessage = if (error == null) {
-                            R.string.password_reset_email_sent.toString()
-                        } else {
-                            error.message.orEmpty()
-                        }
-                    )
-                }
-            }
-        } catch (e: Exception) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_could_not_send_reset_email.toString())
-        }
-    }
-
-    fun isValidEmail(email: String): Boolean {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 }

@@ -3,9 +3,7 @@ package com.example.soclub.screens.signin
 import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.*
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -14,9 +12,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-
-
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,7 +19,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
@@ -33,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -42,7 +37,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import com.example.soclub.R
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SigninScreen(navController: NavController, viewModel: SigninViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState
@@ -53,24 +47,40 @@ fun SigninScreen(navController: NavController, viewModel: SigninViewModel = hilt
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+
     ) {
+
+        Text(
+            text = stringResource(id = R.string.welcome_back),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+
         EmailField(value = uiState.email, viewModel::onEmailChange)
         PasswordField(value = uiState.password, viewModel::onPasswordChange)
 
-        // Show error message if exists
-        if (uiState.errorMessage.isNotEmpty()) {
-            Text(text = uiState.errorMessage, color = Color.Red)
+        if (uiState.errorMessage != 0) {
+            Text(
+                text = stringResource(id = uiState.errorMessage),
+                color = Color.Red
+            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        SignUpText(navController)
+        ResetPasswordText(navController)
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(32.dp))
 
         SignInButton(navController, viewModel, context)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        SignUpButton(navController)
+
     }
 }
 
@@ -129,26 +139,37 @@ private fun SignInButton(navController: NavController, viewModel: SigninViewMode
         onClick = { viewModel.onLoginClick(context, navController) },
         modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp)
+            .height(60.dp)
     ) {
         Text(text = stringResource(id = R.string.sign_in))
     }
 }
 
 @Composable
-fun SignUpText(navController: NavController) {
+fun SignUpButton(navController: NavController) {
+    OutlinedButton(
+        onClick = {
+            navController.navigate("signup")
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp)
+    ) {
+        Text(text = stringResource(id = R.string.register))
+    }
+}
+
+@Composable
+fun ResetPasswordText(navController: NavController) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center
     ) {
-        Text(text = stringResource(id = R.string.dont_have_account))
-        Spacer(modifier = Modifier.width(4.dp))
         Text(
-            text = stringResource(id = R.string.create_account),
+            text = stringResource(id = R.string.reset),
             fontWeight = FontWeight.Bold,
             color = Color.Black,
             modifier = Modifier.clickable {
-                navController.navigate("signup")
+                navController.navigate("reset_password")
             }
         )
     }

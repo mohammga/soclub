@@ -15,7 +15,10 @@ import javax.inject.Inject
 class AccountServiceImpl @Inject constructor(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore
+
 ) : AccountService {
+
+
 
     override val currentUserId: String
         get() = auth.currentUser?.uid.orEmpty()
@@ -43,10 +46,6 @@ class AccountServiceImpl @Inject constructor(
         return documentSnapshot.toObject(UserInfo::class.java) ?: throw Exception("User data not found")
     }
 
-    override suspend fun createAnonymousAccount() {
-        auth.signInAnonymously().await()
-    }
-
     override suspend fun authenticateWithEmail(
         email: String,
         password: String,
@@ -60,6 +59,7 @@ class AccountServiceImpl @Inject constructor(
         email: String,
         password: String,
         name: String,
+        age: Int,
         onResult: (Throwable?) -> Unit
     ) {
         auth.createUserWithEmailAndPassword(email, password)
@@ -69,19 +69,23 @@ class AccountServiceImpl @Inject constructor(
                     user?.let {
                         val userData = hashMapOf(
                             "email" to email,
-                            "name" to name
+                            "name" to name,
+                            "age" to age
                         )
                         firestore.collection("users").document(it.uid)
                             .set(userData)
                             .addOnCompleteListener { firestoreTask ->
                                 onResult(firestoreTask.exception)
                             }
+                    } ?: run {
+                        onResult(Exception("User is null after registration"))
                     }
                 } else {
                     onResult(task.exception)
                 }
             }.await()
     }
+
 
     override suspend fun signOut() {
         auth.signOut()
@@ -93,39 +97,28 @@ class AccountServiceImpl @Inject constructor(
             .await()
     }
 
-    // Implementasjon for å oppdatere brukerprofilen (navn og e-post)
-    override suspend fun updateProfile(name: String, email: String, onResult: (Throwable?) -> Unit) {
-        val user = auth.currentUser
-        user?.let {
-            val profileUpdates = hashMapOf(
-                "name" to name
-            )
-            // Oppdater Firestore med nytt navn
-            firestore.collection("users").document(it.uid).update(profileUpdates as Map<String, Any>)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        // Oppdater e-posten i Firebase Authentication
-                        it.updateEmail(email)
-                            .addOnCompleteListener { emailUpdateTask ->
-                                onResult(emailUpdateTask.exception)
-                            }
-                    } else {
-                        onResult(task.exception)
-                    }
-                }.await()
-        }
+    override suspend fun updateProfile(name: String, onResult: (Throwable?) -> Unit) {
+        val userId = auth.currentUser?.uid ?: throw Exception("User not logged in")
+
+        val updates = hashMapOf(
+            "name" to name,
+        )
+
+        firestore.collection("users").document(userId)
+            .update(updates as Map<String, Any>)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    onResult(null)
+                } else {
+                    onResult(task.exception)
+                }
+            }
     }
 
-    override suspend fun changePassword(
-        oldPassword: String,
-        newPassword: String,
-        onResult: (Throwable?) -> Unit
-    ) {
-        TODO("Not yet implemented")
-    }
+
 
     // Implementasjon for å endre passord
-    suspend fun updatePassword(
+    override suspend fun changePassword(
         oldPassword: String,
         newPassword: String,
         onResult: (Throwable?) -> Unit

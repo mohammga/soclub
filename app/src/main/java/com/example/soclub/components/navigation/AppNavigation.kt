@@ -1,33 +1,42 @@
 package com.example.soclub.components.navigation
 
-import HomeTopBar
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.soclub.components.navigation.navBars.BottomNavBar
+import com.example.soclub.components.navigation.navBars.HomeTopBar
 import com.example.soclub.components.navigation.navBars.TopBar
 import com.example.soclub.components.navigation.navBars.getCurrentScreen
 import com.example.soclub.screens.activityDetail.ActivityDetailScreen
+import com.example.soclub.screens.ads.AdsScreen
 import com.example.soclub.screens.changePassword.ChangePasswordScreen
+import com.example.soclub.screens.editActivity.EditActivityScreen
 import com.example.soclub.screens.editPermission.EditPermissionScreen
 import com.example.soclub.screens.editProfile.EditProfileScreen
 import com.example.soclub.screens.entries.EntriesScreen
 import com.example.soclub.screens.home.HomeScreen
+import com.example.soclub.screens.newActivity.NewActivityScreen
+import com.example.soclub.screens.notifications.NotificationsScreen
 import com.example.soclub.screens.profile.ProfileScreen
+import com.example.soclub.screens.resetPassword.ResetPasswordScreen
 import com.example.soclub.screens.signin.SigninScreen
-import com.example.soclub.screens.signup.SignupScreen;
-import com.example.soclub.screens.start.StartScreen;
+import com.example.soclub.screens.start.StartScreen
+import com.example.soclub.screens.signup.SignupScreen
+import com.example.soclub.service.ActivityService
 import com.example.soclub.service.impl.AccountServiceImpl
 import com.example.soclub.service.module.FirebaseModule
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(navController: NavHostController, activityService: ActivityService) {
     val navController = rememberNavController()
     val currentScreen = getCurrentScreen(navController)
 
@@ -40,33 +49,48 @@ fun AppNavigation() {
 
     Scaffold(
         topBar = {
-            when (currentScreen) {
-                AppScreens.SIGNUP.name -> {
-                    TopBar(navController, title = "Join Clubhouse", showBackButton = true)
-                }
-                AppScreens.SIGNIN.name -> {
-                    TopBar(navController, title = "Logg inn", showBackButton = true)
-                }
-                AppScreens.HOME.name -> {
-                    HomeTopBar(navController, title = "SoClub")
-                }
-                AppScreens.DETAIL.name -> {
+            when {
+                currentScreen.startsWith("detail") -> { // Check if the current screen is a detail screen
                     TopBar(navController, title = "Aktivitet", showBackButton = true)
                 }
-                AppScreens.PROFILE.name -> {
+                currentScreen == AppScreens.SIGNUP.name -> {
+                    TopBar(navController, title = "", showBackButton = true)
+                }
+                currentScreen == AppScreens.SIGNIN.name -> {
+                    TopBar(navController, title = "", showBackButton = true)
+                }
+                currentScreen == AppScreens.RESET_PASSWORD.name -> {
+                    TopBar(navController, title = "", showBackButton = true)
+                }
+                currentScreen == AppScreens.HOME.name -> {
+                    HomeTopBar(navController, title = "SoClub")
+                }
+                currentScreen == AppScreens.PROFILE.name -> {
                     TopBar(navController, title = "Profil", showBackButton = false)
                 }
-                AppScreens.EDIT_PROFILE.name -> {
+                currentScreen == AppScreens.NOTIFICATIONS.name -> {
+                    TopBar(navController, title = "Varslinger", showBackButton = false)
+                }
+                currentScreen == AppScreens.ADS.name -> {
+                    TopBar(navController, title = "Mine annonser", showBackButton = true)
+                }
+                currentScreen == AppScreens.NEW_ACTIVITY.name -> {
+                    TopBar(navController, title = "Legg til aktivitet", showBackButton = false)
+                }
+                currentScreen == AppScreens.EDIT_PROFILE.name -> {
                     TopBar(navController, title = "Endre Profil", showBackButton = true)
                 }
-                AppScreens.CHANGE_PASSWORD.name -> {
+                currentScreen == AppScreens.CHANGE_PASSWORD.name -> {
                     TopBar(navController, title = "Endre passord", showBackButton = true)
                 }
-                AppScreens.EDIT_PERMISSION.name -> {
+                currentScreen == AppScreens.EDIT_PERMISSION.name -> {
                     TopBar(navController, title = "Endre tillatelser", showBackButton = true)
                 }
-                AppScreens.ENTRIES.name -> {
+                currentScreen == AppScreens.ENTRIES.name -> {
                     TopBar(navController, title = "Mine Påmeldinger", showBackButton = false)
+                }
+                currentScreen == AppScreens.EDIT_AD.name -> {
+                    TopBar(navController, title = "Endere aktivitet", showBackButton = false)
                 }
                 else -> {
                     // Handle other screens
@@ -77,11 +101,16 @@ fun AppNavigation() {
             val screensWithoutBottomBar = setOf(
                 AppScreens.SIGNIN.name,
                 AppScreens.SIGNUP.name,
-                AppScreens.START.name
+                AppScreens.START.name,
+                AppScreens.RESET_PASSWORD.name
             )
 
             if (currentScreen !in screensWithoutBottomBar) {
-                BottomNavBar(navController)
+                BottomNavBar(
+                    navController = navController,
+                    currentScreen = if (currentScreen.startsWith("detail")) AppScreens.HOME.name else currentScreen
+                )
+
             }
         },
         modifier = Modifier.fillMaxSize()
@@ -106,11 +135,26 @@ fun AppNavigation() {
             composable(AppScreens.SIGNIN.name) {
                 SigninScreen(navController)
             }
+            composable(AppScreens.RESET_PASSWORD.name) {
+                ResetPasswordScreen(navController)
+            }
             composable(AppScreens.HOME.name) {
                 HomeScreen(navController)
             }
-            composable(AppScreens.DETAIL.name) {
-                ActivityDetailScreen(navController)
+            composable(
+                route = "detail/{category}/{activityId}",
+                arguments = listOf(
+                    navArgument("category") { type = NavType.StringType },
+                    navArgument("activityId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val category = backStackEntry.arguments?.getString("category")
+                val activityId = backStackEntry.arguments?.getString("activityId")
+                ActivityDetailScreen(
+                    navController = navController,
+                    category = category,
+                    activityId = activityId
+                )
             }
             composable(AppScreens.ENTRIES.name) {
                 EntriesScreen(navController)
@@ -127,9 +171,18 @@ fun AppNavigation() {
             composable(AppScreens.EDIT_PERMISSION.name) {
                 EditPermissionScreen(navController)
             }
+            composable(AppScreens.NOTIFICATIONS.name) {
+                NotificationsScreen(navController)
+            }
+            composable(AppScreens.NEW_ACTIVITY.name) {
+                NewActivityScreen(navController)
+            }
+            composable(AppScreens.ADS.name) {
+                AdsScreen(navController)
+            }
+            composable(AppScreens.EDIT_AD.name) {
+                EditActivityScreen(navController)
+            }
         }
     }
 }
-
-
-
