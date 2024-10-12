@@ -8,10 +8,11 @@ data class Activity(
     val imageUrl: String = "",
     val title: String = "",
     val description: String = "",
-    val ageGroup: String = "",
-    val maxParticipants: String = "",
+    val ageGroup: Int = 0 ,
+    val maxParticipants: Int = 0,
     val location: String = "",
-    val restOfAddress: String = ""
+    val restOfAddress: String = "",
+    val date: String = ""
 )
 
 //data class Activity2(

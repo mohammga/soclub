@@ -12,11 +12,11 @@ class ActivityServiceImpl @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : ActivityService {
 
+
     override suspend fun createActivity(category: String, activity: Activity) {
-        firestore.collection("activities").document(category)
+        firestore.collection("category").document(category)
             .collection("activities").add(activity).await()
     }
-
 
     override suspend fun getActivities(category: String): List<Activity> {
         val snapshot = firestore.collection("category").document(category)
@@ -36,6 +36,8 @@ class ActivityServiceImpl @Inject constructor(
             )
         }
     }
+
+
 
 
     override suspend fun getActivityById(category: String, activityId: String): Activity? {
@@ -163,6 +165,14 @@ class ActivityServiceImpl @Inject constructor(
             .add(registrationData)
             .await()
     }
+
+
+
+
+
+
+
+
 
 
 }

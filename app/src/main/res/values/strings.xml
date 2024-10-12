@@ -105,6 +105,35 @@
     <string name="placeholder_age">Alder</string>
     <string name="error_age_required">Alder er påkrevd</string>
 
+    <!-- newaktiviti  -->
+    <string name="create_activity">Opprett Aktivitet</string>
+    <string name="placeholder_title">Tittel</string>
+    <string name="placeholder_description">Beskrivelse</string>
+    <string name="placeholder_location">Sted</string>
+    <string name="placeholder_max_participants">Maks Antall Deltakere</string>
+    <string name="placeholder_age_limit">Aldersgrense</string>
+    <string name="placeholder_category">Kategori</string>
+    <string name="cancel">Avbryt</string>
+
+
+    <!---->
+    <string name="select_image_source">Velg bilde kilde</string>
+<string name="choose_image_source">Velg om du vil ta et bilde eller velge fra galleriet</string>
+<string name="take_photo">Ta bilde</string>
+<string name="choose_from_gallery">Velg fra galleri</string>
+
+
+
+    <!-- Error messages -->
+    <string name="error_title_required">Tittel er påkrevd</string>
+    <string name="error_category_required">Kategori er påkrevd</string>
+    <string name="upload_image">Last opp bilder</string>
+    <string name="choose_image">Velg bilder</string>
+    <string name="error_image_required">Bilde er påkrevd</string>
+
+    <!-- Button text -->
+    <string name="publish_activity">Publiser Aktivitet</string>
+
 
 
 

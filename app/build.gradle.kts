@@ -65,6 +65,7 @@ dependencies {
     implementation(libs.androidx.ui.text.google.fonts)
     implementation(libs.play.services.location)
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.firebase.storage.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -79,6 +80,7 @@ dependencies {
     implementation("androidx.preference:preference-ktx:1.2.1")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("com.google.firebase:firebase-crashlytics-buildtools:3.0.0")
+
 
     ksp("com.google.dagger:hilt-compiler:2.47")
 
