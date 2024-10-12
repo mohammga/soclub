@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.example.soclub.R
-import com.example.soclub.models.Activity
+import com.example.soclub.models.createActivity
 import com.example.soclub.service.ActivityService
 import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -121,7 +121,7 @@ class NewActivityViewModel @Inject constructor(
     // Plasser createActivityAndNavigate funksjonen her inne
     fun createActivityAndNavigate(navController: NavController, imageUrl: String, combinedLocation: String) {
         viewModelScope.launch {
-            val newActivity = Activity(
+            val newActivity = createActivity(
                 title = uiState.value.title,
                 description = uiState.value.description,
                 location = combinedLocation,
@@ -135,8 +135,8 @@ class NewActivityViewModel @Inject constructor(
             // Lagre aktivitet til databasen via ActivityService
             activityService.createActivity(uiState.value.category, newActivity)
 
-            // Etter lagring, naviger tilbake til home-skjermen
-            navController.navigate("home")
+            // Etter lagring, naviger tilbake til selve annonsen
+            navController.navigate("ads")
         }
     }
 }

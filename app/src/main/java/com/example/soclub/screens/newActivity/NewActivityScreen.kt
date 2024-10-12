@@ -6,8 +6,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -27,56 +27,79 @@ import com.example.soclub.R
 import java.text.SimpleDateFormat
 import java.util.*
 
-
-
-
 @Composable
 fun NewActivityScreen(navController: NavController, viewModel: NewActivityViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState
     var errorMessage by remember { mutableStateOf("") }
 
-    Column(
+Column(modifier = Modifier.fillMaxSize()) {
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(6.dp),
+            .padding(16.dp),
     ) {
-
-        TitleField(value = uiState.title, onNewValue = viewModel::onTitleChange)
-
-        DescriptionField(value = uiState.description, onNewValue = viewModel::onDescriptionChange)
-
-        ImageUploadSection(viewModel::onImageSelected)
-
-        CategoryField(value = uiState.category, onNewValue = viewModel::onCategoryChange)
-
-        LocationField(value = uiState.location, onNewValue = viewModel::onLocationChange)
-
-        AddressField(value = uiState.address, onNewValue = viewModel::onAddressChange)
-
-        PostalCodeField(value = uiState.postalCode, onNewValue = viewModel::onPostalCodeChange)
-
-        DateField(value = uiState.date, onNewValue = viewModel::onDateChange)  // Bruker DatePickerDialog for å velge dato
-
-        MaxParticipantsField(value = uiState.maxParticipants, onNewValue = viewModel::onMaxParticipantsChange)
-
-        AgeLimitField(value = uiState.ageLimit, onNewValue = viewModel::onAgeLimitChange)
-
-        Spacer(modifier = Modifier.height(5.dp))
-
-        if (errorMessage.isNotEmpty()) {
-            Text(
-                text = errorMessage,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(top = 10.dp)
-            )
+        item {
+            TitleField(value = uiState.title, onNewValue = viewModel::onTitleChange)
         }
 
-        PublishButton(navController, viewModel)
+        item {
+            DescriptionField(value = uiState.description, onNewValue = viewModel::onDescriptionChange)
+        }
+
+        item {
+            ImageUploadSection(viewModel::onImageSelected)
+        }
+
+        item {
+            CategoryField(value = uiState.category, onNewValue = viewModel::onCategoryChange)
+        }
+
+        item {
+            LocationField(value = uiState.location, onNewValue = viewModel::onLocationChange)
+        }
+
+        item {
+            AddressField(value = uiState.address, onNewValue = viewModel::onAddressChange)
+        }
+
+        item {
+            PostalCodeField(value = uiState.postalCode, onNewValue = viewModel::onPostalCodeChange)
+        }
+
+        item {
+            DateField(value = uiState.date, onNewValue = viewModel::onDateChange)
+        }
+
+        item {
+            MaxParticipantsField(value = uiState.maxParticipants, onNewValue = viewModel::onMaxParticipantsChange)
+        }
+
+        item {
+            AgeLimitField(value = uiState.ageLimit, onNewValue = viewModel::onAgeLimitChange)
+        }
+
+        item {
+            Spacer(modifier = Modifier.height(5.dp))
+        }
+
+        if (errorMessage.isNotEmpty()) {
+            item {
+                Text(
+                    text = errorMessage,
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(top = 10.dp)
+                )
+            }
+        }
+
+        item {
+            PublishButton(navController, viewModel)
+        }
     }
 }
-
-@Composable
+}
+    @Composable
 fun TitleField(value: String, onNewValue: (String) -> Unit) {
     OutlinedTextField(
         value = value,
@@ -84,7 +107,7 @@ fun TitleField(value: String, onNewValue: (String) -> Unit) {
         placeholder = { Text(stringResource(id = R.string.placeholder_title)) },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 3.dp),
+            .padding(vertical = 8.dp),
         singleLine = true
     )
 }
@@ -97,7 +120,7 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit) {
         placeholder = { Text(stringResource(id = R.string.placeholder_description)) },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 2.dp),
+            .padding(vertical = 8.dp),
         maxLines = 5
     )
 }
@@ -114,7 +137,7 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit) {
             placeholder = { Text(stringResource(id = R.string.placeholder_category)) },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 2.dp),
+                .padding(vertical = 8.dp),
             singleLine = true,
             readOnly = true,
             trailingIcon = {
@@ -146,10 +169,10 @@ fun LocationField(value: String, onNewValue: (String) -> Unit) {
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
-        placeholder = { Text("sted") },
+        placeholder = { Text("Sted") },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 2.dp),
+            .padding(vertical = 8.dp),
         singleLine = true
     )
 }
@@ -162,7 +185,7 @@ fun AddressField(value: String, onNewValue: (String) -> Unit) {
         placeholder = { Text("Adresse") },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 2.dp),
+            .padding(vertical = 8.dp),
         singleLine = true
     )
 }
@@ -175,7 +198,7 @@ fun PostalCodeField(value: String, onNewValue: (String) -> Unit) {
         placeholder = { Text("Postnummer") },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 2.dp),
+            .padding(vertical = 8.dp),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         singleLine = true
     )
@@ -209,7 +232,7 @@ fun DateField(value: String, onNewValue: (String) -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 2.dp)
+            .padding(vertical = 8.dp)
             .clickable {
                 println("Opening DatePickerDialog")  // Feilsøking: sjekk om klikket registreres
                 datePickerDialog.show()
@@ -230,7 +253,7 @@ fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit) {
         placeholder = { Text(stringResource(id = R.string.placeholder_max_participants)) },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 2.dp),
+            .padding(vertical = 8.dp),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         singleLine = true
     )
@@ -244,7 +267,7 @@ fun AgeLimitField(value: String, onNewValue: (String) -> Unit) {
         placeholder = { Text(stringResource(id = R.string.placeholder_age_limit)) },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 2.dp),
+            .padding(vertical = 8.dp),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         singleLine = true
     )
@@ -286,7 +309,7 @@ fun PublishButton(navController: NavController, viewModel: NewActivityViewModel)
         onClick = { viewModel.onPublishClick(navController) },
         modifier = Modifier
             .fillMaxWidth()
-            .height(35.dp)
+            .height(48.dp),
     ) {
         Text(text = stringResource(id = R.string.publish_activity))
     }

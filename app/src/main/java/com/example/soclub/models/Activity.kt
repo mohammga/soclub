@@ -15,6 +15,17 @@ data class Activity(
     val date: String = ""
 )
 
+data class createActivity(
+    val creatorId: String = "",
+    val imageUrl: String = "",
+    val title: String = "",
+    val description: String = "",
+    val ageGroup: Int = 0 ,
+    val maxParticipants: Int = 0,
+    val location: String = "",
+    val date: String = ""
+)
+
 //data class Activity2(
 //    val imageUrl: String = "",
 //    val title: String = "",

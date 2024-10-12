@@ -3,6 +3,7 @@ import com.google.firebase.Timestamp
 import java.util.Date
 
 import com.example.soclub.models.Activity
+import com.example.soclub.models.createActivity
 import com.example.soclub.service.ActivityService
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -13,7 +14,7 @@ class ActivityServiceImpl @Inject constructor(
 ) : ActivityService {
 
 
-    override suspend fun createActivity(category: String, activity: Activity) {
+    override suspend fun createActivity(category: String, activity: createActivity) {
         firestore.collection("category").document(category)
             .collection("activities").add(activity).await()
     }
