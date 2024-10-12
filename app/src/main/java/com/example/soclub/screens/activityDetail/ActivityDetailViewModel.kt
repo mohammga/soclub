@@ -46,14 +46,12 @@ class ActivityDetailViewModel @Inject constructor(
             val loadedActivity = activityDetaillService.getActivityById(category, activityId)
             _activity.value = loadedActivity
 
-            // Hent brukerens registreringsstatus og oppdater _isRegistered
+
             val userId = accountService.currentUserId
             val registered = activityDetaillService.isUserRegisteredForActivity(userId, activityId)
             _isRegistered.value = registered
 
 
-
-            // Oppdater _canRegister basert på aldersgrense
             val userInfo = accountService.getUserInfo()
             if (loadedActivity != null) {
                 _canRegister.value = userInfo.age >= loadedActivity.ageGroup
@@ -68,35 +66,17 @@ class ActivityDetailViewModel @Inject constructor(
         }
     }
 
-
-
-
     fun updateRegistrationForActivity(category: String, activityId: String, isRegistering: Boolean) {
         viewModelScope.launch {
             val userId = accountService.currentUserId
             val status = if (isRegistering) "aktiv" else "notAktiv"
 
-            // Oppdater brukerens registreringsstatus
             val success = activityDetaillService.updateRegistrationStatus(userId, activityId, status)
-
-
-
             if (success) {
-                // Oppdater registreringsstatus
-                _isRegistered.value = isRegistering  // Sett ny verdi til _isRegistered
+                _isRegistered.value = isRegistering
 
-                // Oppdater antall deltakere for aktiviteten
                 val currentActivity = _activity.value
                 if (currentActivity != null) {
-//                    val updatedMaxParticipants = if (isRegistering) {
-//                        currentActivity.maxParticipants - 1
-//                    } else {
-//                        currentActivity.maxParticipants + 1
-//                    }
-//                    _activity.value = currentActivity.copy(maxParticipants = updatedMaxParticipants)
-//
-//                    // Oppdater maxParticipants i databasen
-//                    activityDetaillService.updateMaxParticipants(category, activityId, updatedMaxParticipants)
 
                     loadRegisteredParticipants(activityId)
                 }

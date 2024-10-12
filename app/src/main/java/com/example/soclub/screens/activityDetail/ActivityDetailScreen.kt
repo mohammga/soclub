@@ -34,7 +34,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 
@@ -46,25 +45,25 @@ fun ActivityDetailScreen(
     activityId: String?,
     viewModel: ActivityDetailViewModel = hiltViewModel()
 ) {
-    // Collecting the activity details and registration status from the ViewModel
+
     val activity = viewModel.activity.collectAsState().value
     val isRegistered = viewModel.isRegistered.collectAsState().value
     val canRegister = viewModel.canRegister.collectAsState().value
     val currentParticipants = viewModel.currentParticipants.collectAsState().value
 
 
-    // Snackbar state to show messages
+
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    // Fetch the activity details when the screen is first displayed
+
     LaunchedEffect(activityId, category) {
         if (activityId != null && category != null) {
             viewModel.loadActivity(category, activityId)
         }
     }
 
-    // Scaffold for structured layout
+
     Scaffold(
 
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -92,13 +91,13 @@ fun ActivityDetailScreen(
                         onRegisterClick = {
                             if (activityId != null && category != null) {
                                 viewModel.updateRegistrationForActivity(category, activityId, true)
-                                showSnackbar(true, snackbarHostState, scope, activity, currentParticipants)  // Pass 'true' for registering
+                                showSnackbar(true, snackbarHostState, scope, activity, currentParticipants)
                             }
                         },
                         onUnregisterClick = {
                             if (activityId != null && category != null) {
                                 viewModel.updateRegistrationForActivity(category, activityId, false)
-                                showSnackbar(false, snackbarHostState, scope, activity, currentParticipants)  // Pass 'false' for unregistering
+                                showSnackbar(false, snackbarHostState, scope, activity, currentParticipants)
                             }
                         }
                     )
@@ -237,23 +236,23 @@ fun ActivityRegisterButton(
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
-    // Bestem teksten som skal vises på knappen
+
     val buttonText = when {
-        !canRegister -> "Du er under aldersgrensen ($ageGroup)"  // Brukeren oppfyller ikke alderskravet
-        isRegistered -> "Meld deg ut"  // Brukeren er allerede registrert
-        else -> "Meld deg på"  // Brukeren kan melde seg på
+        !canRegister -> "Du er under aldersgrensen ($ageGroup)"
+        isRegistered -> "Meld deg ut"
+        else -> "Meld deg på"
     }
 
-    // Bestem fargen på knappen
+
     val buttonColor = when {
-        !canRegister -> Color.Gray  // Brukeren oppfyller ikke alderskravet, så knappen blir grå
-        isRegistered -> Color.Red  // Brukeren er registrert, så knappen blir rød
-        else -> Color.Black  // Brukeren kan melde seg på, så knappen blir svart
+        !canRegister -> Color.Gray
+        isRegistered -> Color.Red
+        else -> Color.Black
     }
 
     Button(
         onClick = {
-            if (!canRegister) return@Button  // Hvis brukeren ikke kan melde seg, gjør ingenting
+            if (!canRegister) return@Button
             if (isRegistered) onUnregisterClick() else onRegisterClick()
         },
         colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
@@ -261,7 +260,7 @@ fun ActivityRegisterButton(
             .fillMaxWidth()
             .padding(vertical = 16.dp)
             .height(48.dp),
-        enabled = canRegister  // Deaktiver knappen hvis brukeren ikke oppfyller alderskravet
+        enabled = canRegister 
     ) {
         Text(text = buttonText, color = Color.White)
     }

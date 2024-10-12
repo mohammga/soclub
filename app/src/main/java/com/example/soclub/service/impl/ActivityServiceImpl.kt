@@ -10,7 +10,7 @@ class ActivityServiceImpl @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : ActivityService {
 
-    // Georges du skal bruke denne funksjonen, kansje!
+
     override suspend fun createActivity(category: String, activity: Activity) {
         firestore.collection("activities").document(category)
             .collection("activities").add(activity).await()
@@ -30,8 +30,8 @@ class ActivityServiceImpl @Inject constructor(
 
             activity?.copy(
                 id = document.id,
-                location = lastWord,  // Her setter vi siste ord som location
-                description = restOfAddress // Bruker beskrivelsefeltet midlertidig for resten av adressen
+                location = lastWord,
+                description = restOfAddress
             )
         }
     }
@@ -40,12 +40,12 @@ class ActivityServiceImpl @Inject constructor(
     override suspend fun getCategories(): List<String> {
         val snapshot = firestore.collection("category").get().await()
 
-        // Hent alle kategorier (dokument-ID-er)
+
         val categories = snapshot.documents.map { document ->
-            document.id  // Returnerer dokument-ID-ene som tilsvarer kategorinavnene
+            document.id
         }
 
-        // Sorter slik at "Forslag" kommer først
+
         return categories.sortedByDescending { it == "Forslag" }
     }
 }
