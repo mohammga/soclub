@@ -1,7 +1,6 @@
 package com.example.soclub.screens.newActivity
 
 import android.net.Uri
-import androidx.annotation.StringRes
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
 data class NewActivityState(
     val title: String = "",
     val description: String = "",
@@ -24,9 +24,10 @@ data class NewActivityState(
     val maxParticipants: String = "",
     val ageLimit: String = "",
     val imageUrl: String = "",
-    val date: String = "",           // Nytt felt for dato
-    @StringRes val errorMessage: Int = 0
+    val date: String = "",
+    val errorMessage: Int? = null  // For å vise eventuelle feilmeldinger
 )
+
 
 @HiltViewModel
 class NewActivityViewModel @Inject constructor(
@@ -76,7 +77,6 @@ class NewActivityViewModel @Inject constructor(
         uiState.value = uiState.value.copy(date = newValue)
     }
 
-
     fun onPublishClick(navController: NavController) {
         if (uiState.value.title.isBlank()) {
             uiState.value = uiState.value.copy(errorMessage = R.string.error_title_required)
@@ -97,7 +97,7 @@ class NewActivityViewModel @Inject constructor(
                     createActivityAndNavigate(navController, imageUrl, combinedLocation)
                 },
                 onError = { error ->
-
+                    
                 }
             )
         } else {
@@ -118,20 +118,24 @@ class NewActivityViewModel @Inject constructor(
             }
     }
 
-    private fun createActivityAndNavigate(navController: NavController, imageUrl: String, combinedLocation: String) {
+    // Plasser createActivityAndNavigate funksjonen her inne
+    fun createActivityAndNavigate(navController: NavController, imageUrl: String, combinedLocation: String) {
         viewModelScope.launch {
             val newActivity = Activity(
                 title = uiState.value.title,
                 description = uiState.value.description,
                 location = combinedLocation,
-                maxParticipants = uiState.value.maxParticipants.toIntOrNull() ?: 0, // Konvertering til Int
-                ageGroup = uiState.value.ageLimit.toIntOrNull() ?: 0, // Konvertering til Int
+                maxParticipants = uiState.value.maxParticipants.toIntOrNull() ?: 0,
+                ageGroup = uiState.value.ageLimit.toIntOrNull() ?: 0,
                 imageUrl = imageUrl,
-                date = uiState.value.date,  // Legg til dato
-
+                date = uiState.value.date
+                // Ikke send id eller restOfAddress hvis de ikke er nødvendige
             )
 
+            // Lagre aktivitet til databasen via ActivityService
             activityService.createActivity(uiState.value.category, newActivity)
+
+            // Etter lagring, naviger tilbake til home-skjermen
             navController.navigate("home")
         }
     }

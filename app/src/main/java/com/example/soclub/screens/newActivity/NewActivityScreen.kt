@@ -1,11 +1,16 @@
 package com.example.soclub.screens.newActivity
 
-import android.content.Context
+import android.app.DatePickerDialog
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,12 +24,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.soclub.R
-import kotlinx.coroutines.launch
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.IconButton
 import java.text.SimpleDateFormat
 import java.util.*
+
+
+
 
 @Composable
 fun NewActivityScreen(navController: NavController, viewModel: NewActivityViewModel = hiltViewModel()) {
@@ -51,8 +55,7 @@ fun NewActivityScreen(navController: NavController, viewModel: NewActivityViewMo
 
         PostalCodeField(value = uiState.postalCode, onNewValue = viewModel::onPostalCodeChange)
 
-        DateField(value = uiState.date, onNewValue = viewModel::onDateChange)  // Nytt felt for dato
-
+        DateField(value = uiState.date, onNewValue = viewModel::onDateChange)  // Bruker DatePickerDialog for å velge dato
 
         MaxParticipantsField(value = uiState.maxParticipants, onNewValue = viewModel::onMaxParticipantsChange)
 
@@ -120,7 +123,7 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit) {
                 }
             }
         )
-
+        //dropdown
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
@@ -156,7 +159,7 @@ fun AddressField(value: String, onNewValue: (String) -> Unit) {
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
-        placeholder = { Text("Andresset") },
+        placeholder = { Text("Adresse") },
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 2.dp),
@@ -177,25 +180,47 @@ fun PostalCodeField(value: String, onNewValue: (String) -> Unit) {
         singleLine = true
     )
 }
-
 @Composable
 fun DateField(value: String, onNewValue: (String) -> Unit) {
+    val context = LocalContext.current
     val calendar = Calendar.getInstance()
-    val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-    val formattedDate = remember { mutableStateOf(dateFormat.format(calendar.time)) }
 
-    OutlinedTextField(
-        value = value.ifBlank { formattedDate.value },
-        onValueChange = { onNewValue(it) },
-        placeholder = { Text("Dato") },
+    // Formatter som inkluderer ukedag og dato
+    val dateFormat = SimpleDateFormat("EEEE.dd.MM.yyyy", Locale.getDefault())
+    val formattedDate = remember { mutableStateOf(value.ifBlank { dateFormat.format(calendar.time) }) }
+
+    // DatePickerDialog
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            // Oppdater datoen når brukeren har valgt
+            val selectedDate = Calendar.getInstance().apply {
+                set(year, month, dayOfMonth)
+            }
+            // Bruker format som inkluderer ukedag
+            formattedDate.value = dateFormat.format(selectedDate.time)
+            onNewValue(formattedDate.value)
+        },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
+    )
+    // Bruk pointerInput for å håndtere klikk
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 2.dp),
-        singleLine = true
-    )
+            .padding(vertical = 2.dp)
+            .clickable {
+                println("Opening DatePickerDialog")  // Feilsøking: sjekk om klikket registreres
+                datePickerDialog.show()
+            } // Håndter klikk med clickable
+            .border(1.dp, MaterialTheme.colorScheme.primary)  // Visuell grense for å indikere klikkbarhet
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text = formattedDate.value)
+    }
 }
-
-
 
 @Composable
 fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit) {
