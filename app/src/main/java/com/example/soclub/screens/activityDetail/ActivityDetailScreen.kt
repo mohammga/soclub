@@ -27,10 +27,16 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material3.Icon
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.rememberImagePainter
 import androidx.compose.runtime.collectAsState
 import coil.compose.rememberAsyncImagePainter
 import com.example.soclub.models.Activity
+import androidx.compose.material3.*
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.*
+import kotlinx.coroutines.CoroutineScope
+
 
 @Composable
 fun ActivityDetailScreen(
@@ -42,8 +48,11 @@ fun ActivityDetailScreen(
     // Collecting the activity details and registration status from the ViewModel
     val activity = viewModel.activity.collectAsState().value
     val isRegistered = viewModel.isRegistered.collectAsState().value
-    val canRegister = viewModel.canRegister.collectAsState().value  // Hent canRegister fra ViewModel
+    val canRegister = viewModel.canRegister.collectAsState().value
 
+    // Snackbar state to show messages
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     // Fetch the activity details when the screen is first displayed
     LaunchedEffect(activityId, category) {
@@ -52,32 +61,69 @@ fun ActivityDetailScreen(
         }
     }
 
+    // Scaffold for structured layout
+    Scaffold(
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.Start
-    ) {
-        item {
-            ActivityImage(imageUrl = activity?.imageUrl ?: "")
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        content = { paddingValues ->
+            LazyColumn(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.Start
+            ) {
+                item {
+                    ActivityImage(imageUrl = activity?.imageUrl ?: "")
+                }
+
+                item {
+                    ActivityDetailsContent(
+                        activity = activity,
+                        isRegistered = isRegistered,
+                        canRegister = canRegister,
+                        ageGroup = activity?.ageGroup ?: 0,
+                        activityId = activityId,
+                        category = category,
+                        viewModel = viewModel,
+                        onRegisterClick = {
+                            if (activityId != null && category != null) {
+                                viewModel.updateRegistrationForActivity(category, activityId, true)
+                                showSnackbar(true, snackbarHostState, scope, activity)  // Pass 'true' for registering
+                            }
+                        },
+                        onUnregisterClick = {
+                            if (activityId != null && category != null) {
+                                viewModel.updateRegistrationForActivity(category, activityId, false)
+                                showSnackbar(false, snackbarHostState, scope, activity)  // Pass 'false' for unregistering
+                            }
+                        }
+                    )
+                }
+            }
         }
-
-        item {
-
-            ActivityDetailsContent(
-                activity = activity,
-                isRegistered = isRegistered,
-                canRegister = canRegister,
-                ageGroup = activity?.ageGroup ?: 0,
-                activityId = activityId,
-                category = category,       // Sender kategori videre
-                viewModel = viewModel,
-                onRegisterClick = { viewModel.updateRegistrationForActivity(category!!, activityId!!, true) },
-                onUnregisterClick = { viewModel.updateRegistrationForActivity(category!!, activityId!!, false) }
-            )
-        }
-    }
+    )
 }
 
+
+fun showSnackbar(isRegistering: Boolean, snackbarHostState: SnackbarHostState, scope: CoroutineScope, activity: Activity?) {
+    val maxParticipants = activity?.maxParticipants ?: 0
+    val currentParticipants = activity?.currentParticipants ?: 0
+    val remainingSlots = maxParticipants - currentParticipants
+
+    val message = if (isRegistering) {
+        if (remainingSlots > 0) {
+            "Påmeldingen var vellykket. Det er $remainingSlots av $maxParticipants plasser igjen."
+        } else {
+            "Påmeldingen var vellykket. Alle plasser er nå fylt opp."
+        }
+    } else {
+        "Du har nå meldt deg ut av aktiviteten."
+    }
+
+    scope.launch {
+        snackbarHostState.showSnackbar(message)
+    }
+}
 @Composable
 fun ActivityDetailsContent(
     activity: Activity?,
@@ -85,51 +131,39 @@ fun ActivityDetailsContent(
     canRegister: Boolean,
     ageGroup: Int,
     activityId: String?,
-    category: String?,        // Legg til category som parameter
+    category: String?,
     viewModel: ActivityDetailViewModel,
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
-
-    Box(modifier = Modifier.padding(16.dp)) {
-        Column {
-            ActivityTitle(activity?.title ?: "Ingen tittel")
-            ActivityDate()
-            InfoRow(
-                icon = Icons.Default.LocationOn,
-                mainText = activity?.location ?: "Ukjent",
-                subText = activity?.restOfAddress ?: "Ukjent adresse"
-            )
-            InfoRow(
-                icon = Icons.Default.People,
-                mainText = "Maks ${activity?.maxParticipants ?: 0} personer", // Oppdater til int
-                subText = "Aldersgruppe: ${activity?.ageGroup ?: "Alle"}"
-            )
-            ActivityDescription(activity?.description ?: "Ingen beskrivelse")
-            ActivityGPSImage()
-            ActivityRegisterButton(
-                isRegistered = isRegistered,
-                canRegister = canRegister,
-                ageGroup = ageGroup,
-                onRegisterClick = {
-                    if (activityId != null && category != null) {
-                        viewModel.updateRegistrationForActivity(category, activityId, true)
-                    }
-                },
-                onUnregisterClick = {
-                    if (activityId != null && category != null) {
-                        viewModel.updateRegistrationForActivity(category, activityId, false)
-                    }
-                }
-
-            )
-        }
+    Column(modifier = Modifier.padding(16.dp)) {
+        ActivityTitle(activity?.title ?: "Ingen tittel")
+        ActivityDate()
+        InfoRow(
+            icon = Icons.Default.LocationOn,
+            mainText = activity?.location ?: "Ukjent",
+            subText = activity?.restOfAddress ?: "Ukjent adresse"
+        )
+        InfoRow(
+            icon = Icons.Default.People,
+            mainText = "Maks ${activity?.maxParticipants ?: 0}",
+            subText = "Aldersgruppe: ${activity?.ageGroup ?: "Alle"}"
+        )
+        ActivityDescription(activity?.description ?: "Ingen beskrivelse")
+        ActivityGPSImage()
+        ActivityRegisterButton(
+            isRegistered = isRegistered,
+            canRegister = canRegister,
+            ageGroup = ageGroup,
+            onRegisterClick = onRegisterClick,
+            onUnregisterClick = onUnregisterClick
+        )
     }
 }
 
+
 @Composable
 fun ActivityImage(imageUrl: String) {
-
     Image(
         painter = rememberAsyncImagePainter(imageUrl),
         contentDescription = "Activity Image",
@@ -144,7 +178,6 @@ fun ActivityImage(imageUrl: String) {
 
 @Composable
 fun ActivityTitle(title: String) {
-
     Text(
         text = title,
         fontSize = 24.sp,
@@ -155,7 +188,6 @@ fun ActivityTitle(title: String) {
 
 @Composable
 fun ActivityDate() {
-
     Text(
         text = "Tirsdag. 28. august 2024",
         modifier = Modifier.padding(vertical = 4.dp)
@@ -164,7 +196,6 @@ fun ActivityDate() {
 
 @Composable
 fun ActivityDescription(description: String) {
-
     Text(
         text = description,
         modifier = Modifier.padding(vertical = 16.dp)
@@ -173,7 +204,6 @@ fun ActivityDescription(description: String) {
 
 @Composable
 fun ActivityGPSImage() {
-
     Image(
         painter = painterResource(R.drawable.gpsbilde1),
         contentDescription = "GPS-bilde",
@@ -220,14 +250,12 @@ fun ActivityRegisterButton(
     }
 }
 
-
 @Composable
 fun InfoRow(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     mainText: String,
     subText: String
 ) {
-
     Row(
         modifier = Modifier.padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -244,7 +272,6 @@ fun InfoRow(
 
 @Composable
 fun ElevatedCardExample(icon: androidx.compose.ui.graphics.vector.ImageVector) {
-
     ElevatedCard(
         modifier = Modifier.size(50.dp),
         colors = CardDefaults.elevatedCardColors(containerColor = Color.LightGray)
@@ -261,3 +288,4 @@ fun ElevatedCardExample(icon: androidx.compose.ui.graphics.vector.ImageVector) {
         }
     }
 }
+

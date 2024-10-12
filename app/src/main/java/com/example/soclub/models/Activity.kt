@@ -12,7 +12,8 @@ data class Activity(
     val maxParticipants: Int = 0,
     val location: String = "",
     val restOfAddress: String = "",
-    val date: String = ""
+    val date: String = "",
+    val currentParticipants: Int = 0
 
 )
 
