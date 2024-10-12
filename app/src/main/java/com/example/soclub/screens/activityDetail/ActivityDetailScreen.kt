@@ -150,9 +150,16 @@ fun ActivityDetailsContent(
         )
         InfoRow(
             icon = Icons.Default.People,
-            mainText = "Maks ${activity?.maxParticipants ?: 0}",
+            mainText = "Maks ${activity?.maxParticipants ?: 0} tilgjenglig plasser",
             subText = "Aldersgruppe: ${activity?.ageGroup ?: "Alle"}"
         )
+
+        InfoRow(
+            icon = Icons.Default.People,
+            mainText = "Antall deltakere er $currentParticipants av ${activity?.maxParticipants?:0}",
+            subText = "Aldersgruppe: ${activity?.ageGroup ?: "Alle"}"
+        )
+
         ActivityDescription(activity?.description ?: "Ingen beskrivelse")
         ActivityGPSImage()
         ActivityRegisterButton(
