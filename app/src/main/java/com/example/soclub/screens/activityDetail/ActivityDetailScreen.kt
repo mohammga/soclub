@@ -33,6 +33,7 @@ import com.example.soclub.models.Activity
 import androidx.compose.material3.*
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -50,12 +51,8 @@ fun ActivityDetailScreen(
     val isRegistered = viewModel.isRegistered.collectAsState().value
     val canRegister = viewModel.canRegister.collectAsState().value
     val currentParticipants = viewModel.currentParticipants.collectAsState().value
-
-
-
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-
 
     LaunchedEffect(activityId, category) {
         if (activityId != null && category != null) {
@@ -64,8 +61,8 @@ fun ActivityDetailScreen(
     }
 
 
-    Scaffold(
 
+    Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         content = { paddingValues ->
             LazyColumn(
@@ -85,9 +82,6 @@ fun ActivityDetailScreen(
                         isRegistered = isRegistered,
                         canRegister = canRegister,
                         ageGroup = activity?.ageGroup ?: 0,
-                        activityId = activityId,
-                        category = category,
-                        viewModel = viewModel,
                         onRegisterClick = {
                             if (activityId != null && category != null) {
                                 viewModel.updateRegistrationForActivity(category, activityId, true)
@@ -111,7 +105,6 @@ fun ActivityDetailScreen(
 fun showSnackbar(isRegistering: Boolean, snackbarHostState: SnackbarHostState, scope: CoroutineScope, activity: Activity?, currentParticipants: Int) {
     val maxParticipants = activity?.maxParticipants ?: 0
     val remainingSlots = maxParticipants - currentParticipants
-
     scope.launch {
         delay(500)
     val message = if (isRegistering) {
@@ -123,12 +116,11 @@ fun showSnackbar(isRegistering: Boolean, snackbarHostState: SnackbarHostState, s
     } else {
         "Du har nå meldt deg ut av aktiviteten."
     }
-
-
-
         snackbarHostState.showSnackbar(message)
     }
 }
+
+
 @Composable
 fun ActivityDetailsContent(
     activity: Activity?,
@@ -136,32 +128,34 @@ fun ActivityDetailsContent(
     isRegistered: Boolean,
     canRegister: Boolean,
     ageGroup: Int,
-    activityId: String?,
-    category: String?,
-    viewModel: ActivityDetailViewModel,
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
     Column(modifier = Modifier.padding(16.dp)) {
-        ActivityTitle(activity?.title ?: "Ingen tittel")
+        ActivityTitle(activity?.title ?: stringResource(R.string.activity_no_title))
         ActivityDate()
         InfoRow(
             icon = Icons.Default.LocationOn,
-            mainText = activity?.location ?: "Ukjent",
-            subText = activity?.restOfAddress ?: "Ukjent adresse"
+            mainText = activity?.location ?: stringResource(R.string.unknown_location),
+            subText = activity?.restOfAddress ?: stringResource(R.string.unknown_address)
         )
 
         InfoRow(
             icon = Icons.Default.People,
             mainText = if (currentParticipants == 0) {
-                "Maks ${activity?.maxParticipants ?: 0}"
+                stringResource(R.string.participants_max, activity?.maxParticipants?:0)
             } else {
-                "$currentParticipants deltaker${if (currentParticipants > 1) "e" else ""} av ${activity?.maxParticipants ?: 0}"
+                stringResource(R.string.participants_registered,
+                    currentParticipants,
+                    if (currentParticipants > 1) "e" else "",
+                    activity?.maxParticipants ?:0
+
+                    )
             },
-            subText = "Aldersgruppe: ${activity?.ageGroup ?: "Alle"}"
+            subText = stringResource(R.string.age_group, activity?.ageGroup ?: "Alle")
         )
 
-        ActivityDescription(activity?.description ?: "Ingen beskrivelse")
+        ActivityDescription(activity?.description ?: stringResource(R.string.unknown_description))
         ActivityGPSImage()
         ActivityRegisterButton(
             isRegistered = isRegistered,
@@ -238,9 +232,9 @@ fun ActivityRegisterButton(
 ) {
 
     val buttonText = when {
-        !canRegister -> "Du er under aldersgrensen ($ageGroup)"
-        isRegistered -> "Meld deg ut"
-        else -> "Meld deg på"
+        !canRegister -> stringResource(R.string.under_age_limit, ageGroup)
+        isRegistered -> stringResource(R.string.unregister)
+        else -> stringResource(R.string.registerr)
     }
 
 
@@ -260,7 +254,7 @@ fun ActivityRegisterButton(
             .fillMaxWidth()
             .padding(vertical = 16.dp)
             .height(48.dp),
-        enabled = canRegister 
+        enabled = canRegister
     ) {
         Text(text = buttonText, color = Color.White)
     }

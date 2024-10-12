@@ -22,7 +22,6 @@ class ActivityDetailServiceImpl @Inject constructor(
             .await()
 
         val activity = documentSnapshot.toObject(Activity::class.java)
-
         val fullLocation = activity?.location ?: "Ukjent"
         val lastWord = fullLocation.substringAfterLast(" ")
         val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
@@ -40,13 +39,9 @@ class ActivityDetailServiceImpl @Inject constructor(
             .whereEqualTo("activityId", activityId)
             .get().await()
 
-
         if (!registrationRef.isEmpty) {
-
             val document = registrationRef.documents.first()
             val status = document.getString("status")
-
-
             return status == "aktiv"
         }
 

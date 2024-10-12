@@ -9,7 +9,4 @@ interface ActivityDetaillService {
     suspend fun getRegisteredParticipantsCount(activityId: String): Int
     fun listenToRegistrationUpdates(activityId: String, onUpdate: (Int) -> Unit)
 
-
-
-
 }

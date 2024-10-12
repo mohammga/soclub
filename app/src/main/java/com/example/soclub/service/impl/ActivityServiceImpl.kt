@@ -39,13 +39,9 @@ class ActivityServiceImpl @Inject constructor(
 
     override suspend fun getCategories(): List<String> {
         val snapshot = firestore.collection("category").get().await()
-
-
         val categories = snapshot.documents.map { document ->
             document.id
         }
-
-
         return categories.sortedByDescending { it == "Forslag" }
     }
 }

@@ -8,9 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -18,12 +16,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.example.soclub.R
-import com.example.soclub.models.Entry
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun EntriesScreen(navController: NavHostController) {
@@ -66,20 +62,22 @@ fun Tabs(selectedTab: Int, setSelectedTab: (Int) -> Unit) {
 }
 
 @Composable
-fun ActiveEntriesList() {
+fun ActiveEntriesList(viewModel: EntriesScreenViewModel = hiltViewModel()) {
+    val activeActivities by viewModel.activeActivities.collectAsState()
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(activeEntries.size) { index ->
-            val entry = activeEntries[index]
+        items(activeActivities.size) { index ->
+            val activity = activeActivities[index]
             EntryItem(
-                imageRes = entry.imageRes,
-                title = entry.title,
-                time = entry.time,
-                onCancelClick = { /* Håndter kanselleringsklikk */ }
+                imageRes = R.drawable.event1, // Bruk et standardbilde inntil dynamiske bilder er på plass
+                title = activity.title,
+                time = activity.date,
+                onCancelClick = { /* Håndter kansellering */ }
             )
         }
     }
@@ -99,7 +97,6 @@ fun EntryItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Arrangement av bilde
         EventImage(imageRes)
 
         Spacer(modifier = Modifier.width(16.dp))
@@ -118,7 +115,6 @@ fun EntryItem(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Kanselleringsknapp
             CancelButton(onClick = onCancelClick)
         }
     }
@@ -148,21 +144,4 @@ fun CancelButton(onClick: () -> Unit) {
     ) {
         Text(text = "Kanseller")
     }
-}
-
-val activeEntries = listOf(
-    Entry(R.drawable.event1, "Hvordan planlegge en tur til", "Ons, 19:00"),
-    Entry(R.drawable.event2, "Mestrer kunsten å lage pasta", "Tor, 18:00"),
-    Entry(R.drawable.event3, "Bygge en oppstartsbedrift", "Fre, 17:00"),
-    Entry(R.drawable.event4, "Investere i eiendom", "Lør, 16:00"),
-    Entry(R.drawable.event5, "Reise med barn", "Søn, 15:00"),
-    Entry(R.drawable.event3, "Bygge en oppstartsbedrift", "Fre, 17:00"),
-    Entry(R.drawable.event4, "Investere i eiendom", "Lør, 16:00"),
-    Entry(R.drawable.event5, "Reise med barn", "Søn, 15:00"),
-)
-
-@Preview(showBackground = true)
-@Composable
-fun EntriesScreenPreview() {
-    EntriesScreen(rememberNavController())
 }
