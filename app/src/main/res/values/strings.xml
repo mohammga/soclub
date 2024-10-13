@@ -121,6 +121,7 @@
 <string name="choose_image_source">Velg om du vil ta et bilde eller velge fra galleriet</string>
 <string name="take_photo">Ta bilde</string>
 <string name="choose_from_gallery">Velg fra galleri</string>
+    <string name="selected_image">valgt bilde</string>
 
 
 
@@ -133,6 +134,7 @@
 
     <!-- Button text -->
     <string name="publish_activity">Publiser Aktivitet</string>
+
 
 
 

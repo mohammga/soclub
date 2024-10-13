@@ -55,6 +55,7 @@ android {
 dependencies {
 
     implementation(libs.androidx.core.ktx)
+
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
@@ -94,6 +95,7 @@ dependencies {
     // Material
     implementation("androidx.compose.material:material:1.0.5")
     implementation("androidx.compose.material:material-icons-extended:1.0.5")
+    implementation("androidx.compose.material3:material3:1.1.0")
 
     // coil
     implementation ("io.coil-kt:coil-compose:2.4.0")

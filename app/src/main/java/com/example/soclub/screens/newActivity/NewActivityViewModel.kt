@@ -5,14 +5,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import android.util.Log  // For logging
 import com.example.soclub.R
 import com.example.soclub.models.createActivity
 import com.example.soclub.service.ActivityService
 import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import javax.inject.Inject
-
 
 data class NewActivityState(
     val title: String = "",
@@ -25,9 +28,8 @@ data class NewActivityState(
     val ageLimit: String = "",
     val imageUrl: String = "",
     val date: String = "",
-    val errorMessage: Int? = null  // For å vise eventuelle feilmeldinger
+    val errorMessage: Int? = null  // For displaying error messages
 )
-
 
 @HiltViewModel
 class NewActivityViewModel @Inject constructor(
@@ -77,7 +79,30 @@ class NewActivityViewModel @Inject constructor(
         uiState.value = uiState.value.copy(date = newValue)
     }
 
+
+
+    private fun uploadImageToFirebase(imageUri: Uri, onSuccess: (String) -> Unit, onError: (Exception) -> Unit) {
+        val storageRef = FirebaseStorage.getInstance().reference.child("images/${imageUri.lastPathSegment}")
+        storageRef.putFile(imageUri)
+            .addOnSuccessListener {
+                Log.d("NewActivityViewModel", "Image uploaded successfully")
+                storageRef.downloadUrl.addOnSuccessListener { uri ->
+                    Log.d("NewActivityViewModel", "Image URL fetched: $uri")
+                    onSuccess(uri.toString())
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.e("NewActivityViewModel", "Error uploading image: ${exception.message}")
+                onError(exception)
+            }
+    }
+
+
+
     fun onPublishClick(navController: NavController) {
+        Log.d("NewActivityViewModel", "Publish button clicked")
+
+        // Check for title and category
         if (uiState.value.title.isBlank()) {
             uiState.value = uiState.value.copy(errorMessage = R.string.error_title_required)
             return
@@ -88,55 +113,79 @@ class NewActivityViewModel @Inject constructor(
             return
         }
 
+        // Set default date to current day if not chosen by user
+        val currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE.dd.MM.yyyy", Locale("no")))
+        val dateToSend = if (uiState.value.date.isBlank()) currentDate else uiState.value.date
+
         val combinedLocation = "${uiState.value.location}, ${uiState.value.postalCode} ${uiState.value.address}"
 
         if (uiState.value.imageUrl.isNotBlank()) {
             uploadImageToFirebase(
                 Uri.parse(uiState.value.imageUrl),
                 onSuccess = { imageUrl ->
-                    createActivityAndNavigate(navController, imageUrl, combinedLocation)
+                    createActivityAndNavigate(navController, imageUrl, combinedLocation, dateToSend)
                 },
                 onError = { error ->
-                    
+                    Log.e("NewActivityViewModel", "Error uploading image: ${error.message}")
                 }
             )
         } else {
-            createActivityAndNavigate(navController, "", combinedLocation)
+            createActivityAndNavigate(navController, "", combinedLocation, dateToSend)
         }
     }
 
-    private fun uploadImageToFirebase(imageUri: Uri, onSuccess: (String) -> Unit, onError: (Exception) -> Unit) {
-        val storageRef = FirebaseStorage.getInstance().reference.child("images/${imageUri.lastPathSegment}")
-        storageRef.putFile(imageUri)
-            .addOnSuccessListener { taskSnapshot ->
-                storageRef.downloadUrl.addOnSuccessListener { uri ->
-                    onSuccess(uri.toString())
-                }
-            }
-            .addOnFailureListener { exception ->
-                onError(exception)
-            }
-    }
-
-    // Plasser createActivityAndNavigate funksjonen her inne
-    fun createActivityAndNavigate(navController: NavController, imageUrl: String, combinedLocation: String) {
+    private fun createActivityAndNavigate(navController: NavController, imageUrl: String, combinedLocation: String, date: String) {
         viewModelScope.launch {
-            val newActivity = createActivity(
-                title = uiState.value.title,
-                description = uiState.value.description,
-                location = combinedLocation,
-                maxParticipants = uiState.value.maxParticipants.toIntOrNull() ?: 0,
-                ageGroup = uiState.value.ageLimit.toIntOrNull() ?: 0,
-                imageUrl = imageUrl,
-                date = uiState.value.date
-                // Ikke send id eller restOfAddress hvis de ikke er nødvendige
-            )
+            try {
+                Log.d("NewActivityViewModel", "Creating activity with imageUrl: $imageUrl and location: $combinedLocation")
+                val newActivity = createActivity(
+                    title = uiState.value.title,
+                    description = uiState.value.description,
+                    location = combinedLocation,
+                    maxParticipants = uiState.value.maxParticipants.toIntOrNull() ?: 0,
+                    ageGroup = uiState.value.ageLimit.toIntOrNull() ?: 0,
+                    imageUrl = imageUrl,
+                    date = date
+                )
 
-            // Lagre aktivitet til databasen via ActivityService
-            activityService.createActivity(uiState.value.category, newActivity)
+                activityService.createActivity(uiState.value.category, newActivity)
+                Log.d("NewActivityViewModel", "Activity created successfully")
 
-            // Etter lagring, naviger tilbake til selve annonsen
-            navController.navigate("ads")
+                navController.navigate("home")
+            } catch (e: Exception) {
+                Log.e("NewActivityViewModel", "Error creating activity: ${e.message}")
+            }
         }
     }
-}
+
+
+    private fun createActivityAndNavigate(navController: NavController, imageUrl: String, combinedLocation: String) {
+        viewModelScope.launch {
+            try {
+                Log.d("NewActivityViewModel", "Creating activity with imageUrl: $imageUrl and location: $combinedLocation")
+                val newActivity = createActivity(
+                    title = uiState.value.title,
+                    description = uiState.value.description,
+                    location = combinedLocation,
+                    maxParticipants = uiState.value.maxParticipants.toIntOrNull() ?: 0,
+                    ageGroup = uiState.value.ageLimit.toIntOrNull() ?: 0,
+                    imageUrl = imageUrl,
+                    date = uiState.value.date
+                )
+
+                activityService.createActivity(uiState.value.category, newActivity)
+                Log.d("NewActivityViewModel", "Activity created successfully")
+
+                // Navigate to home after successfully creating the activity
+                navController.navigate("home")
+                Log.d("NewActivityViewModel", "Navigation to home successful")
+            } catch (e: Exception) {
+                Log.e("NewActivityViewModel", "Error creating activity: ${e.message}")
+            }
+        }
+    }
+
+
+
+        }
+
