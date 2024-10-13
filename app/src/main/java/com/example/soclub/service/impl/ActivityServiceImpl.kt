@@ -1,6 +1,4 @@
 package com.example.soclub.service.impl
-import com.google.firebase.Timestamp
-import java.util.Date
 
 import com.example.soclub.models.Activity
 import com.example.soclub.models.createActivity
@@ -13,10 +11,9 @@ class ActivityServiceImpl @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : ActivityService {
 
-
     override suspend fun createActivity(category: String, activity: createActivity) {
         firestore.collection("category").document(category)
-            .collection("activities").add(activity).await()
+        .collection("activities").add(activity).await()
     }
 
     override suspend fun getActivities(category: String): List<Activity> {
@@ -37,7 +34,6 @@ class ActivityServiceImpl @Inject constructor(
             )
         }
     }
-
 
 
 
@@ -62,8 +58,6 @@ class ActivityServiceImpl @Inject constructor(
     }
 
 
-
-
     override suspend fun getCategories(): List<String> {
         val snapshot = firestore.collection("category").get().await()
 
@@ -75,7 +69,6 @@ class ActivityServiceImpl @Inject constructor(
         // Sorter slik at "Forslag" kommer først
         return categories.sortedByDescending { it == "Forslag" }
     }
-
 
     override suspend fun updateActivity(category: String, documentId: String, activity: Activity) {
         firestore.collection("activities").document(category)
@@ -166,14 +159,4 @@ class ActivityServiceImpl @Inject constructor(
             .add(registrationData)
             .await()
     }
-
-
-
-
-
-
-
-
-
-
 }

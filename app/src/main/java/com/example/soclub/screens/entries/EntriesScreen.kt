@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.soclub.R
+import com.example.soclub.models.Entry
 
 @Composable
 fun EntriesScreen(navController: NavHostController) {
@@ -152,12 +153,6 @@ fun CancelButton(onClick: () -> Unit) {
         Text(text = "Kanseller")
     }
 }
-
-data class Entry(
-    val imageRes: Int,
-    val title: String,
-    val time: String
-)
 
 val activeEntries = listOf(
     Entry(R.drawable.event1, "Hvordan planlegge en tur til", "Ons, 19:00"),

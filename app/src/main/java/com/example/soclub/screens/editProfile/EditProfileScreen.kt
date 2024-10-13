@@ -97,17 +97,16 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Brukerens navn og e-post vises nå automatisk i input-feltene
                 ProfileTextField(
                     label = stringResource(id = R.string.profile_name_label),
-                    value = uiState.name,
+                    value = uiState.firstname,
                     onValueChange = { viewModel.onNameChange(it) }
                 )
 
                 ProfileTextField(
-                    label = stringResource(id = R.string.profile_email_label),
-                    value = uiState.email,
-                    onValueChange = { viewModel.onEmailChange(it) }
+                    label = stringResource(id = R.string.profile_lastname_label),
+                    value = uiState.lastname,
+                    onValueChange = { viewModel.onLastnameChange(it) }
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -119,15 +118,18 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                     )
                 }
 
-                SaveButton(onClick = {
-                    viewModel.onSaveProfileClick(navController)
-                    coroutineScope.launch {
-                        // Henter strengen fra strings.xml og viser snackbar
-                        snackbarHostState.showSnackbar(
-                            message = "Personlig info er endret"
-                        )
-                    }
-                })
+                SaveButton(
+                    onClick = {
+                        viewModel.onSaveProfileClick(navController)
+                        coroutineScope.launch {
+                            // Henter strengen fra strings.xml og viser snackbar
+                            snackbarHostState.showSnackbar(
+                                message = "Personlig info er endret"
+                            )
+                        }
+                    },
+                    enabled = uiState.isDirty // Knappen aktiveres kun hvis det er gjort endringer
+                )
             }
         }
     )
@@ -151,19 +153,18 @@ fun ProfileTextField(
 }
 
 @Composable
-fun SaveButton(onClick: () -> Unit) {
+fun SaveButton(onClick: () -> Unit, enabled: Boolean) {
     Button(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+        enabled = enabled // Deaktiverer knappen hvis det ikke er noen endringer
     ) {
         Text(text = stringResource(id = R.string.save_changes_button), color = Color.White)
     }
 }
-
-
 
 @Preview(showBackground = true)
 @Composable

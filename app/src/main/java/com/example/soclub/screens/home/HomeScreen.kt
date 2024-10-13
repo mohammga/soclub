@@ -21,77 +21,105 @@ import androidx.navigation.NavHostController
 import com.example.soclub.models.Activity
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import com.example.soclub.R
 import androidx.compose.foundation.pager.HorizontalPager
 import coil.compose.rememberImagePainter
+import androidx.compose.foundation.pager.PagerState
+import coil.compose.rememberAsyncImagePainter
 
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hiltViewModel()) {
     val categories by viewModel.getCategories().observeAsState(emptyList())
-    val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { categories.size })
 
     Column(modifier = Modifier.fillMaxSize()) {
 
         if (categories.isNotEmpty()) {
-            ScrollableTabRow(
-                selectedTabIndex = pagerState.currentPage,
-                edgePadding = 2.dp
-            ) {
-                categories.forEachIndexed { index, category ->
-                    Tab(
-                        text = { Text(category) },
-                        selected = pagerState.currentPage == index,
-                        onClick = {
-                            coroutineScope.launch {
-                                pagerState.scrollToPage(index)
-                            }
-                        }
-                    )
-                }
-            }
+            CategoryTabs(categories = categories, pagerState = pagerState)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        //lagt til tittel sjekk om riktig
         val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
-        Text(
-            text = selectedCategory,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .padding(start = 16.dp)
-                .align(Alignment.Start)
-        )
+        CategoryTitle(selectedCategory)
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        HorizontalPager(state = pagerState) { page ->
-            val selectedCategory = categories[page]
-            val activities by viewModel.getActivities(selectedCategory).observeAsState(emptyList())
+        CategoryActivitiesPager(
+            categories = categories,
+            pagerState = pagerState,
+            viewModel = viewModel,
+            navController = navController
+        )
+    }
+}
 
-            LazyColumn(
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(activities) { activity ->
-                    ActivityItem(activity = activity) {
+@Composable
+fun CategoryTabs(categories: List<String>, pagerState: PagerState) {
+    val coroutineScope = rememberCoroutineScope()
 
-                        navController.navigate("detail/${selectedCategory}/${activity.id}")
-
+    ScrollableTabRow(
+        selectedTabIndex = pagerState.currentPage,
+        edgePadding = 2.dp
+    ) {
+        categories.forEachIndexed { index, category ->
+            Tab(
+                text = { Text(category) },
+                selected = pagerState.currentPage == index,
+                onClick = {
+                    coroutineScope.launch {
+                        pagerState.scrollToPage(index)
                     }
                 }
-            }
+            )
         }
     }
 }
 
+@Composable
+fun CategoryTitle(category: String) {
+    Text(
+        text = category,
+        fontSize = 20.sp,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier
+            .padding(start = 16.dp)
+
+    )
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun CategoryActivitiesPager(
+    categories: List<String>,
+    pagerState: PagerState,
+    viewModel: HomeViewModel,
+    navController: NavHostController
+) {
+    HorizontalPager(state = pagerState) { page ->
+        val selectedCategory = categories[page]
+        val activities by viewModel.getActivities(selectedCategory).observeAsState(emptyList())
+
+        ActivityList(activities = activities, selectedCategory = selectedCategory, navController = navController)
+    }
+}
+
+@Composable
+fun ActivityList(activities: List<Activity>, selectedCategory: String, navController: NavHostController) {
+    LazyColumn(
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.fillMaxSize()
+    ) {
+        items(activities) { activity ->
+            ActivityItem(activity = activity) {
+                navController.navigate("detail/${selectedCategory}/${activity.id}")
+            }
+        }
+    }
+}
 
 @Composable
 fun ActivityItem(activity: Activity, onClick: () -> Unit) {
@@ -102,7 +130,7 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
     ) {
 
         Image(
-            painter = rememberImagePainter(activity.imageUrl), // Dynamisk bilde fra Firestore
+            painter = rememberAsyncImagePainter(activity.imageUrl),
             contentDescription = activity.title,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -113,15 +141,12 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Viser aktivitetens tittel og informasjon hentet fra Firestore
         Text(
             text = activity.title ?: "Ingen tittel",
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.align(Alignment.Start)
         )
-//        Text(text = activity.description ?: "Ingen beskrivelse", style = MaterialTheme.typography.bodyMedium)
-//        Text(text = "Sted: ${activity.location ?: "Ukjent"}", style = MaterialTheme.typography.bodySmall)
-//        Text(text = "Aldersgruppe: ${activity.ageGroup ?: "Uspesifisert"}", style = MaterialTheme.typography.bodySmall)
     }
 }
+

@@ -8,7 +8,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -56,13 +55,10 @@ fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hilt
         Spacer(modifier = Modifier.height(32.dp))
 
 
-        if (errorMessage.isNotEmpty()) {
+        if (uiState.errorMessage != 0) {
             Text(
-                text = errorMessage,
-                color = Color.Red,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(top = 10.dp)
+                text = stringResource(id = uiState.errorMessage),
+                color = Color.Red
             )
         }
 

@@ -20,6 +20,7 @@ import com.example.soclub.components.navigation.navBars.getCurrentScreen
 import com.example.soclub.screens.activityDetail.ActivityDetailScreen
 import com.example.soclub.screens.ads.AdsScreen
 import com.example.soclub.screens.changePassword.ChangePasswordScreen
+import com.example.soclub.screens.editActivity.EditActivityScreen
 import com.example.soclub.screens.editPermission.EditPermissionScreen
 import com.example.soclub.screens.editProfile.EditProfileScreen
 import com.example.soclub.screens.entries.EntriesScreen
@@ -89,6 +90,9 @@ fun AppNavigation(navController: NavHostController, activityService: ActivitySer
                 currentScreen == AppScreens.ENTRIES.name -> {
                     TopBar(navController, title = "Mine Påmeldinger", showBackButton = false)
                 }
+                currentScreen == AppScreens.EDIT_AD.name -> {
+                    TopBar(navController, title = "Endere aktivitet", showBackButton = false)
+                }
                 else -> {
                     // Handle other screens
                 }
@@ -150,9 +154,7 @@ fun AppNavigation(navController: NavHostController, activityService: ActivitySer
                 ActivityDetailScreen(
                     navController = navController,
                     category = category,
-                    activityId = activityId,
-                    activityService = activityService,
-                    accountService = accountService  // Passer inn accountService
+                    activityId = activityId
                 )
             }
             composable(AppScreens.ENTRIES.name) {
@@ -178,6 +180,9 @@ fun AppNavigation(navController: NavHostController, activityService: ActivitySer
             }
             composable(AppScreens.ADS.name) {
                 AdsScreen(navController)
+            }
+            composable(AppScreens.EDIT_AD.name) {
+                EditActivityScreen(navController)
             }
         }
     }
