@@ -3,39 +3,119 @@ package com.example.soclub.service.impl
 import com.example.soclub.models.Activity
 import com.example.soclub.service.EntriesService
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
+import com.google.firebase.firestore.ListenerRegistration
+
+
 
 class EntriesServiceImpl @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : EntriesService {
 
-    override suspend fun getActiveActivitiesForUser(userId: String): List<Activity> {
-        // Hent alle registreringer med status "aktiv" for brukeren
-        val registrations = firestore.collection("registrations")
+
+
+
+
+    private var activeListenerRegistration: ListenerRegistration? = null
+    private var notActiveListenerRegistration: ListenerRegistration? = null
+
+    override suspend fun getActiveActivitiesForUser(
+        userId: String,
+        onUpdate: (List<Activity>) -> Unit
+    ) {
+
+        activeListenerRegistration?.remove()
+       activeListenerRegistration = firestore.collection("registrations")
             .whereEqualTo("userId", userId)
             .whereEqualTo("status", "aktiv")
-            .get()
-            .await()
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    return@addSnapshotListener
+                }
 
-        val activityList = mutableListOf<Activity>()
+                val activityList = mutableListOf<Activity>()
 
-        for (document in registrations.documents) {
-            val activityId = document.getString("activityId") ?: continue
+                for (document in snapshot.documents) {
+                    val activityId = document.getString("activityId") ?: continue
 
-            // For hvert activityId, hent aktiviteten fra activities-samlingen
-            val activitySnapshot = firestore.collectionGroup("activities")
-                .whereEqualTo("id", activityId)
-                .get()
-                .await()
+                    // Iterer gjennom kategorier for å finne riktig aktivitet
+                    firestore.collection("category").get().addOnSuccessListener { categories ->
+                        for (categoryDoc in categories.documents) {
+                            val category = categoryDoc.id
 
-            if (!activitySnapshot.isEmpty) {
-                val activity = activitySnapshot.documents.first().toObject(Activity::class.java)
-                if (activity != null) {
-                    activityList.add(activity)
+                            // Hent aktiviteten
+                            firestore.collection("category")
+                                .document(category)
+                                .collection("activities")
+                                .document(activityId)
+                                .get()
+                                .addOnSuccessListener { activitySnapshot ->
+                                    if (activitySnapshot.exists()) {
+                                        val activity = activitySnapshot.toObject(Activity::class.java)
+                                        if (activity != null) {
+                                            activityList.add(activity)
+                                            onUpdate(activityList) // Oppdater UI for hver ny aktivitet
+                                        }
+                                    }
+                                }
+                        }
+                    }
                 }
             }
-        }
-        return activityList
+    }
+
+
+    override suspend fun getNotActiveActivitiesForUser(
+        userId: String,
+        onUpdate: (List<Activity>) -> Unit
+    ) {
+
+        notActiveListenerRegistration?.remove()
+        notActiveListenerRegistration = firestore.collection("registrations")
+            .whereEqualTo("userId", userId)
+            .whereEqualTo("status", "notAktiv") // Endret status til "notAktiv"
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    return@addSnapshotListener
+                }
+
+                val activityList = mutableListOf<Activity>()
+
+                for (document in snapshot.documents) {
+                    val activityId = document.getString("activityId") ?: continue
+
+                    // Iterer gjennom kategorier for å finne riktig aktivitet
+                    firestore.collection("category").get().addOnSuccessListener { categories ->
+                        for (categoryDoc in categories.documents) {
+                            val category = categoryDoc.id
+
+                            // Hent aktiviteten
+                            firestore.collection("category")
+                                .document(category)
+                                .collection("activities")
+                                .document(activityId)
+                                .get()
+                                .addOnSuccessListener { activitySnapshot ->
+                                    if (activitySnapshot.exists()) {
+                                        val activity = activitySnapshot.toObject(Activity::class.java)
+                                        if (activity != null) {
+                                            activityList.add(activity)
+                                            onUpdate(activityList) // Oppdater UI for hver ny aktivitet
+                                        }
+                                    }
+                                }
+                        }
+                    }
+                }
+            }
     }
 }
+
+
+
+
+
+
+
+
+

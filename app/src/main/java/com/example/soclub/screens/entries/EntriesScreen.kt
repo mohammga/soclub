@@ -12,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -31,7 +30,7 @@ fun EntriesScreen(navController: NavHostController) {
         if (selectedTab == 0) {
             ActiveEntriesList()
         } else {
-            // Her kan logikk for å vise utgåtte oppføringer legges til hvis nødvendig
+           InactiveEntriesList()
         }
     }
 }
@@ -82,6 +81,34 @@ fun ActiveEntriesList(viewModel: EntriesScreenViewModel = hiltViewModel()) {
         }
     }
 }
+
+@Composable
+fun InactiveEntriesList(viewModel: EntriesScreenViewModel = hiltViewModel()) {
+    val inactiveActivities by viewModel.notActiveActivities.collectAsState()
+
+    // Legg til en enkel visning for å se om listen er tom eller ikke
+    if (inactiveActivities.isEmpty()) {
+        Text(text = "Ingen utgåtte aktiviteter funnet", modifier = Modifier.padding(16.dp))
+    } else {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(inactiveActivities.size) { index ->
+                val activity = inactiveActivities[index]
+                EntryItem(
+                    imageRes = R.drawable.event1, // Bruk et standardbilde inntil dynamiske bilder er på plass
+                    title = activity.title,
+                    time = activity.date,
+                    onCancelClick = { /* Håndter kansellering */ }
+                )
+            }
+        }
+    }
+}
+
 
 @Composable
 fun EntryItem(

@@ -20,17 +20,45 @@ class EntriesScreenViewModel @Inject constructor(
     private val _activeActivities = MutableStateFlow<List<Activity>>(emptyList())
     val activeActivities: StateFlow<List<Activity>> = _activeActivities
 
+    private val _notActiveActivities = MutableStateFlow<List<Activity>>(emptyList())
+    val notActiveActivities: StateFlow<List<Activity>> = _notActiveActivities
+
+
+
     init {
-        loadActiveActivities()
+        listenForActivityUpdates()
+        listenForNotActiveActivityUpdates()
+
     }
 
-    private fun loadActiveActivities() {
-        viewModelScope.launch {
-            val userId = accountService.currentUserId
-            if (userId.isNotEmpty()) {
-                val activities = entriesService.getActiveActivitiesForUser(userId)
-                _activeActivities.value = activities
+    private fun listenForNotActiveActivityUpdates() {
+        val userId = accountService.currentUserId
+        if (userId.isNotEmpty()) {
+            // Start coroutine
+            viewModelScope.launch {
+                // Kall suspend funksjonen for å hente inaktive aktiviteter
+                entriesService.getNotActiveActivitiesForUser(userId) { activities ->
+                    _notActiveActivities.value = activities
+                }
+            }
+        }
+    }
+
+
+    private fun listenForActivityUpdates() {
+        val userId = accountService.currentUserId
+        if (userId.isNotEmpty()) {
+            // Start coroutine
+            viewModelScope.launch {
+                // Kall suspend funksjonen i en coroutine
+                entriesService.getActiveActivitiesForUser(userId) { activities ->
+                    _activeActivities.value = activities
+                }
             }
         }
     }
 }
+
+
+
+
