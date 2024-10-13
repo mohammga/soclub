@@ -20,44 +20,47 @@ class EntriesScreenViewModel @Inject constructor(
     private val _activeActivities = MutableStateFlow<List<Activity>>(emptyList())
     val activeActivities: StateFlow<List<Activity>> = _activeActivities
 
+    private val _isLoadingActive = MutableStateFlow(false)
+    val isLoadingActive: StateFlow<Boolean> = _isLoadingActive
+
     private val _notActiveActivities = MutableStateFlow<List<Activity>>(emptyList())
     val notActiveActivities: StateFlow<List<Activity>> = _notActiveActivities
 
-
+    private val _isLoadingInactive = MutableStateFlow(false)
+    val isLoadingInactive: StateFlow<Boolean> = _isLoadingInactive
 
     init {
         listenForActivityUpdates()
         listenForNotActiveActivityUpdates()
+    }
 
+    private fun listenForActivityUpdates() {
+        val userId = accountService.currentUserId
+        if (userId.isNotEmpty()) {
+            viewModelScope.launch {
+                _isLoadingActive.value = true
+                entriesService.getActiveActivitiesForUser(userId) { activities ->
+                    _activeActivities.value = activities
+                    _isLoadingActive.value = false
+                }
+            }
+        }
     }
 
     private fun listenForNotActiveActivityUpdates() {
         val userId = accountService.currentUserId
         if (userId.isNotEmpty()) {
-            // Start coroutine
             viewModelScope.launch {
-                // Kall suspend funksjonen for å hente inaktive aktiviteter
+                _isLoadingInactive.value = true
                 entriesService.getNotActiveActivitiesForUser(userId) { activities ->
                     _notActiveActivities.value = activities
-                }
-            }
-        }
-    }
-
-
-    private fun listenForActivityUpdates() {
-        val userId = accountService.currentUserId
-        if (userId.isNotEmpty()) {
-            // Start coroutine
-            viewModelScope.launch {
-                // Kall suspend funksjonen i en coroutine
-                entriesService.getActiveActivitiesForUser(userId) { activities ->
-                    _activeActivities.value = activities
+                    _isLoadingInactive.value = false
                 }
             }
         }
     }
 }
+
 
 
 
