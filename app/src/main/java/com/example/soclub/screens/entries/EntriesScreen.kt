@@ -70,7 +70,7 @@ fun ActiveEntriesList() {
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(32.dp)
     ) {
         items(activeEntries.size) { index ->
             val entry = activeEntries[index]
@@ -119,6 +119,10 @@ fun EntryItem(
 
             // Kanselleringsknapp
             CancelButton(onClick = onCancelClick)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            HorizontalDivider(thickness = 1.dp)
         }
     }
 }
@@ -129,8 +133,8 @@ fun EventImage(imageRes: Int) {
         painter = painterResource(id = imageRes),
         contentDescription = null,
         modifier = Modifier
-            .width(120.dp)
-            .height(80.dp)
+            .width(100.dp)
+            .height(100.dp)
             .clip(RoundedCornerShape(8.dp)),
         contentScale = ContentScale.Crop
     )
