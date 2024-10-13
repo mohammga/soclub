@@ -13,12 +13,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.example.soclub.R
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.rememberAsyncImagePainter
+
 
 @Composable
 fun EntriesScreen(navController: NavHostController) {
@@ -62,7 +62,6 @@ fun Tabs(selectedTab: Int, setSelectedTab: (Int) -> Unit) {
 
 
 
-
 @Composable
 fun ActiveEntriesList(viewModel: EntriesScreenViewModel = hiltViewModel()) {
     val activeActivities by viewModel.activeActivities.collectAsState()
@@ -73,7 +72,7 @@ fun ActiveEntriesList(viewModel: EntriesScreenViewModel = hiltViewModel()) {
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator() // Viser en loading spinner mens aktivitetene lastes
+            CircularProgressIndicator()
         }
     } else {
         LazyColumn(
@@ -85,7 +84,7 @@ fun ActiveEntriesList(viewModel: EntriesScreenViewModel = hiltViewModel()) {
             items(activeActivities.size) { index ->
                 val activity = activeActivities[index]
                 EntryItem(
-                    imageRes = R.drawable.event1, // Bruk et standardbilde inntil dynamiske bilder er på plass
+                    imageUrl = activity.imageUrl, // Send imageUrl fra databasen
                     title = activity.title,
                     time = activity.date,
                     onCancelClick = { /* Håndter kansellering */ }
@@ -120,7 +119,7 @@ fun InactiveEntriesList(viewModel: EntriesScreenViewModel = hiltViewModel()) {
             items(inactiveActivities.size) { index ->
                 val activity = inactiveActivities[index]
                 EntryItem(
-                    imageRes = R.drawable.event1, // Bruk et standardbilde inntil dynamiske bilder er på plass
+                    imageUrl = activity.imageUrl, // Bruk et standardbilde inntil dynamiske bilder er på plass
                     title = activity.title,
                     time = activity.date,
                     onCancelClick = { /* Håndter kansellering */ }
@@ -134,7 +133,7 @@ fun InactiveEntriesList(viewModel: EntriesScreenViewModel = hiltViewModel()) {
 
 @Composable
 fun EntryItem(
-    imageRes: Int,
+    imageUrl: String?, // Endre fra imageRes til imageUrl
     title: String,
     time: String,
     onCancelClick: () -> Unit
@@ -146,7 +145,7 @@ fun EntryItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        EventImage(imageRes)
+        EventImage(imageUrl) // Send imageUrl til EventImage
 
         Spacer(modifier = Modifier.width(16.dp))
 
@@ -170,9 +169,9 @@ fun EntryItem(
 }
 
 @Composable
-fun EventImage(imageRes: Int) {
+fun EventImage(imageUrl: String?) {
     Image(
-        painter = painterResource(id = imageRes),
+        painter = rememberAsyncImagePainter(imageUrl), // Bruk URL fra imageUrl
         contentDescription = null,
         modifier = Modifier
             .width(120.dp)

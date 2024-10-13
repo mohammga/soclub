@@ -19,13 +19,57 @@ class EntriesServiceImpl @Inject constructor(
     private var activeListenerRegistration: ListenerRegistration? = null
     private var notActiveListenerRegistration: ListenerRegistration? = null
 
+//    override suspend fun getActiveActivitiesForUser(
+//        userId: String,
+//        onUpdate: (List<Activity>) -> Unit
+//    ) {
+//
+//        activeListenerRegistration?.remove()
+//       activeListenerRegistration = firestore.collection("registrations")
+//            .whereEqualTo("userId", userId)
+//            .whereEqualTo("status", "aktiv")
+//            .addSnapshotListener { snapshot, error ->
+//                if (error != null || snapshot == null) {
+//                    return@addSnapshotListener
+//                }
+//
+//                val activityList = mutableListOf<Activity>()
+//
+//                for (document in snapshot.documents) {
+//                    val activityId = document.getString("activityId") ?: continue
+//
+//                    // Iterer gjennom kategorier for å finne riktig aktivitet
+//                    firestore.collection("category").get().addOnSuccessListener { categories ->
+//                        for (categoryDoc in categories.documents) {
+//                            val category = categoryDoc.id
+//
+//                            // Hent aktiviteten
+//                            firestore.collection("category")
+//                                .document(category)
+//                                .collection("activities")
+//                                .document(activityId)
+//                                .get()
+//                                .addOnSuccessListener { activitySnapshot ->
+//                                    if (activitySnapshot.exists()) {
+//                                        val activity = activitySnapshot.toObject(Activity::class.java)
+//                                        if (activity != null) {
+//                                            activityList.add(activity)
+//                                            onUpdate(activityList) // Oppdater UI for hver ny aktivitet
+//                                        }
+//                                    }
+//                                }
+//                        }
+//                    }
+//                }
+//            }
+//    }
+
     override suspend fun getActiveActivitiesForUser(
         userId: String,
         onUpdate: (List<Activity>) -> Unit
     ) {
-
         activeListenerRegistration?.remove()
-       activeListenerRegistration = firestore.collection("registrations")
+        activeListenerRegistration = firestore.collection("registrations")
             .whereEqualTo("userId", userId)
             .whereEqualTo("status", "aktiv")
             .addSnapshotListener { snapshot, error ->
@@ -38,12 +82,10 @@ class EntriesServiceImpl @Inject constructor(
                 for (document in snapshot.documents) {
                     val activityId = document.getString("activityId") ?: continue
 
-                    // Iterer gjennom kategorier for å finne riktig aktivitet
                     firestore.collection("category").get().addOnSuccessListener { categories ->
                         for (categoryDoc in categories.documents) {
                             val category = categoryDoc.id
 
-                            // Hent aktiviteten
                             firestore.collection("category")
                                 .document(category)
                                 .collection("activities")
@@ -54,7 +96,7 @@ class EntriesServiceImpl @Inject constructor(
                                         val activity = activitySnapshot.toObject(Activity::class.java)
                                         if (activity != null) {
                                             activityList.add(activity)
-                                            onUpdate(activityList) // Oppdater UI for hver ny aktivitet
+                                            onUpdate(activityList)
                                         }
                                     }
                                 }
@@ -63,6 +105,7 @@ class EntriesServiceImpl @Inject constructor(
                 }
             }
     }
+
 
 
     override suspend fun getNotActiveActivitiesForUser(
