@@ -9,6 +9,7 @@ import android.util.Log  // For logging
 import com.example.soclub.R
 import com.example.soclub.models.createActivity
 import com.example.soclub.service.ActivityService
+import com.example.soclub.service.AccountService  // For å hente creatorId
 import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -33,7 +34,8 @@ data class NewActivityState(
 
 @HiltViewModel
 class NewActivityViewModel @Inject constructor(
-    private val activityService: ActivityService
+    private val activityService: ActivityService,
+    private val accountService: AccountService  // Injiserer AccountService
 ) : ViewModel() {
 
     var uiState = mutableStateOf(NewActivityState())
@@ -79,8 +81,6 @@ class NewActivityViewModel @Inject constructor(
         uiState.value = uiState.value.copy(date = newValue)
     }
 
-
-
     private fun uploadImageToFirebase(imageUri: Uri, onSuccess: (String) -> Unit, onError: (Exception) -> Unit) {
         val storageRef = FirebaseStorage.getInstance().reference.child("images/${imageUri.lastPathSegment}")
         storageRef.putFile(imageUri)
@@ -96,8 +96,6 @@ class NewActivityViewModel @Inject constructor(
                 onError(exception)
             }
     }
-
-
 
     fun onPublishClick(navController: NavController) {
         Log.d("NewActivityViewModel", "Publish button clicked")
@@ -119,26 +117,30 @@ class NewActivityViewModel @Inject constructor(
 
         val combinedLocation = "${uiState.value.location}, ${uiState.value.postalCode} ${uiState.value.address}"
 
+        // Hent `creatorId` fra AccountService
+        val creatorId = accountService.currentUserId
+
         if (uiState.value.imageUrl.isNotBlank()) {
             uploadImageToFirebase(
                 Uri.parse(uiState.value.imageUrl),
                 onSuccess = { imageUrl ->
-                    createActivityAndNavigate(navController, imageUrl, combinedLocation, dateToSend)
+                    createActivityAndNavigate(navController, imageUrl, combinedLocation, dateToSend, creatorId)
                 },
                 onError = { error ->
                     Log.e("NewActivityViewModel", "Error uploading image: ${error.message}")
                 }
             )
         } else {
-            createActivityAndNavigate(navController, "", combinedLocation, dateToSend)
+            createActivityAndNavigate(navController, "", combinedLocation, dateToSend, creatorId)
         }
     }
 
-    private fun createActivityAndNavigate(navController: NavController, imageUrl: String, combinedLocation: String, date: String) {
+    private fun createActivityAndNavigate(navController: NavController, imageUrl: String, combinedLocation: String, date: String, creatorId: String) {
         viewModelScope.launch {
             try {
                 Log.d("NewActivityViewModel", "Creating activity with imageUrl: $imageUrl and location: $combinedLocation")
                 val newActivity = createActivity(
+                    creatorId = creatorId,  // Bruker nå creatorId
                     title = uiState.value.title,
                     description = uiState.value.description,
                     location = combinedLocation,
@@ -146,31 +148,6 @@ class NewActivityViewModel @Inject constructor(
                     ageGroup = uiState.value.ageLimit.toIntOrNull() ?: 0,
                     imageUrl = imageUrl,
                     date = date
-                )
-
-                activityService.createActivity(uiState.value.category, newActivity)
-                Log.d("NewActivityViewModel", "Activity created successfully")
-
-                navController.navigate("home")
-            } catch (e: Exception) {
-                Log.e("NewActivityViewModel", "Error creating activity: ${e.message}")
-            }
-        }
-    }
-
-
-    private fun createActivityAndNavigate(navController: NavController, imageUrl: String, combinedLocation: String) {
-        viewModelScope.launch {
-            try {
-                Log.d("NewActivityViewModel", "Creating activity with imageUrl: $imageUrl and location: $combinedLocation")
-                val newActivity = createActivity(
-                    title = uiState.value.title,
-                    description = uiState.value.description,
-                    location = combinedLocation,
-                    maxParticipants = uiState.value.maxParticipants.toIntOrNull() ?: 0,
-                    ageGroup = uiState.value.ageLimit.toIntOrNull() ?: 0,
-                    imageUrl = imageUrl,
-                    date = uiState.value.date
                 )
 
                 activityService.createActivity(uiState.value.category, newActivity)
@@ -184,8 +161,4 @@ class NewActivityViewModel @Inject constructor(
             }
         }
     }
-
-
-
-        }
-
+}
