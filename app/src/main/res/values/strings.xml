@@ -57,7 +57,6 @@
     <string name="error_old_password_required">Det gamle passordet er påkrevd</string>
     <string name="error_confirm_password_required">Det bekreftede passordet er påkrevd</string>
     <string name="placeholder_age">Alder</string>
-    <string name="error_age_required">Alder er påkrevd</string>
 
     <string name="error_invalid_email">Ugyldig e-post</string>
     <string name="error_invalid_password">Passordet er ugyldig</string>
@@ -127,7 +126,6 @@
     <string name="change_notificationPermission_screen_title">Varsling</string>
     <string name="change_notificationPermission_Promission_screen">Tillat tilgang til Varsling</string>
 
-    <string name="placeholder_age">Alder</string>
     <string name="error_age_required">Alder er påkrevd</string>
 
     <!-- newaktiviti  -->
