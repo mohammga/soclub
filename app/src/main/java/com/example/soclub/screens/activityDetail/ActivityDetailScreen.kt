@@ -125,6 +125,7 @@ fun ActivityDetailsContent(
             )
         }
     }
+
 }
 
 @Composable

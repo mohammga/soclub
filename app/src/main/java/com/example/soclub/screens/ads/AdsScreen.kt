@@ -7,21 +7,35 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.example.soclub.R
+import coil.compose.rememberAsyncImagePainter
 import com.example.soclub.models.Ad
 
 @Composable
-fun AdsScreen(navController: NavHostController) {
+fun AdsScreen(
+    navController: NavHostController,
+    viewModel: AdsViewModel = hiltViewModel(),  // HiltViewModel-injeksjon
+    creatorId: String
+) {
+    // Observerer aktiviteter fra ViewModel
+    val activities = viewModel.activities.collectAsState()
+
+    // Kaller fetchActivitiesByCreator når composable vises
+    LaunchedEffect(Unit) {
+        viewModel.fetchActivitiesByCreator(creatorId)
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
@@ -29,12 +43,13 @@ fun AdsScreen(navController: NavHostController) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            items(activeEntries.size) { index ->
-                val entry = activeEntries[index]
+            // Bruker aktivitetsdataene fra ViewModel i stedet for hardkodede data
+            items(activities.value.size) { index ->
+                val activity = activities.value[index]
                 EntryItem(
-                    imageRes = entry.imageRes,
-                    title = entry.title,
-                    time = entry.time,
+                    imageUrl = activity.imageUrl ?: "",  // Bruk imageUrl fra Activity-objektet
+                    title = activity.title ?: "Ingen tittel",
+                    time = activity.time ?: "Ukjent tid",
                     onCancelClick = { /* Håndter kanselleringsklikk */ }
                 )
             }
@@ -44,7 +59,7 @@ fun AdsScreen(navController: NavHostController) {
 
 @Composable
 fun EntryItem(
-    imageRes: Int,
+    imageUrl: String,
     title: String,
     time: String,
     onCancelClick: () -> Unit
@@ -57,7 +72,7 @@ fun EntryItem(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
 
-        EventImage(imageRes)
+        EventImage(imageUrl)
 
         Spacer(modifier = Modifier.width(16.dp))
 
@@ -81,9 +96,9 @@ fun EntryItem(
 }
 
 @Composable
-fun EventImage(imageRes: Int) {
+fun EventImage(imageUrl: String) {
     Image(
-        painter = painterResource(id = imageRes),
+        painter = rememberAsyncImagePainter(imageUrl),
         contentDescription = null,
         modifier = Modifier
             .width(120.dp)
@@ -106,20 +121,8 @@ fun DeleteButton(onClick: () -> Unit) {
     }
 }
 
-
-val activeEntries = listOf(
-    Ad(R.drawable.event1, "Hvordan planlegge en tur til", "Ons, 19:00"),
-    Ad(R.drawable.event2, "Mestrer kunsten å lage pasta", "Tor, 18:00"),
-    Ad(R.drawable.event3, "Bygge en oppstartsbedrift", "Fre, 17:00"),
-    Ad(R.drawable.event4, "Investere i eiendom", "Lør, 16:00"),
-    Ad(R.drawable.event5, "Reise med barn", "Søn, 15:00"),
-    Ad(R.drawable.event3, "Bygge en oppstartsbedrift", "Fre, 17:00"),
-    Ad(R.drawable.event4, "Investere i eiendom", "Lør, 16:00"),
-    Ad(R.drawable.event5, "Reise med barn", "Søn, 15:00"),
-)
-
 @Preview(showBackground = true)
 @Composable
 fun AdsScreenPreview() {
-    AdsScreen(rememberNavController())
+    AdsScreen(navController = rememberNavController(), creatorId = "dummy_creator")
 }
