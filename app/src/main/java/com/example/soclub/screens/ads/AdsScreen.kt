@@ -17,23 +17,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
+import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.soclub.models.Ad
 
 @Composable
 fun AdsScreen(
-    navController: NavHostController,
+    navController: NavController,
     viewModel: AdsViewModel = hiltViewModel(),  // HiltViewModel-injeksjon
-    creatorId: String
 ) {
     // Observerer aktiviteter fra ViewModel
     val activities = viewModel.activities.collectAsState()
 
     // Kaller fetchActivitiesByCreator når composable vises
     LaunchedEffect(Unit) {
-        viewModel.fetchActivitiesByCreator(creatorId)
+        viewModel.fetchActivitiesByCreator()
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -124,5 +123,5 @@ fun DeleteButton(onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun AdsScreenPreview() {
-    AdsScreen(navController = rememberNavController(), creatorId = "dummy_creator")
+    AdsScreen(navController = rememberNavController())
 }

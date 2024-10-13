@@ -187,7 +187,3 @@ fun AppNavigation(navController: NavHostController, activityService: ActivitySer
         }
     }
 }
-
-fun AdsScreen(navController: NavHostController) {
-
-}

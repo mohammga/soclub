@@ -3,6 +3,7 @@ package com.example.soclub.screens.ads
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soclub.models.createActivity
+import com.example.soclub.service.AccountService
 import com.example.soclub.service.ActivityService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,20 +14,20 @@ import javax.inject.Inject
 // Bruk HiltViewModel og injiser ActivityService
 @HiltViewModel
 class AdsViewModel @Inject constructor(
-    private val activityService: ActivityService
+    private val activityService: ActivityService,
+    private val accountService: AccountService // Injiserer AccountService for å få currentUserId
 ) : ViewModel() {
 
-    // StateFlow som holder listen av createActivity
     private val _activities = MutableStateFlow<List<createActivity>>(emptyList())
     val activities: StateFlow<List<createActivity>> = _activities
 
-    // Funksjon for å hente aktiviteter for en spesifikk bruker basert på creatorId
-    fun fetchActivitiesByCreator(creatorId: String) {
+    fun fetchActivitiesByCreator() {
+        val creatorId = accountService.currentUserId  // Bruker innloggede brukers ID
         viewModelScope.launch {
             try {
                 val fetchedActivities = activityService.getAllActivitiesByCreator(creatorId).map {
                     createActivity(
-                        creatorId = it.id,  // Kartlegger Activity.id til createActivity.creatorId
+                        creatorId = it.id,
                         imageUrl = it.imageUrl,
                         title = it.title,
                         description = it.description,
@@ -37,9 +38,8 @@ class AdsViewModel @Inject constructor(
                         time = it.time
                     )
                 }
-                _activities.value = fetchedActivities // Oppdaterer aktivitetene
+                _activities.value = fetchedActivities
             } catch (e: Exception) {
-                // Håndter eventuelle feil som oppstår under henting av data
                 e.printStackTrace()
                 _activities.value = listOf()
             }
