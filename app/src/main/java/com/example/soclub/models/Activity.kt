@@ -8,12 +8,22 @@ data class Activity(
     val imageUrl: String = "",
     val title: String = "",
     val description: String = "",
-    val ageGroup: Int = 0,
+    val ageGroup: Int = 0 ,
     val maxParticipants: Int = 0,
     val location: String = "",
     val restOfAddress: String = "",
     val date: String = ""
+)
 
+data class createActivity(
+    val creatorId: String = "",
+    val imageUrl: String = "",
+    val title: String = "",
+    val description: String = "",
+    val ageGroup: Int = 0 ,
+    val maxParticipants: Int = 0,
+    val location: String = "",
+    val date: String = ""
 )
 
 //data class Activity2(
