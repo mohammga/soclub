@@ -84,9 +84,10 @@ class EditProfileViewModel @Inject constructor(
             return
         }
 
-        // Kombiner fornavn og etternavn til fullt navn
+        // Hvis alt er gyldig, kombiner fornavn og etternavn til fullt navn
         val fullName = "${uiState.value.firstname} ${uiState.value.lastname}"
 
+        // Utfør oppdateringen og naviger tilbake til profilsiden etterpå
         viewModelScope.launch {
             try {
                 accountService.updateProfile(name = fullName) { error ->
@@ -106,6 +107,7 @@ class EditProfileViewModel @Inject constructor(
             }
         }
     }
+
 
 }
 
