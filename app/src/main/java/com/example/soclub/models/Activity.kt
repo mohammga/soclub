@@ -25,8 +25,23 @@ data class createActivity(
     val maxParticipants: Int = 0,
     val location: String = "",
     val date: String = "",
-    val time: String= ""
+    val time: String= "",
 )
+
+
+data class editActivity(
+    val id: String = "",
+    val creatorId: String = "",
+    val imageUrl: String = "",
+    val title: String = "",
+    val description: String = "",
+    val ageGroup: Int = 0 ,
+    val maxParticipants: Int = 0,
+    val location: String = "",
+    val date: String = "",
+    val time: String= "",
+    val category: String = ""
+    )
 
 //data class Activity2(
 //    val imageUrl: String = "",

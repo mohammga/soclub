@@ -2,6 +2,7 @@ package com.example.soclub.service.impl
 
 import com.example.soclub.models.Activity
 import com.example.soclub.models.createActivity
+import com.example.soclub.models.editActivity
 import com.example.soclub.service.ActivityService
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -15,6 +16,26 @@ class ActivityServiceImpl @Inject constructor(
         firestore.collection("category").document(category)
         .collection("activities").add(activity).await()
     }
+    override suspend fun getActivityById(category: String, activityId: String): Activity? {
+        val documentSnapshot = firestore.collection("category")
+            .document(category)
+            .collection("activities")
+            .document(activityId)
+            .get()
+            .await()
+
+        val activity = documentSnapshot.toObject(Activity::class.java)
+
+        val fullLocation = activity?.location ?: "Ukjent"
+        val lastWord = fullLocation.substringAfterLast(" ")
+        val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
+
+        return activity?.copy(
+            location = lastWord,
+            restOfAddress = restOfAddress  // Fyll inn resten av adressen her
+        )
+    }
+
 
     override suspend fun getActivities(category: String): List<Activity> {
         val snapshot = firestore.collection("category").document(category)
@@ -38,41 +59,47 @@ class ActivityServiceImpl @Inject constructor(
         }
     }
 
-    override suspend fun getAllActivitiesByCreator(creatorId: String): List<Activity> {
-        // Henter alle kategorier først
+
+    override suspend fun getAllActivitiesByCreator(creatorId: String): List<editActivity> {
         val categoriesSnapshot = firestore.collection("category").get().await()
+        val allActivities = mutableListOf<editActivity>()
 
-        // Oppretter en liste for å samle aktiviteter
-        val allActivities = mutableListOf<Activity>()
-
-        // Går gjennom hver kategori og henter aktiviteter for den kategorien
+        // Gå gjennom hver kategori (dokument)
         for (categoryDocument in categoriesSnapshot.documents) {
-            val categoryId = categoryDocument.id
+            // Få dokument-ID-en som representerer kategorinavnet
+            val categoryName = categoryDocument.id
 
-            // Henter aktiviteter i den aktuelle kategorien som matcher creatorId
-            val activitiesSnapshot = firestore.collection("category").document(categoryId)
+            // Logg kategorinavnet (eller ID-en, siden de er det samme her)
+            println("Henter aktiviteter for kategorien: $categoryName")
+
+            // Hent alle aktiviteter i denne kategorien som matcher creatorId
+            val activitiesSnapshot = firestore.collection("category").document(categoryName)
                 .collection("activities")
                 .whereEqualTo("creatorId", creatorId)
                 .get().await()
 
-            // Legger til aktiviteter i den samlede listen, modifiserer location og description
+            // Mapper aktivitetene og legger til dem i listen
             activitiesSnapshot.documents.mapNotNullTo(allActivities) { document ->
-                val activity = document.toObject(Activity::class.java)
+                val activity = document.toObject(editActivity::class.java)
 
+                // Del opp lokasjonen i to deler som tidligere
                 val fullLocation = activity?.location ?: "Ukjent"
                 val lastWord = fullLocation.substringAfterLast(" ")
                 val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
 
+                // Returner en kopi av aktiviteten med riktig kategori
                 activity?.copy(
                     id = document.id,
-                    location = lastWord,  // Her setter vi siste ord som location
-                    description = restOfAddress // Bruker beskrivelsefeltet midlertidig for resten av adressen
+                    location = lastWord,
+                    description = restOfAddress,
+                    category = categoryName  // Bruker kategoriens navn
                 )
             }
         }
 
         return allActivities
     }
+
 
 
 
@@ -90,7 +117,23 @@ class ActivityServiceImpl @Inject constructor(
     }
 
 
+    override suspend fun updateActivity(category: String, activityId: String, updatedActivity: createActivity): Boolean {
+        return try {
+            // Referanse til dokumentet som skal oppdateres
+            val documentRef = firestore.collection("category")
+                .document(category)
+                .collection("activities")
+                .document(activityId)
 
+            // Utfør oppdateringen
+            documentRef.set(updatedActivity).await()
+
+            true  // Returnerer true hvis oppdateringen er vellykket
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false  // Returnerer false hvis det oppstår en feil
+        }
+    }
 
 
 
