@@ -12,10 +12,13 @@ class ActivityServiceImpl @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : ActivityService {
 
+    // Opprett ny aktivitet
     override suspend fun createActivity(category: String, activity: createActivity) {
         firestore.collection("category").document(category)
-        .collection("activities").add(activity).await()
+            .collection("activities").add(activity).await()
     }
+
+    // Hent en aktivitet basert på ID
     override suspend fun getActivityById(category: String, activityId: String): Activity? {
         val documentSnapshot = firestore.collection("category")
             .document(category)
@@ -36,7 +39,7 @@ class ActivityServiceImpl @Inject constructor(
         )
     }
 
-
+    // Hent alle aktiviteter i en kategori
     override suspend fun getActivities(category: String): List<Activity> {
         val snapshot = firestore.collection("category").document(category)
             .collection("activities").get().await()
@@ -51,26 +54,19 @@ class ActivityServiceImpl @Inject constructor(
             activity?.copy(
                 id = document.id,
                 location = lastWord,  // Her setter vi siste ord som location
-                description = restOfAddress, // Bruker beskrivelsefeltet midlertidig for resten av adressen,
-
-
-
+                description = restOfAddress // Bruker beskrivelsefeltet midlertidig for resten av adressen
             )
         }
     }
 
-
+    // Hent alle aktiviteter opprettet av en bestemt bruker
     override suspend fun getAllActivitiesByCreator(creatorId: String): List<editActivity> {
         val categoriesSnapshot = firestore.collection("category").get().await()
         val allActivities = mutableListOf<editActivity>()
 
         // Gå gjennom hver kategori (dokument)
         for (categoryDocument in categoriesSnapshot.documents) {
-            // Få dokument-ID-en som representerer kategorinavnet
             val categoryName = categoryDocument.id
-
-            // Logg kategorinavnet (eller ID-en, siden de er det samme her)
-            println("Henter aktiviteter for kategorien: $categoryName")
 
             // Hent alle aktiviteter i denne kategorien som matcher creatorId
             val activitiesSnapshot = firestore.collection("category").document(categoryName)
@@ -82,12 +78,10 @@ class ActivityServiceImpl @Inject constructor(
             activitiesSnapshot.documents.mapNotNullTo(allActivities) { document ->
                 val activity = document.toObject(editActivity::class.java)
 
-                // Del opp lokasjonen i to deler som tidligere
                 val fullLocation = activity?.location ?: "Ukjent"
                 val lastWord = fullLocation.substringAfterLast(" ")
                 val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
 
-                // Returner en kopi av aktiviteten med riktig kategori
                 activity?.copy(
                     id = document.id,
                     location = lastWord,
@@ -100,10 +94,7 @@ class ActivityServiceImpl @Inject constructor(
         return allActivities
     }
 
-
-
-
-
+    // Hent alle kategorier
     override suspend fun getCategories(): List<String> {
         val snapshot = firestore.collection("category").get().await()
 
@@ -116,7 +107,7 @@ class ActivityServiceImpl @Inject constructor(
         return categories.sortedByDescending { it == "Forslag" }
     }
 
-
+    // Oppdater aktivitet uten å overskrive creatorId
     override suspend fun updateActivity(category: String, activityId: String, updatedActivity: createActivity): Boolean {
         return try {
             // Referanse til dokumentet som skal oppdateres
@@ -125,8 +116,19 @@ class ActivityServiceImpl @Inject constructor(
                 .collection("activities")
                 .document(activityId)
 
-            // Utfør oppdateringen
-            documentRef.set(updatedActivity).await()
+            // Hent den eksisterende aktiviteten først for å unngå å overskrive felter som creatorId
+            val existingActivitySnapshot = documentRef.get().await()
+            val existingActivity = existingActivitySnapshot.toObject(createActivity::class.java)
+
+            if (existingActivity != null) {
+                // Lag en kopi av updatedActivity med eksisterende creatorId
+                val updatedActivityWithCreatorId = updatedActivity.copy(
+                    creatorId = existingActivity.creatorId  // Bevar creatorId
+                )
+
+                // Utfør oppdateringen med det oppdaterte aktivitetet
+                documentRef.set(updatedActivityWithCreatorId).await()
+            }
 
             true  // Returnerer true hvis oppdateringen er vellykket
         } catch (e: Exception) {
@@ -134,16 +136,4 @@ class ActivityServiceImpl @Inject constructor(
             false  // Returnerer false hvis det oppstår en feil
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
 }

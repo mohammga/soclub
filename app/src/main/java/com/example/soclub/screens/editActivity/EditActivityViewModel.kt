@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import com.example.soclub.models.createActivity
+import com.example.soclub.models.editActivity
 import com.example.soclub.service.ActivityService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,13 +23,13 @@ class EditActivityViewModel @Inject constructor(
     private val _updateSuccess = MutableStateFlow<Boolean?>(null)
     val updateSuccess: StateFlow<Boolean?> = _updateSuccess
 
-    // Function to fetch a specific activity based on category and activityId
+    // Hent aktivitet basert på kategori og aktivitetId
     fun getActivity(category: String, activityId: String) = liveData {
         val activity = activityService.getActivityById(category, activityId)
         emit(activity)
     }
 
-    // Update activity in Firestore
+    // Oppdater aktivitet i Firestore og bevar creatorId
     fun updateActivity(category: String, activityId: String, updatedActivity: createActivity) {
         viewModelScope.launch {
             _isUpdating.value = true

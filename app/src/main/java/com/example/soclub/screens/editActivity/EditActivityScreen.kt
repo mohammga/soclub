@@ -1,6 +1,7 @@
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
@@ -9,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.soclub.models.createActivity
 import com.example.soclub.screens.editActivity.EditActivityViewModel
 
 @Composable
@@ -18,13 +20,11 @@ fun EditActivityScreen(
     category: String,
     activityId: String
 ) {
-    // Debugging: Log category and activityId
     LaunchedEffect(Unit) {
         Log.d("EditActivityScreen", "Category: $category, ActivityId: $activityId")
-        println("Category: $category, ActivityId: $activityId")  // Alternativt print
+        println("Category: $category, ActivityId: $activityId")
     }
 
-    // State to store activity details
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var maxParticipants by remember { mutableStateOf("") }
@@ -32,24 +32,25 @@ fun EditActivityScreen(
     var location by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("") }
     var time by remember { mutableStateOf("") }
+    var creatorId by remember { mutableStateOf("") }
 
-    // Observe activity data from ViewModel using observeAsState()
     val activity = viewModel.getActivity(category, activityId).observeAsState()
 
-    // Populate the input fields when the activity data is fetched
     LaunchedEffect(activity.value) {
         activity.value?.let {
             title = it.title ?: ""
             description = it.description ?: ""
             maxParticipants = it.maxParticipants.toString()
             ageGroup = it.ageGroup.toString()
-            location = it.location ?: ""
+            location = it.location + " " + it.restOfAddress
             date = it.date ?: ""
             time = it.time ?: ""
         }
     }
 
-    // Build the UI with TextFields populated with activity data
+    val isUpdating by viewModel.isUpdating.collectAsState()
+    val updateSuccess by viewModel.updateSuccess.collectAsState()
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -61,55 +62,93 @@ fun EditActivityScreen(
                 value = title,
                 onValueChange = { title = it },
                 placeholder = { Text("Tittel") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
             )
 
             TextField(
                 value = description,
                 onValueChange = { description = it },
                 placeholder = { Text("Beskrivelse") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                maxLines = 5
             )
 
             TextField(
                 value = maxParticipants,
                 onValueChange = { maxParticipants = it },
                 placeholder = { Text("Maks antall deltakere") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
             )
 
             TextField(
                 value = ageGroup,
                 onValueChange = { ageGroup = it },
                 placeholder = { Text("Aldersgruppe") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
             )
 
             TextField(
                 value = location,
                 onValueChange = { location = it },
-                placeholder = { Text("Sted") },
-                modifier = Modifier.fillMaxWidth()
+                placeholder = { Text("Adresse") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
             )
 
             TextField(
                 value = date,
                 onValueChange = { date = it },
                 placeholder = { Text("Dato") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
             )
 
             TextField(
                 value = time,
                 onValueChange = { time = it },
                 placeholder = { Text("Tidspunkt") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
             )
+
+            Button(
+                onClick = {
+                    viewModel.updateActivity(
+                        category = category,
+                        activityId = activityId,
+                        updatedActivity = createActivity(
+                            title = title,
+                            description = description,
+                            maxParticipants = maxParticipants.toInt(),
+                            ageGroup = ageGroup.toInt(),
+                            location = location,
+                            date = date,
+                            time = time,
+                        )
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
+                enabled = !isUpdating
+            ) {
+                Text(text = if (isUpdating) "Lagrer..." else "Lagre endringer")
+            }
         }
     }
 
-    // Navigate back if the update is successful
-    if (viewModel.updateSuccess.collectAsState().value == true) {
+    if (updateSuccess == true) {
         LaunchedEffect(Unit) {
             navController.popBackStack()
         }
