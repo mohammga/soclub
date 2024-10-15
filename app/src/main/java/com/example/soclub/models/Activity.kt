@@ -1,6 +1,7 @@
 package com.example.soclub.models
 
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.Timestamp
 
 
 data class Activity(
@@ -15,6 +16,7 @@ data class Activity(
     val date: String = ""
 )
 
+
 data class createActivity(
     val creatorId: String = "",
     val imageUrl: String = "",
@@ -23,8 +25,11 @@ data class createActivity(
     val ageGroup: Int = 0 ,
     val maxParticipants: Int = 0,
     val location: String = "",
-    val date: String = ""
+    val date: Timestamp? = null,
+    val startTime: String = "",
+    val createdAt: Timestamp = Timestamp.now(),
 )
+
 
 //data class Activity2(
 //    val imageUrl: String = "",

@@ -1,6 +1,7 @@
-package com.example.soclub.screens.newActivity
+package com.example.soclub.models
 
 import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -25,15 +26,12 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.example.soclub.R
+import com.example.soclub.screens.newActivity.NewActivityViewModel
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-
+import java.util.Calendar
 import java.util.Locale
-
-
-
-
+import com.google.firebase.Timestamp
+import java.util.Date
 
 @Composable
 fun NewActivityScreen(navController: NavController, viewModel: NewActivityViewModel = hiltViewModel()) {
@@ -60,7 +58,9 @@ fun NewActivityScreen(navController: NavController, viewModel: NewActivityViewMo
 
             item { PostalCodeField(value = uiState.postalCode, onNewValue = viewModel::onPostalCodeChange) }
 
-            item { DateField(value = uiState.date, onNewValue = viewModel::onDateChange) }
+            item { DateField(value = uiState.date?.toDate()?.time ?: 0L, onNewValue = viewModel::onDateChange) }
+
+            item { StartTimeField(value = uiState.startTime, onNewValue = viewModel::onStartTimeChange) }
 
             item { MaxParticipantsField(value = uiState.maxParticipants, onNewValue = viewModel::onMaxParticipantsChange) }
 
@@ -110,31 +110,27 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit) {
     )
 }
 
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryField(value: String, onNewValue: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     val categories = listOf("Festivaler", "Forslag", "Klatring", "Mat", "Reise", "Trening")
 
-    // Status for den valgte kategorien
     var selectedText by remember { mutableStateOf(value) }
 
-    // dette er Material 3 ExposedDropdownMenuBox
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = { expanded = !expanded }  // dropdown
+        onExpandedChange = { expanded = !expanded }
     ) {
         OutlinedTextField(
             value = selectedText,
             onValueChange = { onNewValue(it) },
             placeholder = { Text(stringResource(id = R.string.placeholder_category)) },
             modifier = Modifier
-                .menuAnchor()  //
+                .menuAnchor()
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
-            readOnly = true,  // dette stoper bruken å endre påde
+            readOnly = true,
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(
                     expanded = expanded
@@ -144,7 +140,6 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit) {
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
         )
 
-        // Material 3 ExposedDropdownMenu
         ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
@@ -153,9 +148,7 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit) {
                 DropdownMenuItem(
                     text = { Text(text = category) },
                     onClick = {
-                        // oppdaterer catagorien
                         selectedText = category
-                        // sender katagori tilbake
                         onNewValue(category)
                         expanded = false
                     }
@@ -164,8 +157,6 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit) {
         }
     }
 }
-
-
 
 @Composable
 fun LocationField(value: String, onNewValue: (String) -> Unit) {
@@ -207,66 +198,77 @@ fun PostalCodeField(value: String, onNewValue: (String) -> Unit) {
     )
 }
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DateField(value: String, onNewValue: (String) -> Unit) {
-    var showDialog by remember { mutableStateOf(false) }
+fun DateField(value: Long, onNewValue: (Timestamp) -> Unit) {
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
 
-    // Formatter to display the selected date
-    val dateFormatter = DateTimeFormatter.ofPattern("EEEE.dd.MM.yyyy", Locale("no"))
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            val newDate = Calendar.getInstance()
+            newDate.set(year, month, dayOfMonth)
+            val timestamp = newDate.timeInMillis
+            onNewValue(Timestamp(Date(timestamp)))
+        },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
+    )
 
-    // If no initial date is provided, use today's date
-    val selectedDate = remember(value) {
-        if (value.isBlank()) LocalDate.now() else LocalDate.parse(value, DateTimeFormatter.ISO_DATE)
-    }
-    val formattedDate = remember(selectedDate) { selectedDate.format(dateFormatter) }
-
-    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = selectedDate.toEpochDay() * 24 * 60 * 60 * 1000)
-
-    if (showDialog) {
-        DatePickerDialog(
-            onDismissRequest = { showDialog = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    // Fetch the selected date from datePickerState and convert it to LocalDate
-                    val selectedMillis = datePickerState.selectedDateMillis
-                    val newDate = selectedMillis?.let { millis ->
-                        LocalDate.ofEpochDay(millis / (24 * 60 * 60 * 1000))
-                    }
-                    newDate?.let {
-                        onNewValue(it.format(DateTimeFormatter.ISO_DATE))
-                    }
-                    showDialog = false
-                }) {
-                    Text("OK")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        ) {
-            DatePicker(state = datePickerState)
-        }
-    }
-
-    // The box to display the current selected date
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .clickable { showDialog = true }
+            .clickable { datePickerDialog.show() }
             .border(1.dp, MaterialTheme.colorScheme.primary)
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
+        val formattedDate = if (value != 0L) {
+            SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
+        } else {
+            "Velg dato"
+        }
         Text(text = formattedDate)
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StartTimeField(value: String, onNewValue: (String) -> Unit) {
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
 
+    val timePickerDialog = TimePickerDialog(
+        context,
+        { _, hourOfDay, minute ->
+            val newTime = String.format("%02d:%02d", hourOfDay, minute)
+            onNewValue(newTime)
+        },
+        calendar.get(Calendar.HOUR_OF_DAY),
+        calendar.get(Calendar.MINUTE),
+        true
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .clickable { timePickerDialog.show() }
+            .border(1.dp, MaterialTheme.colorScheme.primary)
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        val formattedTime = if (value.isNotEmpty()) {
+            value
+        } else {
+            "Velg starttidspunkt"
+        }
+        Text(text = formattedTime)
+    }
+}
 
 @Composable
 fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit) {
