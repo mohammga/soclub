@@ -86,7 +86,7 @@ fun ActiveEntriesList(viewModel: EntriesScreenViewModel = hiltViewModel()) {
                 EntryItem(
                     imageUrl = activity.imageUrl, // Send imageUrl fra databasen
                     title = activity.title,
-                    time = activity.date,
+                    time = activity.date.toString(),
                     onCancelClick = { /* Håndter kansellering */ }
                 )
             }
@@ -121,7 +121,7 @@ fun InactiveEntriesList(viewModel: EntriesScreenViewModel = hiltViewModel()) {
                 EntryItem(
                     imageUrl = activity.imageUrl, // Bruk et standardbilde inntil dynamiske bilder er på plass
                     title = activity.title,
-                    time = activity.date,
+                    time = activity.date.toString(),
                     onCancelClick = { /* Håndter kansellering */ }
                 )
             }
