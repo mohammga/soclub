@@ -90,9 +90,9 @@ fun ActiveEntriesList(viewModel: EntriesScreenViewModel = hiltViewModel()) {
                     onCancelClick = { /* Håndter kansellering */ }
                 )
             }
+        }
     }
 }
-
 
 @Composable
 fun InactiveEntriesList(viewModel: EntriesScreenViewModel = hiltViewModel()) {
