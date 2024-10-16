@@ -1,13 +1,18 @@
+import android.net.Uri
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.soclub.models.createActivity
 import com.example.soclub.screens.editActivity.EditActivityViewModel
 
@@ -29,6 +34,8 @@ fun EditActivityScreen(
     var location by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("") }
     var time by remember { mutableStateOf("") }
+    var imageUrl by remember { mutableStateOf("") }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
     // Variabler for de opprinnelige verdiene fra aktiviteten
     var originalTitle by remember { mutableStateOf("") }
@@ -38,7 +45,19 @@ fun EditActivityScreen(
     var originalLocation by remember { mutableStateOf("") }
     var originalDate by remember { mutableStateOf("") }
     var originalTime by remember { mutableStateOf("") }
+    var originalImageUrl by remember { mutableStateOf("") }
 
+    // Bildeseleksjon
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            selectedImageUri = it
+            imageUrl = it.toString()
+        }
+    }
+
+    // Hent aktivitet fra ViewModel
     val activity = viewModel.getActivity(category, activityId).observeAsState()
 
     // Når aktiviteten hentes, sett både de opprinnelige og gjeldende verdiene
@@ -51,6 +70,7 @@ fun EditActivityScreen(
             originalLocation = it.location + " " + it.restOfAddress
             originalDate = it.date ?: ""
             originalTime = it.time ?: ""
+            originalImageUrl = it.imageUrl
 
             // Sett de gjeldende verdiene lik de opprinnelige
             title = originalTitle
@@ -60,6 +80,7 @@ fun EditActivityScreen(
             location = originalLocation
             date = originalDate
             time = originalTime
+            imageUrl = originalImageUrl
         }
     }
 
@@ -69,7 +90,8 @@ fun EditActivityScreen(
     // Funksjon for å sjekke om det er noen endringer
     val hasChanges = title != originalTitle || description != originalDescription ||
             maxParticipants != originalMaxParticipants || ageGroup != originalAgeGroup ||
-            location != originalLocation || date != originalDate || time != originalTime
+            location != originalLocation || date != originalDate || time != originalTime ||
+            imageUrl != originalImageUrl
 
     LazyColumn(
         modifier = Modifier
@@ -95,6 +117,39 @@ fun EditActivityScreen(
                     .padding(vertical = 8.dp),
                 maxLines = 5
             )
+
+            selectedImageUri?.let {
+                AsyncImage(
+                    model = it,
+                    contentDescription = "Valgt bilde",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .padding(vertical = 8.dp)
+                )
+            } ?: run {
+                AsyncImage(
+                    model = imageUrl,
+                    contentDescription = "Opprinnelig bilde",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .padding(vertical = 8.dp)
+                )
+            }
+
+            // Knapp for å velge et nytt bilde
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center // Sentrerer knappen horisontalt
+            ) {
+                Button(
+                    onClick = { launcher.launch("image/*") }
+                ) {
+                    Text(text = "Velg bilde")
+                }
+            }
+
             TextField(
                 value = maxParticipants,
                 onValueChange = { maxParticipants = it },
@@ -127,16 +182,16 @@ fun EditActivityScreen(
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
             )
-//            TextField(
-//                value = time,
-//                onValueChange = { time = it },
-//                placeholder = { Text("Tidspunkt") },
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(vertical = 8.dp)
-//            )
+            TextField(
+                value = time,
+                onValueChange = { time = it },
+                placeholder = { Text("Tidspunkt") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            )
 
-            // Når knappen klikkes, settes `showDialog` til `true` for å vise popupen
+            // Knapp for å lagre endringer
             Button(
                 onClick = {
                     showDialog = true
@@ -171,6 +226,7 @@ fun EditActivityScreen(
                                 location = location,
                                 date = date,
                                 time = time,
+                                imageUrl = imageUrl  // Oppdatert bilde-URL
                             )
                         )
                         showDialog = false
@@ -189,6 +245,7 @@ fun EditActivityScreen(
         )
     }
 
+    // Hvis oppdateringen er vellykket, naviger tilbake
     if (updateSuccess == true) {
         LaunchedEffect(Unit) {
             navController.popBackStack()
