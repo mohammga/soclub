@@ -29,8 +29,15 @@ fun EntriesScreen(navController: NavHostController) {
 
         if (selectedTab == 0) {
             ActiveEntriesList()
-        } else {
-           InactiveEntriesList()
+        }
+
+        if (selectedTab == 1) {
+            InactiveEntriesList()
+        }
+
+        if (selectedTab == 2) {
+            //endre her for og vise kansellerte
+
         }
     }
 }
@@ -52,10 +59,17 @@ fun Tabs(selectedTab: Int, setSelectedTab: (Int) -> Unit) {
             selected = selectedTab == 0,
             onClick = { setSelectedTab(0) }
         )
+
         Tab(
-            text = { Text("Utgåtte") },
+            text = { Text("Utløpte") },
             selected = selectedTab == 1,
             onClick = { setSelectedTab(1) }
+        )
+
+        Tab(
+            text = { Text("Kansellerte") },
+            selected = selectedTab == 2,
+            onClick = { setSelectedTab(2) }
         )
     }
 }

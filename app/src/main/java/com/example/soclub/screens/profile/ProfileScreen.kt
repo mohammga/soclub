@@ -108,6 +108,7 @@ fun AccountInfoSection(navController: NavHostController, userInfo: UserInfo?) {
         Spacer(modifier = Modifier.height(16.dp))
 
         ProfileInfoRow(label = stringResource(id = R.string.label_name), value = userInfo?.name ?: stringResource(id = R.string.loading))
+        ProfileInfoRow(label = "Alder", value = "22")
         ProfileInfoRow(label = stringResource(id = R.string.label_email), value = userInfo?.email ?: stringResource(id = R.string.loading))
         ProfileInfoRow(label = stringResource(id = R.string.label_ads), onClick = {
             navController.navigate("ads")
