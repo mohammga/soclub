@@ -126,6 +126,24 @@
     <string name="change_notificationPermission_screen_title">Varsling</string>
     <string name="change_notificationPermission_Promission_screen">Tillat tilgang til Varsling</string>
 
+
+    <!-- ActivityDetailScreen -->
+    <string name="snackbar_registration_success">Påmeldingen var vellykket.</string>
+    <string name="snackbar_full_capacity">Påmeldingen var vellykket. Alle plasser er nå fylt opp.</string>
+    <string name="snackbar_unregistered">Du har nå meldt deg ut av aktiviteten.</string>
+    <string name="activity_no_title">Ingen tittel</string>
+    <string name="unknown_location">Ukjent</string>
+    <string name="unknown_address">Ukjent adresse</string>
+    <string name="unknown_description">Ingen beskrivelse</string>
+    <string name="participants_max">Maks %1$d</string>
+    <string name="participants_registered">%1$d deltaker%2$s av %3$d</string>
+    <string name="age_group">Aldersgruppe: %1$s</string>
+    <string name="under_age_limit">Du er under aldersgrensen (%1$d)</string>
+    <string name="registerr">Meld deg på</string>
+    <string name="unregister">Meld deg ut</string>
+
+
+
     <string name="error_age_required">Alder er påkrevd</string>
 
     <!-- newaktiviti  -->

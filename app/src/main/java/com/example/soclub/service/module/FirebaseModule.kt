@@ -14,6 +14,8 @@ import com.example.soclub.service.ActivityService
 import com.example.soclub.service.impl.ActivityServiceImpl
 import com.example.soclub.service.impl.ActivityDetailServiceImpl
 import com.example.soclub.service.ActivityDetaillService
+import com.example.soclub.service.EntriesService
+import com.example.soclub.service.impl.EntriesServiceImpl
 
 
 @Module
@@ -36,6 +38,14 @@ object FirebaseModule {
     fun provideActivityDetaillService(firestore: FirebaseFirestore): ActivityDetaillService {
         return ActivityDetailServiceImpl(firestore)
     }
+
+    @Provides
+    @Singleton
+    fun provideEntriesService(firestore: FirebaseFirestore): EntriesService{
+        return EntriesServiceImpl(firestore)
+    }
+    
+    
 
 
 
