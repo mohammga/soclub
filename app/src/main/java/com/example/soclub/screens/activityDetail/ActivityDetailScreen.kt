@@ -27,10 +27,17 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material3.Icon
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.rememberImagePainter
 import androidx.compose.runtime.collectAsState
 import coil.compose.rememberAsyncImagePainter
 import com.example.soclub.models.Activity
+import androidx.compose.material3.*
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.res.stringResource
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+
 
 @Composable
 fun ActivityDetailScreen(
@@ -39,13 +46,14 @@ fun ActivityDetailScreen(
     activityId: String?,
     viewModel: ActivityDetailViewModel = hiltViewModel()
 ) {
-    // Collecting the activity details and registration status from the ViewModel
+
     val activity = viewModel.activity.collectAsState().value
     val isRegistered = viewModel.isRegistered.collectAsState().value
-    val canRegister = viewModel.canRegister.collectAsState().value  // Hent canRegister fra ViewModel
+    val canRegister = viewModel.canRegister.collectAsState().value
+    val currentParticipants = viewModel.currentParticipants.collectAsState().value
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
-
-    // Fetch the activity details when the screen is first displayed
     LaunchedEffect(activityId, category) {
         if (activityId != null && category != null) {
             viewModel.loadActivity(category, activityId)
@@ -53,84 +61,116 @@ fun ActivityDetailScreen(
     }
 
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.Start
-    ) {
-        item {
-            ActivityImage(imageUrl = activity?.imageUrl ?: "")
-        }
 
-        item {
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        content = { paddingValues ->
+            LazyColumn(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.Start
+            ) {
+                item {
+                    ActivityImage(imageUrl = activity?.imageUrl ?: "")
+                }
 
-            ActivityDetailsContent(
-                activity = activity,
-                isRegistered = isRegistered,
-                canRegister = canRegister,
-                ageGroup = activity?.ageGroup ?: 0,
-                activityId = activityId,
-                category = category,       // Sender kategori videre
-                viewModel = viewModel,
-                onRegisterClick = { viewModel.updateRegistrationForActivity(category!!, activityId!!, true) },
-                onUnregisterClick = { viewModel.updateRegistrationForActivity(category!!, activityId!!, false) }
-            )
+                item {
+                    ActivityDetailsContent(
+                        activity = activity,
+                        currentParticipants = currentParticipants,
+                        isRegistered = isRegistered,
+                        canRegister = canRegister,
+                        ageGroup = activity?.ageGroup ?: 0,
+                        onRegisterClick = {
+                            if (activityId != null && category != null) {
+                                viewModel.updateRegistrationForActivity(category, activityId, true)
+                                showSnackbar(true, snackbarHostState, scope, activity, currentParticipants)
+                            }
+                        },
+                        onUnregisterClick = {
+                            if (activityId != null && category != null) {
+                                viewModel.updateRegistrationForActivity(category, activityId, false)
+                                showSnackbar(false, snackbarHostState, scope, activity, currentParticipants)
+                            }
+                        }
+                    )
+                }
+            }
         }
+    )
+}
+
+
+fun showSnackbar(isRegistering: Boolean, snackbarHostState: SnackbarHostState, scope: CoroutineScope, activity: Activity?, currentParticipants: Int) {
+    val maxParticipants = activity?.maxParticipants ?: 0
+    val remainingSlots = maxParticipants - currentParticipants
+    scope.launch {
+        delay(500)
+    val message = if (isRegistering) {
+        if (remainingSlots > 0) {
+            "Påmeldingen var vellykket."
+        } else {
+            "Påmeldingen var vellykket. Alle plasser er nå fylt opp."
+        }
+    } else {
+        "Du har nå meldt deg ut av aktiviteten."
+    }
+        snackbarHostState.showSnackbar(message)
     }
 }
+
 
 @Composable
 fun ActivityDetailsContent(
     activity: Activity?,
+    currentParticipants: Int,
     isRegistered: Boolean,
     canRegister: Boolean,
     ageGroup: Int,
-    activityId: String?,
-    category: String?,        // Legg til category som parameter
-    viewModel: ActivityDetailViewModel,
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
+    Column(modifier = Modifier.padding(16.dp)) {
+        ActivityTitle(activity?.title ?: stringResource(R.string.activity_no_title))
+        ActivityDate()
+        InfoRow(
+            icon = Icons.Default.LocationOn,
+            mainText = activity?.location ?: stringResource(R.string.unknown_location),
+            subText = activity?.restOfAddress ?: stringResource(R.string.unknown_address)
+        )
 
-    Box(modifier = Modifier.padding(16.dp)) {
-        Column {
-            ActivityTitle(activity?.title ?: "Ingen tittel")
-            ActivityDate()
-            InfoRow(
-                icon = Icons.Default.LocationOn,
-                mainText = activity?.location ?: "Ukjent",
-                subText = activity?.restOfAddress ?: "Ukjent adresse"
-            )
-            InfoRow(
-                icon = Icons.Default.People,
-                mainText = "Maks ${activity?.maxParticipants ?: 0} personer", // Oppdater til int
-                subText = "Aldersgruppe: ${activity?.ageGroup ?: "Alle"}"
-            )
-            ActivityDescription(activity?.description ?: "Ingen beskrivelse")
-            ActivityGPSImage()
-            ActivityRegisterButton(
-                isRegistered = isRegistered,
-                canRegister = canRegister,
-                ageGroup = ageGroup,
-                onRegisterClick = {
-                    if (activityId != null && category != null) {
-                        viewModel.updateRegistrationForActivity(category, activityId, true)
-                    }
-                },
-                onUnregisterClick = {
-                    if (activityId != null && category != null) {
-                        viewModel.updateRegistrationForActivity(category, activityId, false)
-                    }
-                }
+        InfoRow(
+            icon = Icons.Default.People,
+            mainText = if (currentParticipants == 0) {
+                stringResource(R.string.participants_max, activity?.maxParticipants?:0)
+            } else {
+                stringResource(R.string.participants_registered,
+                    currentParticipants,
+                    if (currentParticipants > 1) "e" else "",
+                    activity?.maxParticipants ?:0
 
-            )
-        }
+                    )
+            },
+            subText = stringResource(R.string.age_group, activity?.ageGroup ?: "Alle")
+        )
+
+        ActivityDescription(activity?.description ?: stringResource(R.string.unknown_description))
+        ActivityGPSImage()
+        ActivityRegisterButton(
+            isRegistered = isRegistered,
+            canRegister = canRegister,
+            ageGroup = ageGroup,
+            onRegisterClick = onRegisterClick,
+            onUnregisterClick = onUnregisterClick
+        )
     }
 
 }
 
+
 @Composable
 fun ActivityImage(imageUrl: String) {
-
     Image(
         painter = rememberAsyncImagePainter(imageUrl),
         contentDescription = "Activity Image",
@@ -145,7 +185,6 @@ fun ActivityImage(imageUrl: String) {
 
 @Composable
 fun ActivityTitle(title: String) {
-
     Text(
         text = title,
         fontSize = 24.sp,
@@ -156,7 +195,6 @@ fun ActivityTitle(title: String) {
 
 @Composable
 fun ActivityDate() {
-
     Text(
         text = "Tirsdag. 28. august 2024",
         modifier = Modifier.padding(vertical = 4.dp)
@@ -165,7 +203,6 @@ fun ActivityDate() {
 
 @Composable
 fun ActivityDescription(description: String) {
-
     Text(
         text = description,
         modifier = Modifier.padding(vertical = 16.dp)
@@ -174,7 +211,6 @@ fun ActivityDescription(description: String) {
 
 @Composable
 fun ActivityGPSImage() {
-
     Image(
         painter = painterResource(R.drawable.gpsbilde1),
         contentDescription = "GPS-bilde",
@@ -195,19 +231,23 @@ fun ActivityRegisterButton(
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
-    val buttonText = if (isRegistered) {
-        "Meld deg ut"
-    } else if (!canRegister) {
-        "Du er under aldersgrensen ($ageGroup)"
-    } else {
-        "Meld deg på"
+
+    val buttonText = when {
+        !canRegister -> stringResource(R.string.under_age_limit, ageGroup)
+        isRegistered -> stringResource(R.string.unregister)
+        else -> stringResource(R.string.registerr)
     }
 
-    val buttonColor = if (isRegistered || !canRegister) Color.Red else Color.Black
+
+    val buttonColor = when {
+        !canRegister -> Color.Gray
+        isRegistered -> Color.Red
+        else -> Color.Black
+    }
 
     Button(
         onClick = {
-            if (!canRegister) return@Button  // Hvis brukeren ikke kan melde seg, gjør ingenting
+            if (!canRegister) return@Button
             if (isRegistered) onUnregisterClick() else onRegisterClick()
         },
         colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
@@ -215,7 +255,7 @@ fun ActivityRegisterButton(
             .fillMaxWidth()
             .padding(vertical = 16.dp)
             .height(48.dp),
-        enabled = canRegister  // Deaktiver knappen hvis brukeren ikke oppfyller alderskravet
+        enabled = canRegister
     ) {
         Text(text = buttonText, color = Color.White)
     }
@@ -228,7 +268,6 @@ fun InfoRow(
     mainText: String,
     subText: String
 ) {
-
     Row(
         modifier = Modifier.padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -245,7 +284,6 @@ fun InfoRow(
 
 @Composable
 fun ElevatedCardExample(icon: androidx.compose.ui.graphics.vector.ImageVector) {
-
     ElevatedCard(
         modifier = Modifier.size(50.dp),
         colors = CardDefaults.elevatedCardColors(containerColor = Color.LightGray)
@@ -262,3 +300,4 @@ fun ElevatedCardExample(icon: androidx.compose.ui.graphics.vector.ImageVector) {
         }
     }
 }
+

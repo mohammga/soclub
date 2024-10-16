@@ -22,14 +22,13 @@ class ActivityDetailServiceImpl @Inject constructor(
             .await()
 
         val activity = documentSnapshot.toObject(Activity::class.java)
-
         val fullLocation = activity?.location ?: "Ukjent"
         val lastWord = fullLocation.substringAfterLast(" ")
         val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
 
         return activity?.copy(
             location = lastWord,
-            restOfAddress = restOfAddress  // Fyll inn resten av adressen her
+            restOfAddress = restOfAddress
         )
     }
 
@@ -40,8 +39,15 @@ class ActivityDetailServiceImpl @Inject constructor(
             .whereEqualTo("activityId", activityId)
             .get().await()
 
-        return !registrationRef.isEmpty
+        if (!registrationRef.isEmpty) {
+            val document = registrationRef.documents.first()
+            val status = document.getString("status")
+            return status == "aktiv"
+        }
+
+        return false
     }
+
 
 
     override suspend fun updateRegistrationStatus(userId: String, activityId: String, status: String): Boolean {
@@ -53,7 +59,7 @@ class ActivityDetailServiceImpl @Inject constructor(
                 .await()
 
             if (!registrationRef.isEmpty) {
-                // Hvis registreringen allerede finnes, oppdater status og dato
+
                 for (document in registrationRef.documents) {
                     firestore.collection("registrations")
                         .document(document.id)
@@ -62,35 +68,48 @@ class ActivityDetailServiceImpl @Inject constructor(
                         )).await()
                 }
             } else {
-                // Hvis ingen registrering finnes, opprett en ny
+
                 val newRegistration = hashMapOf(
                     "userId" to userId,
                     "activityId" to activityId,
                     "status" to status,
-                    "timestamp" to Timestamp(Date()) // Lagre påmeldingsdato
+                    "timestamp" to Timestamp(Date())
                 )
 
                 firestore.collection("registrations").add(newRegistration).await()
             }
-            true  // Operasjonen var vellykket
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false  // Noe gikk galt
-        }
-    }
-
-    override suspend fun updateMaxParticipants(category: String, activityId: String, updatedMaxParticipants: Int): Boolean {
-        return try {
-            // Oppdater maxParticipants-feltet i riktig kategori og aktivitet i Firestore
-            firestore.collection("category").document(category)
-                .collection("activities").document(activityId)
-                .update("maxParticipants", updatedMaxParticipants)
-                .await()
             true
         } catch (e: Exception) {
             e.printStackTrace()
             false
         }
     }
+
+
+    override suspend fun getRegisteredParticipantsCount(activityId: String): Int {
+        val registrationRef = firestore.collection("registrations")
+            .whereEqualTo("activityId", activityId)
+            .whereEqualTo("status", "aktiv")
+            .get().await()
+
+        return registrationRef.size()
+    }
+
+    override fun listenToRegistrationUpdates(activityId: String, onUpdate: (Int) -> Unit) {
+        firestore.collection("registrations")
+            .whereEqualTo("activityId", activityId)
+            .whereEqualTo("status", "aktiv")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    val count = snapshot.size()
+                    onUpdate(count)
+                }
+            }
+    }
+
 
 }
