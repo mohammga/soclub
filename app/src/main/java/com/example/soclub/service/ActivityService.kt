@@ -10,6 +10,5 @@ interface ActivityService {
     suspend fun getActivities(category: String): List<Activity>            // Hent aktiviteter for en kategori
     suspend fun getCategories(): List<String>                              // Hent alle kategorier
     suspend fun getAllActivitiesByCreator(creatorId: String): List<editActivity> // Hent alle aktiviteter for en gitt bruker
-    suspend fun updateActivity(category: String, activityId: String, updatedActivity: createActivity): Boolean // Oppdater aktivitet
-
+    suspend fun updateActivity(category: String, newCategory: String, activityId: String, updatedActivity: createActivity)
 }

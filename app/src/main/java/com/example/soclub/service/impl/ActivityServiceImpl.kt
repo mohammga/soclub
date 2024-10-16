@@ -107,33 +107,29 @@ class ActivityServiceImpl @Inject constructor(
         return categories.sortedByDescending { it == "Forslag" }
     }
 
-    // Oppdater aktivitet uten å overskrive creatorId
-    override suspend fun updateActivity(category: String, activityId: String, updatedActivity: createActivity): Boolean {
-        return try {
-            // Referanse til dokumentet som skal oppdateres
-            val documentRef = firestore.collection("category")
+    override suspend fun updateActivity(category: String, newCategory: String, activityId: String, updatedActivity: createActivity) {
+        // Check if the category has changed
+        if (category != newCategory) {
+            // Delete the activity from the old category
+            firestore.collection("category")
                 .document(category)
                 .collection("activities")
                 .document(activityId)
+                .delete()
+                .await()
 
-            // Hent den eksisterende aktiviteten først for å unngå å overskrive felter som creatorId
-            val existingActivitySnapshot = documentRef.get().await()
-            val existingActivity = existingActivitySnapshot.toObject(createActivity::class.java)
-
-            if (existingActivity != null) {
-                // Lag en kopi av updatedActivity med eksisterende creatorId
-                val updatedActivityWithCreatorId = updatedActivity.copy(
-                    creatorId = existingActivity.creatorId  // Bevar creatorId
-                )
-
-                // Utfør oppdateringen med det oppdaterte aktivitetet
-                documentRef.set(updatedActivityWithCreatorId).await()
-            }
-
-            true  // Returnerer true hvis oppdateringen er vellykket
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false  // Returnerer false hvis det oppstår en feil
+            // Use the createActivity function to add the updated activity to the new category
+            createActivity(newCategory, updatedActivity)
+        } else {
+            // If the category hasn't changed, just update the activity in the current category
+            firestore.collection("category")
+                .document(newCategory)
+                .collection("activities")
+                .document(activityId)
+                .set(updatedActivity)
+                .await()
         }
     }
+
+
 }

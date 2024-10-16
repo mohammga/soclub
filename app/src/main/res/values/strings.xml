@@ -151,8 +151,10 @@
     <!-- Error messages -->
     <string name="error_title_required">Tittel er påkrevd</string>
     <string name="error_category_required">Kategori er påkrevd</string>
-    <string name="upload_image">Last opp bilder</string>
-    <string name="choose_image">Velg bilder</string>
+    <string name="upload_image">Last opp bilde</string>
+    <string name="choose_image">Velg bilde</string>
+    <string name="change_image">Endre bilde</string>
+
     <string name="error_image_required">Bilde er påkrevd</string>
 
     <!-- Button text -->

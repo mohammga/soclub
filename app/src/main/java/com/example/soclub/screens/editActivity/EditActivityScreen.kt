@@ -1,20 +1,30 @@
+package com.example.soclub.screens.editActivity
+
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.example.soclub.models.createActivity
-import com.example.soclub.screens.editActivity.EditActivityViewModel
+import com.example.soclub.R
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 fun EditActivityScreen(
@@ -23,232 +33,322 @@ fun EditActivityScreen(
     category: String,
     activityId: String
 ) {
-    // Legg til tilstand for å vise dialogen
-    var showDialog by remember { mutableStateOf(false) }
+    val uiState by viewModel.uiState
+    var errorMessage by remember { mutableStateOf("") }
 
-    // Variabler for de nåværende verdiene
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var maxParticipants by remember { mutableStateOf("") }
-    var ageGroup by remember { mutableStateOf("") }
-    var location by remember { mutableStateOf("") }
-    var date by remember { mutableStateOf("") }
-    var time by remember { mutableStateOf("") }
-    var imageUrl by remember { mutableStateOf("") }
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-
-    // Variabler for de opprinnelige verdiene fra aktiviteten
-    var originalTitle by remember { mutableStateOf("") }
-    var originalDescription by remember { mutableStateOf("") }
-    var originalMaxParticipants by remember { mutableStateOf("") }
-    var originalAgeGroup by remember { mutableStateOf("") }
-    var originalLocation by remember { mutableStateOf("") }
-    var originalDate by remember { mutableStateOf("") }
-    var originalTime by remember { mutableStateOf("") }
-    var originalImageUrl by remember { mutableStateOf("") }
-
-    // Bildeseleksjon
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            selectedImageUri = it
-            imageUrl = it.toString()
-        }
+    // Load the activity when the screen is displayed
+    LaunchedEffect(Unit) {
+        viewModel.loadActivity(category, activityId)
     }
 
-    // Hent aktivitet fra ViewModel
-    val activity = viewModel.getActivity(category, activityId).observeAsState()
+    Column(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+        ) {
+            item { TitleField(value = uiState.title, onNewValue = viewModel::onTitleChange) }
 
-    // Når aktiviteten hentes, sett både de opprinnelige og gjeldende verdiene
-    LaunchedEffect(activity.value) {
-        activity.value?.let {
-            originalTitle = it.title ?: ""
-            originalDescription = it.description ?: ""
-            originalMaxParticipants = it.maxParticipants.toString()
-            originalAgeGroup = it.ageGroup.toString()
-            originalLocation = it.location + " " + it.restOfAddress
-            originalDate = it.date ?: ""
-            originalTime = it.time ?: ""
-            originalImageUrl = it.imageUrl
+            item { DescriptionField(value = uiState.description, onNewValue = viewModel::onDescriptionChange) }
 
-            // Sett de gjeldende verdiene lik de opprinnelige
-            title = originalTitle
-            description = originalDescription
-            maxParticipants = originalMaxParticipants
-            ageGroup = originalAgeGroup
-            location = originalLocation
-            date = originalDate
-            time = originalTime
-            imageUrl = originalImageUrl
-        }
-    }
+            item { ImageUploadSection(onImageSelected = viewModel::onImageSelected, imageUrl = uiState.imageUrl) }
 
-    val isUpdating by viewModel.isUpdating.collectAsState()
-    val updateSuccess by viewModel.updateSuccess.collectAsState()
+            item { CategoryField(value = uiState.category, onNewValue = viewModel::onCategoryChange) }
 
-    // Funksjon for å sjekke om det er noen endringer
-    val hasChanges = title != originalTitle || description != originalDescription ||
-            maxParticipants != originalMaxParticipants || ageGroup != originalAgeGroup ||
-            location != originalLocation || date != originalDate || time != originalTime ||
-            imageUrl != originalImageUrl
+            item { LocationField(value = uiState.location, onNewValue = viewModel::onLocationChange) }
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        item {
-            TextField(
-                value = title,
-                onValueChange = { title = it },
-                placeholder = { Text("Tittel") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            )
-            TextField(
-                value = description,
-                onValueChange = { description = it },
-                placeholder = { Text("Beskrivelse") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                maxLines = 5
-            )
+            item { AddressField(value = uiState.address, onNewValue = viewModel::onAddressChange) }
 
-            selectedImageUri?.let {
-                AsyncImage(
-                    model = it,
-                    contentDescription = "Valgt bilde",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .padding(vertical = 8.dp)
-                )
-            } ?: run {
-                AsyncImage(
-                    model = imageUrl,
-                    contentDescription = "Opprinnelig bilde",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .padding(vertical = 8.dp)
-                )
-            }
+            item { PostalCodeField(value = uiState.postalCode, onNewValue = viewModel::onPostalCodeChange) }
 
-            // Knapp for å velge et nytt bilde
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center // Sentrerer knappen horisontalt
-            ) {
-                Button(
-                    onClick = { launcher.launch("image/*") }
-                ) {
-                    Text(text = "Velg bilde")
+            item { DateField(value = uiState.date, onNewValue = viewModel::onDateChange) }
+
+            item { MaxParticipantsField(value = uiState.maxParticipants, onNewValue = viewModel::onMaxParticipantsChange) }
+
+            item { AgeLimitField(value = uiState.ageLimit, onNewValue = viewModel::onAgeLimitChange) }
+
+            item { Spacer(modifier = Modifier.height(5.dp)) }
+
+            if (errorMessage.isNotEmpty()) {
+                item {
+                    Text(
+                        text = errorMessage,
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(top = 10.dp)
+                    )
                 }
             }
 
-            TextField(
-                value = maxParticipants,
-                onValueChange = { maxParticipants = it },
-                placeholder = { Text("Maks antall deltakere") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            )
-            TextField(
-                value = ageGroup,
-                onValueChange = { ageGroup = it },
-                placeholder = { Text("Aldersgruppe") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            )
-            TextField(
-                value = location,
-                onValueChange = { location = it },
-                placeholder = { Text("Adresse") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            )
-            TextField(
-                value = date,
-                onValueChange = { date = it },
-                placeholder = { Text("Dato") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            )
-            TextField(
-                value = time,
-                onValueChange = { time = it },
-                placeholder = { Text("Tidspunkt") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            )
+            item { SaveChangesButton(navController, viewModel, category, activityId) }
+        }
+    }
+}
 
-            // Knapp for å lagre endringer
-            Button(
-                onClick = {
-                    showDialog = true
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
-                enabled = hasChanges && !isUpdating // Knappen er deaktivert hvis ingen endringer er gjort eller oppdatering pågår
-            ) {
-                Text(text = if (isUpdating) "Lagrer..." else "Lagre endringer")
+@Composable
+fun TitleField(value: String, onNewValue: (String) -> Unit) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = { onNewValue(it) },
+        placeholder = { Text(stringResource(id = R.string.placeholder_title)) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        singleLine = true
+    )
+}
+
+@Composable
+fun DescriptionField(value: String, onNewValue: (String) -> Unit) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = { onNewValue(it) },
+        placeholder = { Text(stringResource(id = R.string.placeholder_description)) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        maxLines = 5
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CategoryField(value: String, onNewValue: (String) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    val categories = listOf("Festivaler", "Forslag", "Klatring", "Mat", "Reise", "Trening")
+
+    // Initialize the selected category text based on the current category value
+    var selectedText by remember(value) { mutableStateOf(value) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded }
+    ) {
+        OutlinedTextField(
+            value = selectedText,
+            onValueChange = { onNewValue(it) },
+            placeholder = { Text(stringResource(id = R.string.placeholder_category)) },
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            readOnly = true,
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            singleLine = true,
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            categories.forEach { category ->
+                DropdownMenuItem(
+                    text = { Text(text = category) },
+                    onClick = {
+                        selectedText = category  // Update the selected text when a new category is selected
+                        onNewValue(category)  // Pass the new value to the parent function
+                        expanded = false  // Close the dropdown
+                    }
+                )
             }
         }
     }
+}
 
-    // Dialog for å bekrefte lagring av endringer
+
+
+@Composable
+fun LocationField(value: String, onNewValue: (String) -> Unit) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = { onNewValue(it) },
+        placeholder = { Text("Sted") },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        singleLine = true
+    )
+}
+
+@Composable
+fun AddressField(value: String, onNewValue: (String) -> Unit) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = { onNewValue(it) },
+        placeholder = { Text("Adresse") },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        singleLine = true
+    )
+}
+
+@Composable
+fun PostalCodeField(value: String, onNewValue: (String) -> Unit) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = { onNewValue(it) },
+        placeholder = { Text("Postnummer") },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        singleLine = true
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DateField(value: String, onNewValue: (String) -> Unit) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    // Use a DateTimeFormatter that matches the format of the stored date string
+    val dateFormatter = DateTimeFormatter.ofPattern("EEEE.dd.MM.yyyy", Locale("no"))
+
+    // Handle invalid input
+    val selectedDate = remember(value) {
+        try {
+            if (value.isNotBlank()) {
+                LocalDate.parse(value, dateFormatter)
+            } else {
+                LocalDate.now()
+            }
+        } catch (e: Exception) {
+            LocalDate.now() // Fallback in case of parsing failure
+        }
+    }
+
+    val formattedDate = selectedDate.format(dateFormatter)
+
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = selectedDate.toEpochDay() * 24 * 60 * 60 * 1000
+    )
+
     if (showDialog) {
-        AlertDialog(
+        DatePickerDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("Bekreftelse") },
-            text = { Text("Er du sikker på at du vil lagre endringene?") },
             confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.updateActivity(
-                            category = category,
-                            activityId = activityId,
-                            updatedActivity = createActivity(
-                                title = title,
-                                description = description,
-                                maxParticipants = maxParticipants.toInt(),
-                                ageGroup = ageGroup.toInt(),
-                                location = location,
-                                date = date,
-                                time = time,
-                                imageUrl = imageUrl  // Oppdatert bilde-URL
-                            )
-                        )
-                        showDialog = false
+                TextButton(onClick = {
+                    val selectedMillis = datePickerState.selectedDateMillis
+                    val newDate = selectedMillis?.let { millis ->
+                        LocalDate.ofEpochDay(millis / (24 * 60 * 60 * 1000))
                     }
-                ) {
-                    Text("Bekreft")
+                    newDate?.let {
+                        onNewValue(it.format(DateTimeFormatter.ISO_DATE)) // Return in ISO_DATE format
+                    }
+                    showDialog = false
+                }) {
+                    Text("OK")
                 }
             },
             dismissButton = {
-                Button(
-                    onClick = { showDialog = false }
-                ) {
-                    Text("Avbryt")
+                TextButton(onClick = { showDialog = false }) {
+                    Text("Cancel")
                 }
             }
-        )
+        ) {
+            DatePicker(state = datePickerState)
+        }
     }
 
-    // Hvis oppdateringen er vellykket, naviger tilbake
-    if (updateSuccess == true) {
-        LaunchedEffect(Unit) {
-            navController.popBackStack()
+    // Display the current selected date
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .clickable { showDialog = true }
+            .border(1.dp, MaterialTheme.colorScheme.primary)
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text = formattedDate)
+    }
+}
+
+@Composable
+fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = { onNewValue(it) },
+        placeholder = { Text(stringResource(id = R.string.placeholder_max_participants)) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        singleLine = true
+    )
+}
+
+@Composable
+fun AgeLimitField(value: String, onNewValue: (String) -> Unit) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = { onNewValue(it) },
+        placeholder = { Text(stringResource(id = R.string.placeholder_age_limit)) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        singleLine = true
+    )
+}
+
+@Composable
+fun ImageUploadSection(onImageSelected: (String) -> Unit, imageUrl: String) {
+    val context = LocalContext.current
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            // Update the selected image URL
+            onImageSelected(uri.toString())
+            selectedImageUri = uri
         }
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // If there's a selected image URI or an existing image URL, show the image
+        if (selectedImageUri != null || imageUrl.isNotBlank()) {
+            Spacer(modifier = Modifier.height(16.dp))
+            AsyncImage(
+                model = selectedImageUri ?: imageUrl,  // Show the new image if selected, otherwise show the current image
+                contentDescription = stringResource(id = R.string.selected_image),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .border(1.dp, MaterialTheme.colorScheme.primary)
+            )
+        } else {
+            Text(text = stringResource(id = R.string.change_image))
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Button to launch gallery and select a new image
+        Button(
+            onClick = { galleryLauncher.launch("image/*") },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = stringResource(id = R.string.change_image))
+        }
+    }
+}
+
+
+@Composable
+fun SaveChangesButton(navController: NavController, viewModel: EditActivityViewModel, category: String, activityId: String) {
+    Button(
+        onClick = { viewModel.onSaveClick(navController, category, activityId) },
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(text = "Lagre endringer")
     }
 }

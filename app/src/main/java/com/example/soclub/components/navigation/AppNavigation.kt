@@ -1,7 +1,6 @@
 package com.example.soclub.components.navigation
 
 import AdsScreen
-import EditActivityScreen
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -20,6 +19,7 @@ import com.example.soclub.components.navigation.navBars.TopBar
 import com.example.soclub.components.navigation.navBars.getCurrentScreen
 import com.example.soclub.screens.activityDetail.ActivityDetailScreen
 import com.example.soclub.screens.changePassword.ChangePasswordScreen
+import com.example.soclub.screens.editActivity.EditActivityScreen
 import com.example.soclub.screens.editPermission.EditPermissionScreen
 import com.example.soclub.screens.editProfile.EditProfileScreen
 import com.example.soclub.screens.entries.EntriesScreen
