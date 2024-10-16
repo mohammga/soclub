@@ -2,48 +2,48 @@ package com.example.soclub.screens.editPermission
 
 import android.Manifest
 import android.content.Context
-import android.content.SharedPreferences
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.provider.Settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.core.content.ContextCompat
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class EditPermissionViewModel(context: Context) : ViewModel() {
+@HiltViewModel
+class EditPermissionViewModel @Inject constructor() : ViewModel() {
 
-    private val sharedPreferences: SharedPreferences =
-        context.getSharedPreferences("permissions_prefs", Context.MODE_PRIVATE)
-
-    private val _locationPermission = MutableStateFlow(checkPermissionStatus(context, Manifest.permission.ACCESS_FINE_LOCATION))
-    private val _cameraPermission = MutableStateFlow(checkPermissionStatus(context, Manifest.permission.CAMERA))
-    private val _notificationPermission = MutableStateFlow(checkPermissionStatus(context, Manifest.permission.POST_NOTIFICATIONS))
+    private val _locationPermission = MutableStateFlow(false)
+    private val _cameraPermission = MutableStateFlow(false)
+    private val _notificationPermission = MutableStateFlow(false)
 
     val locationPermission: StateFlow<Boolean> = _locationPermission
     val cameraPermission: StateFlow<Boolean> = _cameraPermission
     val notificationPermission: StateFlow<Boolean> = _notificationPermission
 
-    fun setLocationPermission(enabled: Boolean) {
+    // Funksjon til å sjekke tillatelse status
+    fun checkPermissions(context: Context) {
         viewModelScope.launch {
-            _locationPermission.value = enabled
-            savePermission("location", enabled)
+            _locationPermission.value = checkPermissionStatus(context, Manifest.permission.ACCESS_FINE_LOCATION)
+            _cameraPermission.value = checkPermissionStatus(context, Manifest.permission.CAMERA)
+            _notificationPermission.value = checkPermissionStatus(context, Manifest.permission.POST_NOTIFICATIONS)
         }
     }
 
-    fun setCameraPermission(enabled: Boolean) {
-        viewModelScope.launch {
-            _cameraPermission.value = enabled
-            savePermission("camera", enabled)
+    // Funksjon som åpner instilinger
+    fun navigateToSettings(context: Context) {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = android.net.Uri.fromParts("package", context.packageName, null)
         }
+        context.startActivity(intent)
     }
 
-    fun setNotificationPermission(enabled: Boolean) {
-        viewModelScope.launch {
-            _notificationPermission.value = enabled
-            savePermission("notification", enabled)
-        }
-    }
 
-    private fun savePermission(key: String, value: Boolean) {
-        sharedPreferences.edit().putBoolean(key, value).apply()
+    private fun checkPermissionStatus(context: Context, permission: String): Boolean {
+        return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
     }
 }

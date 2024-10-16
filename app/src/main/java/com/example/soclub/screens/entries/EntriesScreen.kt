@@ -90,7 +90,6 @@ fun ActiveEntriesList(viewModel: EntriesScreenViewModel = hiltViewModel()) {
                     onCancelClick = { /* Håndter kansellering */ }
                 )
             }
-        }
     }
 }
 
@@ -164,6 +163,10 @@ fun EntryItem(
             Spacer(modifier = Modifier.height(8.dp))
 
             CancelButton(onClick = onCancelClick)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            HorizontalDivider(thickness = 1.dp)
         }
     }
 }
@@ -174,8 +177,8 @@ fun EventImage(imageUrl: String?) {
         painter = rememberAsyncImagePainter(imageUrl), // Bruk URL fra imageUrl
         contentDescription = null,
         modifier = Modifier
-            .width(120.dp)
-            .height(80.dp)
+            .width(100.dp)
+            .height(100.dp)
             .clip(RoundedCornerShape(8.dp)),
         contentScale = ContentScale.Crop
     )

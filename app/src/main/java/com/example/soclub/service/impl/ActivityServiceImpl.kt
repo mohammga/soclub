@@ -1,6 +1,7 @@
 package com.example.soclub.service.impl
 
 import com.example.soclub.models.Activity
+import com.example.soclub.models.createActivity
 import com.example.soclub.service.ActivityService
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -10,12 +11,10 @@ class ActivityServiceImpl @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : ActivityService {
 
-
-    override suspend fun createActivity(category: String, activity: Activity) {
-        firestore.collection("activities").document(category)
-            .collection("activities").add(activity).await()
+    override suspend fun createActivity(category: String, activity: createActivity) {
+        firestore.collection("category").document(category)
+        .collection("activities").add(activity).await()
     }
-
 
     override suspend fun getActivities(category: String): List<Activity> {
         val snapshot = firestore.collection("category").document(category)
@@ -37,6 +36,7 @@ class ActivityServiceImpl @Inject constructor(
     }
 
 
+
     override suspend fun getCategories(): List<String> {
         val snapshot = firestore.collection("category").get().await()
         val categories = snapshot.documents.map { document ->
@@ -44,4 +44,19 @@ class ActivityServiceImpl @Inject constructor(
         }
         return categories.sortedByDescending { it == "Forslag" }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
