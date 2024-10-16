@@ -165,6 +165,7 @@ fun ActivityDetailsContent(
             onUnregisterClick = onUnregisterClick
         )
     }
+
 }
 
 

@@ -121,15 +121,19 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                 SaveButton(
                     onClick = {
                         viewModel.onSaveProfileClick(navController)
-                        coroutineScope.launch {
-                            // Henter strengen fra strings.xml og viser snackbar
-                            snackbarHostState.showSnackbar(
-                                message = "Personlig info er endret"
-                            )
+                        // Vis snackbar bare hvis det ikke er noen feilmelding
+                        if (uiState.errorMessage == 0) {
+                            coroutineScope.launch {
+                                // Henter strengen fra strings.xml og viser snackbar
+                                snackbarHostState.showSnackbar(
+                                    message = "Personlig info er endret"
+                                )
+                            }
                         }
                     },
                     enabled = uiState.isDirty // Knappen aktiveres kun hvis det er gjort endringer
                 )
+
             }
         }
     )
