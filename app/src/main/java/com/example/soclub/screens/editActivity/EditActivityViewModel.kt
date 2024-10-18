@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import android.util.Log
+import androidx.compose.ui.res.stringResource
 import com.example.soclub.R
 import com.example.soclub.models.createActivity
 import com.example.soclub.service.ActivityService
@@ -44,8 +45,10 @@ class EditActivityViewModel @Inject constructor(
     // Holds the old category to track if it changes
     private var oldCategory: String? = null
 
+
     // This function loads the activity details into the UI
     fun loadActivity(category: String, activityId: String) {
+
         viewModelScope.launch {
             try {
                 val activity = activityService.getActivityById(category, activityId)

@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,31 +42,13 @@ import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.platform.LocalContext
-import android.annotation.SuppressLint
 import android.location.Location
 import androidx.compose.runtime.mutableStateOf
-import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.tasks.Task
 import androidx.core.app.ActivityCompat
 import android.Manifest
 import android.content.pm.PackageManager
-
-
-
-
-
-
-
-@SuppressLint("MissingPermission") // Tillatelsen antas allerede å være gitt
-fun getCurrentLocation(context: Context, onLocationReceived: (Location?) -> Unit) {
-    val fusedLocationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
-    fusedLocationClient.lastLocation
-        .addOnSuccessListener { location: Location? ->
-            // Send tilbake lokasjonen (null hvis den ikke er tilgjengelig)
-            onLocationReceived(location)
-        }
-}
+import android.util.Log
 
 
 
@@ -79,6 +60,8 @@ fun openGoogleMaps(context: Context, gmmIntentUri: String) {
         context.startActivity(intent)
     }
 }
+
+
 
 @Composable
 fun ActivityDetailScreen(
@@ -98,14 +81,11 @@ fun ActivityDetailScreen(
     val scope = rememberCoroutineScope()
 
 
-
-
     LaunchedEffect(activityId, category) {
         if (activityId != null && category != null) {
             viewModel.loadActivity(category, activityId)
         }
     }
-
 
 
     Scaffold(
@@ -178,14 +158,17 @@ fun ActivityDetailsContent(
     onUnregisterClick: () -> Unit
 ) {
     val context = LocalContext.current // Få tilgang til konteksten her
+    val fullLocation = activity?.location ?: stringResource(R.string.unknown_location)
+    val lastWord = fullLocation.substringAfterLast(" ") // Den siste delen av adressen (f.eks. by eller postnummer)
+    val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent") // Resten av adressen
 
     Column(modifier = Modifier.padding(16.dp)) {
         ActivityTitle(activity?.title ?: stringResource(R.string.activity_no_title))
         ActivityDate()
         InfoRow(
             icon = Icons.Default.LocationOn,
-            mainText = activity?.location ?: stringResource(R.string.unknown_location),
-            subText = activity?.restOfAddress ?: stringResource(R.string.unknown_address)
+            mainText = lastWord,
+            subText = restOfAddress
         )
 
         InfoRow(
@@ -206,7 +189,7 @@ fun ActivityDetailsContent(
         ActivityDescription(activity?.description ?: stringResource(R.string.unknown_description))
 
         // Send lokasjon og kontekst til ActivityGPSImage
-        ActivityGPSImage(context = context, destinationLocation = activity?.location ?: "Ukjent adresse")
+        ActivityGPSImage(context = context, destinationLocation = fullLocation)
 
         ActivityRegisterButton(
             isRegistered = isRegistered,
@@ -233,6 +216,8 @@ fun ActivityImage(imageUrl: String) {
     )
 }
 
+
+
 @Composable
 fun ActivityTitle(title: String) {
     Text(
@@ -258,6 +243,7 @@ fun ActivityDescription(description: String) {
         modifier = Modifier.padding(vertical = 16.dp)
     )
 }
+
 
 @Composable
 fun ActivityGPSImage(context: Context, destinationLocation: String) {
@@ -286,6 +272,9 @@ fun ActivityGPSImage(context: Context, destinationLocation: String) {
                 println("User's current location: ${location?.latitude}, ${location?.longitude}")
             }
     }
+
+    // Lag URL for Google Maps Static API med destinasjon
+    val staticMapUrl = "https://maps.googleapis.com/maps/api/staticmap?center=${Uri.encode(destinationLocation)}&zoom=15&size=600x300&markers=color:red%7Clabel:S%7C${Uri.encode(destinationLocation)}&key=AIzaSyBm7zH5lmtMtmL1gz5b6Hau89lSpqv1pwY"
 
     // Sjekk om lokasjonen er tilgjengelig
     val locationReady = userLocation.value != null
@@ -317,11 +306,14 @@ fun ActivityGPSImage(context: Context, destinationLocation: String) {
             .background(Color.LightGray),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = if (locationReady) "Klikk for å åpne Google Maps" else "Henter din plassering...",
-            color = Color.White,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(16.dp)
+        Image(
+            painter = rememberAsyncImagePainter(staticMapUrl),
+            contentDescription = "Map of $destinationLocation",
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(250.dp)
+                .clip(RoundedCornerShape(16.dp)),
+            contentScale = ContentScale.Crop
         )
     }
 }
