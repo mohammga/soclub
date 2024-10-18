@@ -58,6 +58,9 @@ class MainActivity : ComponentActivity() {
             isCameraPermissionGranted = permissions[Manifest.permission.CAMERA] ?: isCameraPermissionGranted
         }
 
+
+
+
         // Request permissions
         requestPermission()
 
@@ -183,6 +186,9 @@ class MainActivity : ComponentActivity() {
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
     }
 }
+
+
+
 
 @Composable
 fun NoInternetScreen(onRetryClick: () -> Unit) {

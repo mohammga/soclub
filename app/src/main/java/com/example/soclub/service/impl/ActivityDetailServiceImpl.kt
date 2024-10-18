@@ -22,13 +22,18 @@ class ActivityDetailServiceImpl @Inject constructor(
             .await()
 
         val activity = documentSnapshot.toObject(Activity::class.java)
+
+        // Hent full adresse
         val fullLocation = activity?.location ?: "Ukjent"
+
+        // Hvis du fortsatt vil dele opp adressen for UI-et
         val lastWord = fullLocation.substringAfterLast(" ")
         val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
 
+        // Returner hele adressen (fullLocation) for bruk i GPS-funksjonen
         return activity?.copy(
-            location = lastWord,
-            restOfAddress = restOfAddress
+            location = fullLocation, // Ikke bruk lastWord her, behold hele adressen for GPS
+            restOfAddress = restOfAddress // Hvis du vil vise deler av adressen i UI
         )
     }
 
