@@ -33,33 +33,25 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.ui.graphics.Color
 
-
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hiltViewModel()) {
     val categories by viewModel.getCategories().observeAsState(emptyList())
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { categories.size })
 
-    // BottomSheet state (using a simple Boolean)
     var showBottomSheet by remember { mutableStateOf(false) }
-    var isSelectingArea by remember { mutableStateOf(true) } // To switch between area and city views
+    var isSelectingArea by remember { mutableStateOf(true) }
     val coroutineScope = rememberCoroutineScope()
-
-    // Hold the selected cities
     val selectedCities = remember { mutableStateListOf<String>() }
-
-    // Hent byer fra ViewModel ved hjelp av getCities()
     val cities by viewModel.getCities().observeAsState(emptyList())
 
     Column(modifier = Modifier.fillMaxSize()) {
-
         if (categories.isNotEmpty()) {
             CategoryTabs(categories = categories, pagerState = pagerState)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Bruk `selectedCategory` fra pagerState
         val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
 
         Row(
@@ -71,21 +63,18 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
         ) {
             CategoryTitle(selectedCategory)
 
-            // Filter icon
             Icon(
                 imageVector = Icons.Default.FilterList,
                 contentDescription = "Filter",
-                modifier = Modifier
-                    .clickable {
-                        showBottomSheet = true
-                        isSelectingArea = true // Start with area selection
-                    }
+                modifier = Modifier.clickable {
+                    showBottomSheet = true
+                    isSelectingArea = true
+                }
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Vis aktiviteter for den valgte kategorien
         CategoryActivitiesPager(
             categories = categories,
             pagerState = pagerState,
@@ -94,13 +83,11 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
         )
     }
 
-    // Bottom sheet content for filtering by city
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false }
         ) {
             if (isSelectingArea) {
-                // Områdevalg (Area Selection)
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(text = "Filtrer etter", fontWeight = FontWeight.Bold, fontSize = 20.sp)
                     Spacer(modifier = Modifier.height(16.dp))
@@ -113,10 +100,14 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                     )
                 }
             } else {
-                Column(modifier = Modifier.fillMaxHeight().padding(16.dp)) {
-                    // Tilbake-navigasjon
+                Column(modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(16.dp)
+                ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth().clickable { isSelectingArea = true }
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { isSelectingArea = true }
                             .padding(vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -125,29 +116,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                             contentDescription = "Tilbake",
                             modifier = Modifier.padding(end = 16.dp)
                         )
-                        Text(
-                            text = "Tilbake",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-
-                    // Vis valgte byer
-                    if (selectedCities.isNotEmpty()) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            selectedCities.forEach { city ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(text = city, fontSize = 16.sp)
-                                    IconButton(onClick = { selectedCities.remove(city) }) {
-                                        Icon(imageVector = Icons.Default.Close, contentDescription = "Fjern $city")
-                                    }
-                                }
-                            }
-                        }
+                        Text(text = "Tilbake", fontSize = 16.sp, fontWeight = FontWeight.Medium)
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -155,7 +124,12 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                     Text(text = "Velg By", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    LazyColumn {
+                    // Begrens høyden på LazyColumn
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(500.dp)  // Sett høydebegrensning her
+                    ) {
                         items(cities) { city ->
                             CitySelectionItem(
                                 city = city,
@@ -172,17 +146,18 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                         }
                     }
 
-                    Spacer(modifier = Modifier.weight(1f)) // Push content up
+                    Spacer(modifier = Modifier.height(16.dp)) // Litt plass før knappen
 
-                    // Søk-knapp
                     Button(
                         onClick = {
                             coroutineScope.launch {
-                                // Håndter by-filter aktiviteter her hvis nødvendig
+                                // Håndter filter her
                             }
                             showBottomSheet = false
                         },
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp)
                     ) {
                         Text(text = "Søk")
                     }
@@ -191,6 +166,9 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
         }
     }
 }
+
+
+
 
 @Composable
 fun CategoryActivitiesPager(
@@ -206,7 +184,6 @@ fun CategoryActivitiesPager(
         ActivityList(activities = activities, selectedCategory = selectedCategory, navController = navController)
     }
 }
-
 
 @Composable
 fun CitySelectionItem(city: String, isSelected: Boolean, onCitySelected: (Boolean) -> Unit) {
@@ -244,7 +221,6 @@ fun FilterListItem(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(backgroundColor)
-            .clip(RoundedCornerShape(16.dp)) // Legger til border radius
             .clickable { onClick() }
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -294,8 +270,7 @@ fun CategoryTitle(category: String) {
         text = category,
         fontSize = 20.sp,
         fontWeight = FontWeight.Bold,
-        modifier = Modifier
-            .padding(start = 16.dp)
+        modifier = Modifier.padding(start = 16.dp)
     )
 }
 
@@ -321,7 +296,6 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable { onClick() }
     ) {
-
         Image(
             painter = rememberAsyncImagePainter(activity.imageUrl),
             contentDescription = activity.title,
