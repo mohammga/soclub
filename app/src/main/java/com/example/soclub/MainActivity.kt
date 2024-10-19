@@ -17,6 +17,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
 import com.example.soclub.components.navigation.AppNavigation
@@ -39,20 +45,16 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var connectivityManager: ConnectivityManager
 
+    // Legg til en tilstand for nettverksstatus
+    private var hasInternetConnection by mutableStateOf(true)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Sjekk om det er internettforbindelse, hvis ikke, avslutt appen
-        if (!isNetworkAvailable()) {
-            Toast.makeText(this, "Ingen internettforbindelse. Appen avsluttes.", Toast.LENGTH_LONG).show()
-            finish() // Avslutt appen hvis det ikke er nettverk
-            return
-        }
 
         // Initialize the permission launcher
         permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             isLocationPermissionGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: isLocationPermissionGranted
-            isPOST_NOTIFICATIONS = permissions[Manifest.permission.CAMERA]?:isPOST_NOTIFICATIONS
+            isPOST_NOTIFICATIONS = permissions[Manifest.permission.CAMERA] ?: isPOST_NOTIFICATIONS
             isCameraPermissionGranted = permissions[Manifest.permission.CAMERA] ?: isCameraPermissionGranted
         }
 
@@ -66,14 +68,32 @@ class MainActivity : ComponentActivity() {
         setContent {
             SoclubTheme {
                 val navController = rememberNavController()
-                AppNavigation(navController, activityService)  // Passer ActivityService til AppNavigation
+
+                // Vis UI basert på nettverksstatus
+                if (hasInternetConnection) {
+                    // Hovedinnholdet vises hvis det er internett
+                    AppNavigation(navController, activityService)
+                } else {
+                    // Vis "ingen internett"-skjermen hvis det ikke er internett
+                    NoInternetScreen(onRetryClick = {
+                        // Når brukeren klikker "Prøv igjen", sjekk om internett er tilbake
+                        if (isNetworkAvailable()) {
+                            hasInternetConnection = true
+                        }
+                    })
+                }
             }
         }
 
         // Initialize ConnectivityManager for network monitoring
         connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
-        // Start monitoring network
+        // Sjekk nettverk ved oppstart
+        if (!isNetworkAvailable()) {
+            hasInternetConnection = false
+        }
+
+        // Start monitoring network changes during app usage
         monitorNetworkConnection()
     }
 
@@ -127,8 +147,6 @@ class MainActivity : ComponentActivity() {
             // Here you can do something with the image, e.g. show it in an ImageView
             Toast.makeText(this, "Image captured!", Toast.LENGTH_SHORT).show()
         }
-
-
     }
 
     // Sjekk nettverkstilgang
@@ -139,7 +157,7 @@ class MainActivity : ComponentActivity() {
         return networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
-    // Monitor network connection
+    // Monitor network connection during app usage
     private fun monitorNetworkConnection() {
         val networkRequest = NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
@@ -151,27 +169,37 @@ class MainActivity : ComponentActivity() {
             override fun onAvailable(network: Network) {
                 super.onAvailable(network)
                 // Handle network available
-                Toast.makeText(this@MainActivity, "Nettverk tilgjengelig", Toast.LENGTH_SHORT).show()
-            }
-
-            override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
-                super.onCapabilitiesChanged(network, networkCapabilities)
-                val isUnmetered = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
-                if (isUnmetered) {
-                    Toast.makeText(this@MainActivity, "Nettverket er umålt", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this@MainActivity, "Nettverket er målt", Toast.LENGTH_SHORT).show()
-                }
+                hasInternetConnection = true
             }
 
             override fun onLost(network: Network) {
                 super.onLost(network)
-                // Handle network lost
-                Toast.makeText(this@MainActivity, "Nettverk mistet", Toast.LENGTH_SHORT).show()
+                // Handle network lost, show "no internet" UI
+                hasInternetConnection = false
             }
         }
 
         // Register the network callback
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback)
+    }
+}
+
+@Composable
+fun NoInternetScreen(onRetryClick: () -> Unit) {
+    // Layout som vises når det ikke er internettforbindelse
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = "Ingen internettforbindelse", style = MaterialTheme.typography.h6)
+        Spacer(modifier = Modifier.height(16.dp))
+        CircularProgressIndicator()
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = onRetryClick) {
+            Text(text = "Prøv igjen")
+        }
     }
 }
