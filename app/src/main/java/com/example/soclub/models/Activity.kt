@@ -2,7 +2,11 @@ package com.example.soclub.models
 
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
+
+import com.google.firebase.Timestamp
+
 import java.util.Date
+
 
 
 data class Activity(
@@ -10,13 +14,20 @@ data class Activity(
     val imageUrl: String = "",
     val title: String = "",
     val description: String = "",
-    val ageGroup: Int = 0 ,
+    val ageGroup: Int = 0,
     val maxParticipants: Int = 0,
     val location: String = "",
     val restOfAddress: String = "",
+
+    val date: Timestamp? = null,
     val creatorId: String = "",
+    val createdAt: Timestamp = Timestamp.now(),
+    val startTime: String = ""
+
     val date: String = ""
+
 )
+
 
 data class createActivity(
     val creatorId: String = "",
@@ -26,9 +37,16 @@ data class createActivity(
     val ageGroup: Int = 0 ,
     val maxParticipants: Int = 0,
     val location: String = "",
-    val date: String = "",
-    val time: String= "",
+    val date: Timestamp? = null,
+    val startTime: String = "",
+    val createdAt: Timestamp = Timestamp.now(),
 )
+
+
+
+    
+
+   
 
 
 data class editActivity(
@@ -44,6 +62,7 @@ data class editActivity(
     val time: String= "",
     val category: String = ""
     )
+
 
 //data class Activity2(
 //    val imageUrl: String = "",

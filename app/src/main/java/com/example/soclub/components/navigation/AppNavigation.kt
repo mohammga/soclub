@@ -17,6 +17,7 @@ import com.example.soclub.components.navigation.navBars.BottomNavBar
 import com.example.soclub.components.navigation.navBars.HomeTopBar
 import com.example.soclub.components.navigation.navBars.TopBar
 import com.example.soclub.components.navigation.navBars.getCurrentScreen
+import com.example.soclub.models.NewActivityScreen
 import com.example.soclub.screens.activityDetail.ActivityDetailScreen
 import com.example.soclub.screens.changePassword.ChangePasswordScreen
 import com.example.soclub.screens.editActivity.EditActivityScreen
@@ -24,7 +25,7 @@ import com.example.soclub.screens.editPermission.EditPermissionScreen
 import com.example.soclub.screens.editProfile.EditProfileScreen
 import com.example.soclub.screens.entries.EntriesScreen
 import com.example.soclub.screens.home.HomeScreen
-import com.example.soclub.screens.newActivity.NewActivityScreen
+
 import com.example.soclub.screens.notifications.NotificationsScreen
 import com.example.soclub.screens.profile.ProfileScreen
 import com.example.soclub.screens.resetPassword.ResetPasswordScreen
