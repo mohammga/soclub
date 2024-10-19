@@ -34,4 +34,20 @@ class HomeViewModel @Inject constructor(
             emit(emptyList<Activity>())
         }
     }
+
+//    fun getCities() = liveData(Dispatchers.IO) {
+//        try {
+//            val activities = activityService.getAllActivities() // Hent alle aktiviteter
+//            val cities = activities.mapNotNull { activity ->
+//                val fullLocation = activity.location ?: "Ukjent"
+//                fullLocation.substringAfterLast(" ") // Trekk ut byen
+//            }.distinct() // Fjern duplikater
+//            emit(cities)
+//        } catch (e: Exception) {
+//            emit(emptyList<String>())
+//        }
+//    }
+
+    
+
 }
