@@ -51,118 +51,6 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
     // Hent byer fra ViewModel ved hjelp av getCities()
     val cities by viewModel.getCities().observeAsState(emptyList())
 
-    // Bottom sheet content
-    if (showBottomSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showBottomSheet = false }
-        ) {
-            if (isSelectingArea) {
-                // Områdevalg (Area Selection) - Stilet liste med svart bakgrunn
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = "Filtrer etter", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Stilet listeelement med svart bakgrunn og hvit tekst for "Område"
-                    FilterListItem(
-                        title = "Område",
-                        onClick = { isSelectingArea = false },
-                        backgroundColor = MaterialTheme.colorScheme.primary, // Svart bakgrunn
-                        contentColor = MaterialTheme.colorScheme.onPrimary // Hvit tekst og pil
-                    )
-                }
-            } else {
-                // Byvalg (City Selection) - Dynamisk liste over byer med checkbox og søk-knapp
-                Column(modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(16.dp)
-                ) {
-                    // Tilbake pil øverst for å navigere tilbake til områdevalg
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { isSelectingArea = true } // Tilbake til områdevalg
-                            .padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Tilbake",
-                            modifier = Modifier.padding(end = 16.dp)
-                        )
-                        Text(
-                            text = "Tilbake",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-
-                    // Vis valgte byer under tilbake-navigasjonen
-                    if (selectedCities.isNotEmpty()) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            selectedCities.forEach { city ->
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 4.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(text = city, fontSize = 16.sp)
-                                    IconButton(onClick = {
-                                        selectedCities.remove(city) // Fjern byen fra listen
-                                    }) {
-                                        Icon(
-                                            imageVector = Icons.Default.Close,
-                                            contentDescription = "Fjern $city"
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(text = "Velg By", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Dynamisk liste over byer
-                    LazyColumn {
-                        items(cities) { city ->
-                            CitySelectionItem(
-                                city = city,
-                                isSelected = selectedCities.contains(city),
-                                onCitySelected = { isSelected ->
-                                    if (isSelected) {
-                                        selectedCities.add(city)
-                                    } else {
-                                        selectedCities.remove(city)
-                                    }
-                                }
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.weight(1f)) // Pusher innholdet oppover for å plassere knappen nederst
-
-                    // Søk-knapp
-                    Button(
-                        onClick = {
-                            // Handle search action here, for now we just close the sheet
-                            showBottomSheet = false
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 16.dp)
-                    ) {
-                        Text(text = "Søk")
-                    }
-                }
-            }
-        }
-    }
-
     Column(modifier = Modifier.fillMaxSize()) {
 
         if (categories.isNotEmpty()) {
@@ -171,9 +59,9 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Bruk `selectedCategory` fra pagerState
         val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
 
-        // Modified CategoryTitle to include a filter icon
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -197,6 +85,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Vis aktiviteter for den valgte kategorien
         CategoryActivitiesPager(
             categories = categories,
             pagerState = pagerState,
@@ -204,7 +93,120 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
             navController = navController
         )
     }
+
+    // Bottom sheet content for filtering by city
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false }
+        ) {
+            if (isSelectingArea) {
+                // Områdevalg (Area Selection)
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(text = "Filtrer etter", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    FilterListItem(
+                        title = "Område",
+                        onClick = { isSelectingArea = false },
+                        backgroundColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            } else {
+                Column(modifier = Modifier.fillMaxHeight().padding(16.dp)) {
+                    // Tilbake-navigasjon
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clickable { isSelectingArea = true }
+                            .padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Tilbake",
+                            modifier = Modifier.padding(end = 16.dp)
+                        )
+                        Text(
+                            text = "Tilbake",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+
+                    // Vis valgte byer
+                    if (selectedCities.isNotEmpty()) {
+                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                            selectedCities.forEach { city ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(text = city, fontSize = 16.sp)
+                                    IconButton(onClick = { selectedCities.remove(city) }) {
+                                        Icon(imageVector = Icons.Default.Close, contentDescription = "Fjern $city")
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(text = "Velg By", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    LazyColumn {
+                        items(cities) { city ->
+                            CitySelectionItem(
+                                city = city,
+                                isSelected = selectedCities.contains(city),
+                                onCitySelected = { isSelected ->
+                                    if (isSelected) {
+                                        selectedCities.add(city)
+                                    } else {
+                                        selectedCities.remove(city)
+                                    }
+                                }
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.weight(1f)) // Push content up
+
+                    // Søk-knapp
+                    Button(
+                        onClick = {
+                            coroutineScope.launch {
+                                // Håndter by-filter aktiviteter her hvis nødvendig
+                            }
+                            showBottomSheet = false
+                        },
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
+                    ) {
+                        Text(text = "Søk")
+                    }
+                }
+            }
+        }
+    }
 }
+
+@Composable
+fun CategoryActivitiesPager(
+    categories: List<String>,
+    pagerState: PagerState,
+    viewModel: HomeViewModel,
+    navController: NavHostController
+) {
+    HorizontalPager(state = pagerState) { page ->
+        val selectedCategory = categories[page]
+        val activities by viewModel.getActivities(selectedCategory).observeAsState(emptyList())
+
+        ActivityList(activities = activities, selectedCategory = selectedCategory, navController = navController)
+    }
+}
+
 
 @Composable
 fun CitySelectionItem(city: String, isSelected: Boolean, onCitySelected: (Boolean) -> Unit) {
@@ -295,22 +297,6 @@ fun CategoryTitle(category: String) {
         modifier = Modifier
             .padding(start = 16.dp)
     )
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun CategoryActivitiesPager(
-    categories: List<String>,
-    pagerState: PagerState,
-    viewModel: HomeViewModel,
-    navController: NavHostController
-) {
-    HorizontalPager(state = pagerState) { page ->
-        val selectedCategory = categories[page]
-        val activities by viewModel.getActivities(selectedCategory).observeAsState(emptyList())
-
-        ActivityList(activities = activities, selectedCategory = selectedCategory, navController = navController)
-    }
 }
 
 @Composable

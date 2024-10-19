@@ -48,4 +48,22 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    fun getActivitiesByCities(selectedCities: List<String>) = liveData(Dispatchers.IO) {
+        try {
+            // Hent alle aktiviteter
+            val activities = activityService.getAllActivities()
+
+            // Filtrer aktiviteter basert på valgte byer
+            val filteredActivities = activities.filter { activity ->
+                selectedCities.contains(activity.location) // Sammenligner by med aktivitetens lokasjon
+            }
+
+            emit(filteredActivities)
+        } catch (e: Exception) {
+            emit(emptyList<Activity>())
+        }
+    }
 }
+
+
+
