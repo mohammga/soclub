@@ -148,6 +148,27 @@ class ActivityServiceImpl @Inject constructor(
         return activityList
     }
 
+    // Hent alle kategorier og deres aktiviteter
+    override suspend fun getActivitiesGroupedByCategory(): Map<String, List<Activity>> {
+        val categoriesSnapshot = firestore.collection("category").get().await()
+        val activitiesByCategory = mutableMapOf<String, List<Activity>>()
+
+        // Iterer over hver kategori, og hent aktiviteter
+        for (categoryDoc in categoriesSnapshot.documents) {
+            val categoryName = categoryDoc.id
+            val activitiesSnapshot = firestore.collection("category")
+                .document(categoryName)
+                .collection("activities")
+                .get()
+                .await()
+
+            val activities = activitiesSnapshot.toObjects(Activity::class.java)
+            activitiesByCategory[categoryName] = activities
+        }
+
+        return activitiesByCategory
+    }
+
 
 
 

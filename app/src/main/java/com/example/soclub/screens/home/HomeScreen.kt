@@ -41,9 +41,12 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
     var showBottomSheet by remember { mutableStateOf(false) }
     var isSelectingArea by remember { mutableStateOf(true) }
-    val coroutineScope = rememberCoroutineScope()
     val selectedCities = remember { mutableStateListOf<String>() }
     val cities by viewModel.getCities().observeAsState(emptyList())
+    val filteredActivities by viewModel.filteredActivities.observeAsState(emptyList()) // Bruk filtrerte aktiviteter
+
+
+
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (categories.isNotEmpty()) {
@@ -75,12 +78,16 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        CategoryActivitiesPager(
-            categories = categories,
-            pagerState = pagerState,
-            viewModel = viewModel,
-            navController = navController
-        )
+        if (filteredActivities.isNotEmpty()) {
+            ActivityList(activities = filteredActivities, selectedCategory = selectedCategory, navController = navController)
+        } else {
+            CategoryActivitiesPager(
+                categories = categories,
+                pagerState = pagerState,
+                viewModel = viewModel,
+                navController = navController
+            )
+        }
     }
 
     if (showBottomSheet) {
@@ -124,16 +131,15 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                     Text(text = "Velg By", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Begrens høyden på LazyColumn
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(500.dp)  // Sett høydebegrensning her
+                            .height(300.dp)  // Begrens høyden
                     ) {
                         items(cities) { city ->
                             CitySelectionItem(
                                 city = city,
-                                isSelected = selectedCities.contains(city),
+                                isSelected = selectedCities.contains(city), // Behold valgte byer
                                 onCitySelected = { isSelected ->
                                     if (isSelected) {
                                         selectedCities.add(city)
@@ -146,25 +152,36 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp)) // Litt plass før knappen
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     Button(
                         onClick = {
-                            coroutineScope.launch {
-                                // Håndter filter her
-                            }
-                            showBottomSheet = false
+                            viewModel.fetchAndFilterActivitiesByCities(selectedCities, categories) // Filtrer aktiviteter etter byer
+                            showBottomSheet = false // Skjul BottomSheet
                         },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 16.dp)
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
                     ) {
                         Text(text = "Søk")
+                    }
+
+                    if (filteredActivities.isNotEmpty()) {
+                        Button(
+                            onClick = {
+                                viewModel.resetFilter()
+                                selectedCities.clear()
+                                viewModel.fetchAndFilterActivitiesByCities(emptyList(), categories)
+                                showBottomSheet = false
+                            },
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                        ) {
+                            Text("Nullstill filtrering")
+                        }
+                    }
                     }
                 }
             }
         }
-    }
+
 }
 
 
