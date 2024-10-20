@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,6 +36,31 @@ import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalContext
+import android.location.Location
+import androidx.compose.runtime.mutableStateOf
+import com.google.android.gms.location.LocationServices
+import androidx.core.app.ActivityCompat
+import android.Manifest
+import android.content.pm.PackageManager
+import android.util.Log
+
+
+
+
+fun openGoogleMaps(context: Context, gmmIntentUri: String) {
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(gmmIntentUri))
+    intent.setPackage("com.google.android.apps.maps")
+    if (intent.resolveActivity(context.packageManager) != null) {
+        context.startActivity(intent)
+    }
+}
+
 
 
 @Composable
@@ -47,6 +71,8 @@ fun ActivityDetailScreen(
     viewModel: ActivityDetailViewModel = hiltViewModel()
 ) {
 
+
+
     val activity = viewModel.activity.collectAsState().value
     val isRegistered = viewModel.isRegistered.collectAsState().value
     val canRegister = viewModel.canRegister.collectAsState().value
@@ -54,12 +80,12 @@ fun ActivityDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+
     LaunchedEffect(activityId, category) {
         if (activityId != null && category != null) {
             viewModel.loadActivity(category, activityId)
         }
     }
-
 
 
     Scaffold(
@@ -131,32 +157,40 @@ fun ActivityDetailsContent(
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
+    val context = LocalContext.current // Få tilgang til konteksten her
+    val fullLocation = activity?.location ?: stringResource(R.string.unknown_location)
+    val lastWord = fullLocation.substringAfterLast(" ") // Den siste delen av adressen (f.eks. by eller postnummer)
+    val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent") // Resten av adressen
+
     Column(modifier = Modifier.padding(16.dp)) {
         ActivityTitle(activity?.title ?: stringResource(R.string.activity_no_title))
         ActivityDate()
         InfoRow(
             icon = Icons.Default.LocationOn,
-            mainText = activity?.location ?: stringResource(R.string.unknown_location),
-            subText = activity?.restOfAddress ?: stringResource(R.string.unknown_address)
+            mainText = lastWord,
+            subText = restOfAddress
         )
 
         InfoRow(
             icon = Icons.Default.People,
             mainText = if (currentParticipants == 0) {
-                stringResource(R.string.participants_max, activity?.maxParticipants?:0)
+                stringResource(R.string.participants_max, activity?.maxParticipants ?: 0)
             } else {
-                stringResource(R.string.participants_registered,
+                stringResource(
+                    R.string.participants_registered,
                     currentParticipants,
                     if (currentParticipants > 1) "e" else "",
-                    activity?.maxParticipants ?:0
-
-                    )
+                    activity?.maxParticipants ?: 0
+                )
             },
             subText = stringResource(R.string.age_group, activity?.ageGroup ?: "Alle")
         )
 
         ActivityDescription(activity?.description ?: stringResource(R.string.unknown_description))
-        ActivityGPSImage()
+
+        // Send lokasjon og kontekst til ActivityGPSImage
+        ActivityGPSImage(context = context, destinationLocation = fullLocation)
+
         ActivityRegisterButton(
             isRegistered = isRegistered,
             canRegister = canRegister,
@@ -165,7 +199,6 @@ fun ActivityDetailsContent(
             onUnregisterClick = onUnregisterClick
         )
     }
-
 }
 
 
@@ -182,6 +215,8 @@ fun ActivityImage(imageUrl: String) {
         contentScale = ContentScale.Crop
     )
 }
+
+
 
 @Composable
 fun ActivityTitle(title: String) {
@@ -209,18 +244,78 @@ fun ActivityDescription(description: String) {
     )
 }
 
+
 @Composable
-fun ActivityGPSImage() {
-    Image(
-        painter = painterResource(R.drawable.gpsbilde1),
-        contentDescription = "GPS-bilde",
+fun ActivityGPSImage(context: Context, destinationLocation: String) {
+    // Hent brukerens plassering
+    val userLocation = remember { mutableStateOf<Location?>(null) }
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+
+    // Be om plasseringstillatelser hvis det ikke allerede er gitt
+    LaunchedEffect(Unit) {
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // Tillatelsen er ikke gitt, håndter det (f.eks. vis en melding til brukeren)
+            return@LaunchedEffect
+        }
+
+        // Få nåværende plassering
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location: Location? ->
+                userLocation.value = location
+                println("User's current location: ${location?.latitude}, ${location?.longitude}")
+            }
+    }
+
+    // Lag URL for Google Maps Static API med destinasjon
+    val staticMapUrl = "https://maps.googleapis.com/maps/api/staticmap?center=${Uri.encode(destinationLocation)}&zoom=15&size=600x300&markers=color:red%7Clabel:S%7C${Uri.encode(destinationLocation)}&key=AIzaSyBm7zH5lmtMtmL1gz5b6Hau89lSpqv1pwY"
+
+    // Sjekk om lokasjonen er tilgjengelig
+    val locationReady = userLocation.value != null
+
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(250.dp)
             .clip(RoundedCornerShape(16.dp))
-            .padding(vertical = 8.dp),
-        contentScale = ContentScale.Crop
-    )
+            .clickable {
+                if (locationReady) {
+                    val location = userLocation.value
+                    if (location != null) {
+                        val startLat = location.latitude
+                        val startLng = location.longitude
+
+                        // Bygg Google Maps URL med nåværende posisjon og destinasjon
+                        val gmmIntentUri = "https://www.google.com/maps/dir/?api=1" +
+                                "&origin=$startLat,$startLng" + // Startposisjon
+                                "&destination=${Uri.encode(destinationLocation)}"
+
+                        openGoogleMaps(context, gmmIntentUri)
+                    }
+                } else {
+                    // Hvis brukerens lokasjon ikke er tilgjengelig, åpne destinasjonen uten startpunkt
+                    openGoogleMaps(context, "https://www.google.com/maps/search/?api=1&query=${Uri.encode(destinationLocation)}")
+                }
+            }
+            .background(Color.LightGray),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = rememberAsyncImagePainter(staticMapUrl),
+            contentDescription = "Map of $destinationLocation",
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(250.dp)
+                .clip(RoundedCornerShape(16.dp)),
+            contentScale = ContentScale.Crop
+        )
+    }
 }
 
 @Composable

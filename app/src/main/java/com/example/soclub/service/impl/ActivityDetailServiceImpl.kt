@@ -22,13 +22,16 @@ class ActivityDetailServiceImpl @Inject constructor(
             .await()
 
         val activity = documentSnapshot.toObject(Activity::class.java)
+
+        // Hent full adresse
         val fullLocation = activity?.location ?: "Ukjent"
-        val lastWord = fullLocation.substringAfterLast(" ")
+
         val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
 
+        // Returner hele adressen og siste del av adressen
         return activity?.copy(
-            location = lastWord,
-            restOfAddress = restOfAddress
+            restOfAddress = restOfAddress, // Resten av adressen
+
         )
     }
 
@@ -110,6 +113,9 @@ class ActivityDetailServiceImpl @Inject constructor(
                 }
             }
     }
+
+
+
 
 
 }

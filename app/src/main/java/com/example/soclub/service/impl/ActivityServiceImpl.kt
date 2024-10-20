@@ -127,5 +127,49 @@ class ActivityServiceImpl @Inject constructor(
         }
     }
 
+    // Legg til denne funksjonen i ActivityService
+    override suspend fun getAllActivities(): List<Activity> {
+        val activityList = mutableListOf<Activity>()
+        val categoriesSnapshot = firestore.collection("category").get().await()
+
+        // Iterer over alle kategoriene
+        for (categoryDoc in categoriesSnapshot.documents) {
+            val activitiesSnapshot = firestore.collection("category")
+                .document(categoryDoc.id)
+                .collection("activities")
+                .get()
+                .await()
+
+            // Legg til aktivitetene fra denne kategorien til listen
+            val activities = activitiesSnapshot.toObjects(Activity::class.java)
+            activityList.addAll(activities)
+        }
+
+        return activityList
+    }
+
+    // Hent alle kategorier og deres aktiviteter
+    override suspend fun getActivitiesGroupedByCategory(): Map<String, List<Activity>> {
+        val categoriesSnapshot = firestore.collection("category").get().await()
+        val activitiesByCategory = mutableMapOf<String, List<Activity>>()
+
+        // Iterer over hver kategori, og hent aktiviteter
+        for (categoryDoc in categoriesSnapshot.documents) {
+            val categoryName = categoryDoc.id
+            val activitiesSnapshot = firestore.collection("category")
+                .document(categoryName)
+                .collection("activities")
+                .get()
+                .await()
+
+            val activities = activitiesSnapshot.toObjects(Activity::class.java)
+            activitiesByCategory[categoryName] = activities
+        }
+
+        return activitiesByCategory
+    }
+
+
+
 
 }
