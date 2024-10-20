@@ -32,11 +32,11 @@ fun EntriesScreen(navController: NavHostController) {
         }
 
         if (selectedTab == 1) {
-            InactiveEntriesList()
+            // utløpte aktiviteter
         }
 
         if (selectedTab == 2) {
-            //endre her for og vise kansellerte
+            cancelled()
 
         }
     }
@@ -97,7 +97,7 @@ fun ActiveEntriesList(viewModel: EntriesScreenViewModel = hiltViewModel()) {
         ) {
             items(activeActivities.size) { index ->
                 val activity = activeActivities[index]
-                EntryItem(
+                EntryItemCancelButton(
                     imageUrl = activity.imageUrl, // Send imageUrl fra databasen
                     title = activity.title,
                     time = activity.date.toString(),
@@ -145,7 +145,80 @@ fun InactiveEntriesList(viewModel: EntriesScreenViewModel = hiltViewModel()) {
 
 
 @Composable
+fun cancelled(viewModel: EntriesScreenViewModel = hiltViewModel()) {
+    val inactiveActivities by viewModel.notActiveActivities.collectAsState()
+    val isLoadingInactive by viewModel.isLoadingInactive.collectAsState()
+
+    if (isLoadingInactive) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator() // Viser en spinner mens data lastes
+        }
+    } else if (inactiveActivities.isEmpty()) {
+        Text(text = "Ingen utgåtte aktiviteter funnet", modifier = Modifier.padding(16.dp))
+    } else {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(inactiveActivities.size) { index ->
+                val activity = inactiveActivities[index]
+                EntryItem(
+                    imageUrl = activity.imageUrl, // Bruk et standardbilde inntil dynamiske bilder er på plass
+                    title = activity.title,
+                    time = activity.date.toString(),
+                    onCancelClick = { /* Håndter kansellering */ }
+                )
+            }
+        }
+    }
+}
+
+
+
+@Composable
 fun EntryItem(
+    imageUrl: String?, // Endre fra imageRes til imageUrl
+    title: String,
+    time: String,
+    onCancelClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { /* Håndter klikk på oppføringen */ },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        EventImage(imageUrl) // Send imageUrl til EventImage
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = time,
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(28.dp))
+
+            HorizontalDivider(thickness = 1.dp)
+        }
+    }
+}
+
+
+@Composable
+fun EntryItemCancelButton(
     imageUrl: String?, // Endre fra imageRes til imageUrl
     title: String,
     time: String,

@@ -15,8 +15,12 @@ data class Activity(
     val location: String = "",
     val restOfAddress: String = "",
     val creatorId: String = "",
-    val date: String = ""
+    val date: Timestamp? = null,
+    val createdAt: Timestamp = Timestamp.now(),
+    val startTime: String = ""
 )
+
+
 
 data class createActivity(
     val creatorId: String = "",
