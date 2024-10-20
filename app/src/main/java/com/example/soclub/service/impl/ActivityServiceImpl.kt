@@ -1,8 +1,8 @@
 package com.example.soclub.service.impl
-import com.google.firebase.Timestamp
-import java.util.Date
 
 import com.example.soclub.models.Activity
+import com.example.soclub.models.createActivity
+import com.example.soclub.models.editActivity
 import com.example.soclub.service.ActivityService
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -12,32 +12,13 @@ class ActivityServiceImpl @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : ActivityService {
 
-    override suspend fun createActivity(category: String, activity: Activity) {
-        firestore.collection("activities").document(category)
+    // Opprett ny aktivitet
+    override suspend fun createActivity(category: String, activity: createActivity) {
+        firestore.collection("category").document(category)
             .collection("activities").add(activity).await()
     }
 
-
-    override suspend fun getActivities(category: String): List<Activity> {
-        val snapshot = firestore.collection("category").document(category)
-            .collection("activities").get().await()
-
-        return snapshot.documents.mapNotNull { document ->
-            val activity = document.toObject(Activity::class.java)
-
-            val fullLocation = activity?.location ?: "Ukjent"
-            val lastWord = fullLocation.substringAfterLast(" ")
-            val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
-
-            activity?.copy(
-                id = document.id,
-                location = lastWord,  // Her setter vi siste ord som location
-                description = restOfAddress // Bruker beskrivelsefeltet midlertidig for resten av adressen
-            )
-        }
-    }
-
-
+    // Hent en aktivitet basert på ID
     override suspend fun getActivityById(category: String, activityId: String): Activity? {
         val documentSnapshot = firestore.collection("category")
             .document(category)
@@ -58,111 +39,137 @@ class ActivityServiceImpl @Inject constructor(
         )
     }
 
+    // Hent alle aktiviteter i en kategori
+    override suspend fun getActivities(category: String): List<Activity> {
+        val snapshot = firestore.collection("category").document(category)
+            .collection("activities").get().await()
 
+        return snapshot.documents.mapNotNull { document ->
+            val activity = document.toObject(Activity::class.java)
 
+            val fullLocation = activity?.location ?: "Ukjent"
+            val lastWord = fullLocation.substringAfterLast(" ")
+            val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
 
-    override suspend fun getCategories(): List<String> {
-        val snapshot = firestore.collection("category").get().await()
+            activity?.copy(
+                id = document.id,
+                location = lastWord,
+                description = restOfAddress
+            )
+        }
+    }
 
-        // Hent alle kategorier (dokument-ID-er)
-        val categories = snapshot.documents.map { document ->
-            document.id  // Returnerer dokument-ID-ene som tilsvarer kategorinavnene
+    // Hent alle aktiviteter opprettet av en bestemt bruker
+    override suspend fun getAllActivitiesByCreator(creatorId: String): List<editActivity> {
+        val categoriesSnapshot = firestore.collection("category").get().await()
+        val allActivities = mutableListOf<editActivity>()
+
+        // Gå gjennom hver kategori (dokument)
+        for (categoryDocument in categoriesSnapshot.documents) {
+            val categoryName = categoryDocument.id
+
+            // Hent alle aktiviteter i denne kategorien som matcher creatorId
+            val activitiesSnapshot = firestore.collection("category").document(categoryName)
+                .collection("activities")
+                .whereEqualTo("creatorId", creatorId)
+                .get().await()
+
+            // Mapper aktivitetene og legger til dem i listen
+            activitiesSnapshot.documents.mapNotNullTo(allActivities) { document ->
+                val activity = document.toObject(editActivity::class.java)
+
+                val fullLocation = activity?.location ?: "Ukjent"
+                val lastWord = fullLocation.substringAfterLast(" ")
+                val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
+
+                activity?.copy(
+                    id = document.id,
+                    location = lastWord,
+                    description = restOfAddress,
+                    category = categoryName  // Bruker kategoriens navn
+                )
+            }
         }
 
-        // Sorter slik at "Forslag" kommer først
+        return allActivities
+    }
+
+    // Hent alle kategorier
+    override suspend fun getCategories(): List<String> {
+        val snapshot = firestore.collection("category").get().await()
+        val categories = snapshot.documents.map { document ->
+            document.id
+        }
         return categories.sortedByDescending { it == "Forslag" }
     }
 
+    override suspend fun updateActivity(category: String, newCategory: String, activityId: String, updatedActivity: createActivity) {
+        // Check if the category has changed
+        if (category != newCategory) {
+            // Delete the activity from the old category
+            firestore.collection("category")
+                .document(category)
+                .collection("activities")
+                .document(activityId)
+                .delete()
+                .await()
 
-    override suspend fun updateActivity(category: String, documentId: String, activity: Activity) {
-        firestore.collection("activities").document(category)
-            .collection("activities").document(documentId).set(activity).await()
+            // Use the createActivity function to add the updated activity to the new category
+            createActivity(newCategory, updatedActivity)
+        } else {
+            // If the category hasn't changed, just update the activity in the current category
+            firestore.collection("category")
+                .document(newCategory)
+                .collection("activities")
+                .document(activityId)
+                .set(updatedActivity)
+                .await()
+        }
     }
 
-    override suspend fun deleteActivity(category: String, documentId: String) {
-        firestore.collection("activities").document(category)
-            .collection("activities").document(documentId).delete().await()
-    }
+    // Legg til denne funksjonen i ActivityService
+    override suspend fun getAllActivities(): List<Activity> {
+        val activityList = mutableListOf<Activity>()
+        val categoriesSnapshot = firestore.collection("category").get().await()
 
-    override suspend fun isUserRegisteredForActivity(userId: String, activityId: String): Boolean {
-        val registrationRef = firestore.collection("registrations")
-            .whereEqualTo("userId", userId)
-            .whereEqualTo("activityId", activityId)
-            .get().await()
-
-        return !registrationRef.isEmpty
-    }
-
-
-    override suspend fun createRegistration(userId: String, activityId: String, status: String, timestamp: Long) {
-        val registrationData = mapOf(
-            "userId" to userId,
-            "activityId" to activityId,
-            "status" to status,
-            "timestamp" to timestamp
-        )
-        firestore.collection("registrations").add(registrationData).await()
-    }
-
-
-    override suspend fun updateRegistrationStatus(userId: String, activityId: String, status: String): Boolean {
-        return try {
-            val registrationRef = firestore.collection("registrations")
-                .whereEqualTo("userId", userId)
-                .whereEqualTo("activityId", activityId)
+        // Iterer over alle kategoriene
+        for (categoryDoc in categoriesSnapshot.documents) {
+            val activitiesSnapshot = firestore.collection("category")
+                .document(categoryDoc.id)
+                .collection("activities")
                 .get()
                 .await()
 
-            if (!registrationRef.isEmpty) {
-                // Hvis registreringen allerede finnes, oppdater status og dato
-                for (document in registrationRef.documents) {
-                    firestore.collection("registrations")
-                        .document(document.id)
-                        .update(mapOf(
-                            "status" to status,
-                            "timestamp" to Timestamp(Date()) // Oppdater påmeldingsdato
-                        )).await()
-                }
-            } else {
-                // Hvis ingen registrering finnes, opprett en ny
-                val newRegistration = hashMapOf(
-                    "userId" to userId,
-                    "activityId" to activityId,
-                    "status" to status,
-                    "timestamp" to Timestamp(Date()) // Lagre påmeldingsdato
-                )
-
-                firestore.collection("registrations").add(newRegistration).await()
-            }
-            true  // Operasjonen var vellykket
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false  // Noe gikk galt
+            // Legg til aktivitetene fra denne kategorien til listen
+            val activities = activitiesSnapshot.toObjects(Activity::class.java)
+            activityList.addAll(activities)
         }
+
+        return activityList
     }
 
-    override suspend fun unregisterUserFromActivity(userId: String, activityId: String) {
-        val snapshot = firestore.collection("registrations")
-            .whereEqualTo("userId", userId)
-            .whereEqualTo("activityId", activityId)
-            .get()
-            .await()
+    // Hent alle kategorier og deres aktiviteter
+    override suspend fun getActivitiesGroupedByCategory(): Map<String, List<Activity>> {
+        val categoriesSnapshot = firestore.collection("category").get().await()
+        val activitiesByCategory = mutableMapOf<String, List<Activity>>()
 
-        for (document in snapshot.documents) {
-            firestore.collection("registrations").document(document.id).delete().await()
+        // Iterer over hver kategori, og hent aktiviteter
+        for (categoryDoc in categoriesSnapshot.documents) {
+            val categoryName = categoryDoc.id
+            val activitiesSnapshot = firestore.collection("category")
+                .document(categoryName)
+                .collection("activities")
+                .get()
+                .await()
+
+            val activities = activitiesSnapshot.toObjects(Activity::class.java)
+            activitiesByCategory[categoryName] = activities
         }
+
+        return activitiesByCategory
     }
 
-    override suspend fun registerUserForActivity(userId: String, activityId: String) {
-        val registrationData = mapOf(
-            "userId" to userId,
-            "activityId" to activityId,
-            "timestamp" to System.currentTimeMillis()
-        )
-        firestore.collection("registrations")
-            .add(registrationData)
-            .await()
-    }
+
 
 
 }

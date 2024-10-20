@@ -57,7 +57,6 @@
     <string name="error_old_password_required">Det gamle passordet er påkrevd</string>
     <string name="error_confirm_password_required">Det bekreftede passordet er påkrevd</string>
     <string name="placeholder_age">Alder</string>
-    <string name="error_age_required">Alder er påkrevd</string>
 
     <string name="error_invalid_email">Ugyldig e-post</string>
     <string name="error_invalid_password">Passordet er ugyldig</string>
@@ -120,11 +119,69 @@
 
 
     <!-- editPermissionScreen  -->
-    <string name="change_plassering_screen_title">Plassering</string>
-    <string name="change_plassering_Promission_screen">Tillat tilgang til plassering</string>
+    <string name="change_location_screen_title">Plassering</string>
+    <string name="change_location_Promission_screen">Tillat tilgang til plassering</string>
     <string name="change_Camera_screen_title">Kamera</string>
     <string name="change_Camera_promission_screen">Tillat tilgang til Kamera</string>
     <string name="change_notificationPermission_screen_title">Varsling</string>
     <string name="change_notificationPermission_Promission_screen">Tillat tilgang til Varsling</string>
+
+
+    <!-- ActivityDetailScreen -->
+    <string name="snackbar_registration_success">Påmeldingen var vellykket.</string>
+    <string name="snackbar_full_capacity">Påmeldingen var vellykket. Alle plasser er nå fylt opp.</string>
+    <string name="snackbar_unregistered">Du har nå meldt deg ut av aktiviteten.</string>
+    <string name="activity_no_title">Ingen tittel</string>
+    <string name="unknown_location">Ukjent</string>
+    <string name="unknown_address">Ukjent adresse</string>
+    <string name="unknown_description">Ingen beskrivelse</string>
+    <string name="participants_max">Maks %1$d</string>
+    <string name="participants_registered">%1$d deltaker%2$s av %3$d</string>
+    <string name="age_group">Aldersgruppe: %1$s</string>
+    <string name="under_age_limit">Du er under aldersgrensen (%1$d)</string>
+    <string name="registerr">Meld deg på</string>
+    <string name="unregister">Meld deg ut</string>
+
+
+
+    <string name="error_age_required">Alder er påkrevd</string>
+
+    <!-- newaktiviti  -->
+    <string name="create_activity">Opprett Aktivitet</string>
+    <string name="placeholder_title">Tittel</string>
+    <string name="placeholder_description">Beskrivelse</string>
+    <string name="placeholder_location">Sted</string>
+    <string name="placeholder_max_participants">Maks Antall Deltakere</string>
+    <string name="placeholder_age_limit">Aldersgrense</string>
+    <string name="placeholder_category">Kategori</string>
+    <string name="cancel">Avbryt</string>
+
+
+    <!---->
+    <string name="select_image_source">Velg bilde kilde</string>
+<string name="choose_image_source">Velg om du vil ta et bilde eller velge fra galleriet</string>
+<string name="take_photo">Ta bilde</string>
+<string name="choose_from_gallery">Velg fra galleri</string>
+    <string name="selected_image">valgt bilde</string>
+
+
+
+    <!-- Error messages -->
+    <string name="error_title_required">Tittel er påkrevd</string>
+    <string name="error_category_required">Kategori er påkrevd</string>
+    <string name="upload_image">Last opp bilde</string>
+    <string name="choose_image">Velg bilde</string>
+    <string name="change_image">Endre bilde</string>
+
+    <string name="error_image_required">Bilde er påkrevd</string>
+
+    <!-- Button text -->
+    <string name="publish_activity">Publiser Aktivitet</string>
+
+
+
+
+
+
 
 </resources>

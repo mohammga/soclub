@@ -1,5 +1,6 @@
 package com.example.soclub.components.navigation
 
+import AdsScreen
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -17,7 +18,6 @@ import com.example.soclub.components.navigation.navBars.HomeTopBar
 import com.example.soclub.components.navigation.navBars.TopBar
 import com.example.soclub.components.navigation.navBars.getCurrentScreen
 import com.example.soclub.screens.activityDetail.ActivityDetailScreen
-import com.example.soclub.screens.ads.AdsScreen
 import com.example.soclub.screens.changePassword.ChangePasswordScreen
 import com.example.soclub.screens.editActivity.EditActivityScreen
 import com.example.soclub.screens.editPermission.EditPermissionScreen
@@ -53,45 +53,59 @@ fun AppNavigation(navController: NavHostController, activityService: ActivitySer
                 currentScreen.startsWith("detail") -> { // Check if the current screen is a detail screen
                     TopBar(navController, title = "Aktivitet", showBackButton = true)
                 }
+
                 currentScreen == AppScreens.SIGNUP.name -> {
                     TopBar(navController, title = "", showBackButton = true)
                 }
+
                 currentScreen == AppScreens.SIGNIN.name -> {
                     TopBar(navController, title = "", showBackButton = true)
                 }
+
                 currentScreen == AppScreens.RESET_PASSWORD.name -> {
                     TopBar(navController, title = "", showBackButton = true)
                 }
+
                 currentScreen == AppScreens.HOME.name -> {
                     HomeTopBar(navController, title = "SoClub")
                 }
+
                 currentScreen == AppScreens.PROFILE.name -> {
                     TopBar(navController, title = "Profil", showBackButton = false)
                 }
+
                 currentScreen == AppScreens.NOTIFICATIONS.name -> {
                     TopBar(navController, title = "Varslinger", showBackButton = false)
                 }
+
                 currentScreen == AppScreens.ADS.name -> {
                     TopBar(navController, title = "Mine annonser", showBackButton = true)
                 }
+
                 currentScreen == AppScreens.NEW_ACTIVITY.name -> {
                     TopBar(navController, title = "Legg til aktivitet", showBackButton = false)
                 }
+
                 currentScreen == AppScreens.EDIT_PROFILE.name -> {
                     TopBar(navController, title = "Endre Profil", showBackButton = true)
                 }
+
                 currentScreen == AppScreens.CHANGE_PASSWORD.name -> {
                     TopBar(navController, title = "Endre passord", showBackButton = true)
                 }
+
                 currentScreen == AppScreens.EDIT_PERMISSION.name -> {
                     TopBar(navController, title = "Endre tillatelser", showBackButton = true)
                 }
+
                 currentScreen == AppScreens.ENTRIES.name -> {
                     TopBar(navController, title = "Mine Påmeldinger", showBackButton = false)
                 }
-                currentScreen == AppScreens.EDIT_AD.name -> {
-                    TopBar(navController, title = "Endere aktivitet", showBackButton = false)
+
+                currentScreen.startsWith("editActivity") -> { // Check if the current screen is a detail screen
+                    TopBar(navController, title = "Endre aktivitet", showBackButton = true)
                 }
+
                 else -> {
                     // Handle other screens
                 }
@@ -153,9 +167,7 @@ fun AppNavigation(navController: NavHostController, activityService: ActivitySer
                 ActivityDetailScreen(
                     navController = navController,
                     category = category,
-                    activityId = activityId,
-                    activityService = activityService,
-                    accountService = accountService  // Passer inn accountService
+                    activityId = activityId
                 )
             }
             composable(AppScreens.ENTRIES.name) {
@@ -182,8 +194,25 @@ fun AppNavigation(navController: NavHostController, activityService: ActivitySer
             composable(AppScreens.ADS.name) {
                 AdsScreen(navController)
             }
-            composable(AppScreens.EDIT_AD.name) {
-                EditActivityScreen(navController)
+
+
+            composable(
+                route = "editActivity/{category}/{activityId}",
+                arguments = listOf(
+                    navArgument("category") { type = NavType.StringType },
+                    navArgument("activityId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val category = backStackEntry.arguments?.getString("category")
+                val activityId = backStackEntry.arguments?.getString("activityId")
+
+                if (category != null && activityId != null) {
+                    EditActivityScreen(
+                        navController = navController,
+                        category = category,
+                        activityId = activityId
+                    )
+                }
             }
         }
     }

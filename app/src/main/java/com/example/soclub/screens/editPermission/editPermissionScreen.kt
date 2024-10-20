@@ -1,57 +1,64 @@
 package com.example.soclub.screens.editPermission
 
-import android.Manifest
-import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.provider.Settings
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.delay
+import com.example.soclub.R
+import androidx.compose.runtime.DisposableEffect
+import androidx.lifecycle.Lifecycle
+
 
 @Composable
 fun EditPermissionScreen(
     navController: NavController,
-    viewModel: EditPermissionViewModel = viewModel(factory = EditPermissionViewModelFactory(LocalContext.current))
+    viewModel: EditPermissionViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val locationPermission by viewModel.locationPermission.collectAsState()
+    val cameraPermission by viewModel.cameraPermission.collectAsState()
+    val notificationPermission by viewModel.notificationPermission.collectAsState()
 
-    // Mutable states to observe permission changes
-    var locationPermission by remember { mutableStateOf(checkPermissionStatus(context, Manifest.permission.ACCESS_FINE_LOCATION)) }
-    var cameraPermission by remember { mutableStateOf(checkPermissionStatus(context, Manifest.permission.CAMERA)) }
-    var notificationPermission by remember { mutableStateOf(checkPermissionStatus(context, Manifest.permission.POST_NOTIFICATIONS)) }
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-    // Launch effect to keep the permission states updated
-    LaunchedEffect(context) {
-        while (true) {
-            locationPermission = checkPermissionStatus(context, Manifest.permission.ACCESS_FINE_LOCATION)
-            cameraPermission = checkPermissionStatus(context, Manifest.permission.CAMERA)
-            notificationPermission = checkPermissionStatus(context, Manifest.permission.POST_NOTIFICATIONS)
-            delay(1000) // Check permissions every second to keep the UI updated
+    // Bruk DisposableEffect for å oppdatere tillatelser når brukeren kommer tilbake til skjermen
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                // Oppdater tillatelser hver gang appen går tilbake til app
+                viewModel.checkPermissions(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
+    LaunchedEffect(Unit) {
+        // Opprinnelig sjekk av tillatelser når skjermen vises første gang
+        viewModel.checkPermissions(context)
+    }
+
+    // Resten av UI-koden
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(15.dp)
     ) {
-        // UI for plasseringstillatelse med Switch
+        // Plasseringstillatelse Switch
         Text(
-            text = "Plassering",
+            text = stringResource(id = R.string.change_location_screen_title),
             style = MaterialTheme.typography.bodyLarge.copy(
                 fontWeight = FontWeight.Bold
             ),
@@ -64,32 +71,20 @@ fun EditPermissionScreen(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Tillat tilgang til plassering",
+                text = stringResource(id = R.string.change_location_Promission_screen),
                 style = MaterialTheme.typography.labelLarge
             )
             Switch(
                 checked = locationPermission,
-                onCheckedChange = { isChecked ->
-                    if (isChecked) {
-                        // Brukeren vil aktivere tillatelse blir sendt til innstillinger
-                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                            data = android.net.Uri.fromParts("package", context.packageName, null)
-                        }
-                        context.startActivity(intent)
-                    } else {
-                        // Brukeren blir sent til innstillinger for å gjøre dette
-                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                            data = android.net.Uri.fromParts("package", context.packageName, null)
-                        }
-                        context.startActivity(intent)
-                    }
+                onCheckedChange = {
+                    viewModel.navigateToSettings(context)
                 }
             )
         }
 
-        // UI for kameratillatelse med Switch
+        // Kamera tillatelse Switch
         Text(
-            text = "Kamera",
+            text = stringResource(id = R.string.change_Camera_screen_title),
             style = MaterialTheme.typography.bodyLarge.copy(
                 fontWeight = FontWeight.Bold
             ),
@@ -102,32 +97,20 @@ fun EditPermissionScreen(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Tillat tilgang til kamera",
+                text = stringResource(id = R.string.change_Camera_promission_screen),
                 style = MaterialTheme.typography.labelLarge
             )
             Switch(
                 checked = cameraPermission,
-                onCheckedChange = { isChecked ->
-                    if (isChecked) {
-                        // Brukeren vil aktivere tillatelse, gå til innstillinger
-                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                            data = android.net.Uri.fromParts("package", context.packageName, null)
-                        }
-                        context.startActivity(intent)
-                    } else {
-                        // Brukeren blir sent til innstillinger for å gjøre dette
-                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                            data = android.net.Uri.fromParts("package", context.packageName, null)
-                        }
-                        context.startActivity(intent)
-                    }
+                onCheckedChange = {
+                    viewModel.navigateToSettings(context)
                 }
             )
         }
 
-        // UI for varsel tillatelse med Switch
+        // Varseltillatelse Switch
         Text(
-            text = "Varsling",
+            text = stringResource(id = R.string.change_notificationPermission_screen_title),
             style = MaterialTheme.typography.bodyLarge.copy(
                 fontWeight = FontWeight.Bold
             ),
@@ -140,31 +123,15 @@ fun EditPermissionScreen(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Tillat tilgang til varsling",
+                text = stringResource(id = R.string.change_notificationPermission_Promission_screen),
                 style = MaterialTheme.typography.labelLarge
             )
             Switch(
                 checked = notificationPermission,
-                onCheckedChange = { isChecked ->
-                    if (isChecked) {
-                        // Brukeren vil aktivere tillatelse, gå til innstillinger
-                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                            data = android.net.Uri.fromParts("package", context.packageName, null)
-                        }
-                        context.startActivity(intent)
-                    } else {
-                        // Brukeren blir sent til innstillinger for å gjøre dette
-                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                            data = android.net.Uri.fromParts("package", context.packageName, null)
-                        }
-                        context.startActivity(intent)
-                    }
+                onCheckedChange = {
+                    viewModel.navigateToSettings(context)
                 }
             )
         }
     }
-}
-
-fun checkPermissionStatus(context: Context, permission: String): Boolean {
-    return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
 }

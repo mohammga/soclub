@@ -3,7 +3,6 @@ package com.example.soclub.screens.activityDetail
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -12,135 +11,201 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.soclub.R
-import com.example.soclub.models.Activity
-import com.example.soclub.service.ActivityService
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material3.Icon
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.runtime.collectAsState
+import coil.compose.rememberAsyncImagePainter
+import com.example.soclub.models.Activity
+import androidx.compose.material3.*
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import coil.compose.rememberImagePainter
-import com.example.soclub.service.AccountService
-import com.google.firebase.firestore.FirebaseFirestore
+import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalContext
+import android.location.Location
+import androidx.compose.runtime.mutableStateOf
+import com.google.android.gms.location.LocationServices
+import androidx.core.app.ActivityCompat
+import android.Manifest
+import android.content.pm.PackageManager
+import android.util.Log
+
+
+
+
+fun openGoogleMaps(context: Context, gmmIntentUri: String) {
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(gmmIntentUri))
+    intent.setPackage("com.google.android.apps.maps")
+    if (intent.resolveActivity(context.packageManager) != null) {
+        context.startActivity(intent)
+    }
+}
+
+
 
 @Composable
 fun ActivityDetailScreen(
     navController: NavController,
-    category: String?,   // Ta imot kategori
+    category: String?,
     activityId: String?,
-    activityService: ActivityService,
-    accountService: AccountService
+    viewModel: ActivityDetailViewModel = hiltViewModel()
 ) {
-    val activity = remember { mutableStateOf<Activity?>(null) }
-    val isRegistered = remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
+
+
+
+    val activity = viewModel.activity.collectAsState().value
+    val isRegistered = viewModel.isRegistered.collectAsState().value
+    val canRegister = viewModel.canRegister.collectAsState().value
+    val currentParticipants = viewModel.currentParticipants.collectAsState().value
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
 
     LaunchedEffect(activityId, category) {
         if (activityId != null && category != null) {
-            val fetchedActivity = activityService.getActivityById(category, activityId) // Bruk riktig kategori
-            println("Hentet aktivitet: $fetchedActivity")
-            activity.value = fetchedActivity
-
-            // Sjekk om brukeren allerede er påmeldt
-            val userId = accountService.currentUserId
-            val registrationExists = activityService.isUserRegisteredForActivity(userId, activityId)
-            isRegistered.value = registrationExists
+            viewModel.loadActivity(category, activityId)
         }
     }
 
-    // Render innholdet basert på aktivitetens data
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize(),
-        horizontalAlignment = Alignment.Start
-    ) {
-        item { ActivityImage(imageUrl = activity.value?.imageUrl ?: "") }
 
-        item {
-            Box(
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        content = { paddingValues ->
+            LazyColumn(
                 modifier = Modifier
-                    .padding(16.dp)
+                    .padding(paddingValues)
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.Start
             ) {
-                Column {
-                    ActivityTitle(activity.value?.title ?: "Ingen tittel")
-                    ActivityDate()
-                    InfoRow(
-                        icon = Icons.Default.LocationOn,
-                        mainText = activity.value?.location ?: "Ukjent",
-                        subText = activity.value?.restOfAddress ?: "Ukjent adresse"
-                    )
-                    // Andre InfoRow med personer-ikon
-                    InfoRow(
-                        icon = Icons.Default.People,
-                        mainText = "Maks ${activity.value?.maxParticipants ?: "Ukjent"}",
-                        subText = "Aldersgruppe: ${activity.value?.ageGroup ?: "Alle"}"
-                    )
-                    ActivityDescription(activity.value?.description ?: "Ingen beskrivelse")
+                item {
+                    ActivityImage(imageUrl = activity?.imageUrl ?: "")
+                }
 
-                    ActivityGPSImage()
-
-                    ActivityRegisterButton(
-                        isRegistered = isRegistered.value,
+                item {
+                    ActivityDetailsContent(
+                        activity = activity,
+                        currentParticipants = currentParticipants,
+                        isRegistered = isRegistered,
+                        canRegister = canRegister,
+                        ageGroup = activity?.ageGroup ?: 0,
                         onRegisterClick = {
-                            coroutineScope.launch {
-                                val userId = accountService.currentUserId
-                                // Sjekk først om brukeren er registrert
-                                val isAlreadyRegistered = activityService.isUserRegisteredForActivity(userId, activityId!!)
-                                if (!isAlreadyRegistered) {
-                                    // Hvis brukeren ikke er registrert, opprett registreringen med status "aktiv"
-                                    val success = activityService.updateRegistrationStatus(userId, activityId, "aktiv")
-                                    if (success) {
-                                        isRegistered.value = true
-                                    }
-                                } else {
-                                    // Hvis brukeren allerede er registrert, bare oppdater statusen til "aktiv"
-                                    val success = activityService.updateRegistrationStatus(userId, activityId, "aktiv")
-                                    if (success) {
-                                        isRegistered.value = true
-                                    }
-                                }
+                            if (activityId != null && category != null) {
+                                viewModel.updateRegistrationForActivity(category, activityId, true)
+                                showSnackbar(true, snackbarHostState, scope, activity, currentParticipants)
                             }
                         },
                         onUnregisterClick = {
-                            coroutineScope.launch {
-                                val userId = accountService.currentUserId
-                                // Sjekk først om brukeren er registrert
-                                val isAlreadyRegistered = activityService.isUserRegisteredForActivity(userId, activityId!!)
-                                if (isAlreadyRegistered) {
-                                    // Hvis brukeren er registrert, oppdater statusen til "notAktiv"
-                                    val success = activityService.updateRegistrationStatus(userId, activityId, "notAktiv")
-                                    if (success) {
-                                        isRegistered.value = false
-                                    }
-                                }
+                            if (activityId != null && category != null) {
+                                viewModel.updateRegistrationForActivity(category, activityId, false)
+                                showSnackbar(false, snackbarHostState, scope, activity, currentParticipants)
                             }
                         }
                     )
-
                 }
             }
         }
+    )
+}
+
+
+fun showSnackbar(isRegistering: Boolean, snackbarHostState: SnackbarHostState, scope: CoroutineScope, activity: Activity?, currentParticipants: Int) {
+    val maxParticipants = activity?.maxParticipants ?: 0
+    val remainingSlots = maxParticipants - currentParticipants
+    scope.launch {
+        delay(500)
+    val message = if (isRegistering) {
+        if (remainingSlots > 0) {
+            "Påmeldingen var vellykket."
+        } else {
+            "Påmeldingen var vellykket. Alle plasser er nå fylt opp."
+        }
+    } else {
+        "Du har nå meldt deg ut av aktiviteten."
+    }
+        snackbarHostState.showSnackbar(message)
     }
 }
+
+
+@Composable
+fun ActivityDetailsContent(
+    activity: Activity?,
+    currentParticipants: Int,
+    isRegistered: Boolean,
+    canRegister: Boolean,
+    ageGroup: Int,
+    onRegisterClick: () -> Unit,
+    onUnregisterClick: () -> Unit
+) {
+    val context = LocalContext.current // Få tilgang til konteksten her
+    val fullLocation = activity?.location ?: stringResource(R.string.unknown_location)
+    val lastWord = fullLocation.substringAfterLast(" ") // Den siste delen av adressen (f.eks. by eller postnummer)
+    val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent") // Resten av adressen
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        ActivityTitle(activity?.title ?: stringResource(R.string.activity_no_title))
+        ActivityDate()
+        InfoRow(
+            icon = Icons.Default.LocationOn,
+            mainText = lastWord,
+            subText = restOfAddress
+        )
+
+        InfoRow(
+            icon = Icons.Default.People,
+            mainText = if (currentParticipants == 0) {
+                stringResource(R.string.participants_max, activity?.maxParticipants ?: 0)
+            } else {
+                stringResource(
+                    R.string.participants_registered,
+                    currentParticipants,
+                    if (currentParticipants > 1) "e" else "",
+                    activity?.maxParticipants ?: 0
+                )
+            },
+            subText = stringResource(R.string.age_group, activity?.ageGroup ?: "Alle")
+        )
+
+        ActivityDescription(activity?.description ?: stringResource(R.string.unknown_description))
+
+        // Send lokasjon og kontekst til ActivityGPSImage
+        ActivityGPSImage(context = context, destinationLocation = fullLocation)
+
+        ActivityRegisterButton(
+            isRegistered = isRegistered,
+            canRegister = canRegister,
+            ageGroup = ageGroup,
+            onRegisterClick = onRegisterClick,
+            onUnregisterClick = onUnregisterClick
+        )
+    }
+}
+
 
 @Composable
 fun ActivityImage(imageUrl: String) {
     Image(
-        painter = rememberImagePainter(imageUrl),
+        painter = rememberAsyncImagePainter(imageUrl),
         contentDescription = "Activity Image",
         modifier = Modifier
             .fillMaxWidth()
@@ -150,6 +215,8 @@ fun ActivityImage(imageUrl: String) {
         contentScale = ContentScale.Crop
     )
 }
+
+
 
 @Composable
 fun ActivityTitle(title: String) {
@@ -177,76 +244,141 @@ fun ActivityDescription(description: String) {
     )
 }
 
+
 @Composable
-fun ActivityGPSImage() {
-    Image(
-        painter = painterResource(R.drawable.gpsbilde1),
-        contentDescription = "GPS-bilde",
+fun ActivityGPSImage(context: Context, destinationLocation: String) {
+    // Hent brukerens plassering
+    val userLocation = remember { mutableStateOf<Location?>(null) }
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+
+    // Be om plasseringstillatelser hvis det ikke allerede er gitt
+    LaunchedEffect(Unit) {
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // Tillatelsen er ikke gitt, håndter det (f.eks. vis en melding til brukeren)
+            return@LaunchedEffect
+        }
+
+        // Få nåværende plassering
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location: Location? ->
+                userLocation.value = location
+                println("User's current location: ${location?.latitude}, ${location?.longitude}")
+            }
+    }
+
+    // Lag URL for Google Maps Static API med destinasjon
+    val staticMapUrl = "https://maps.googleapis.com/maps/api/staticmap?center=${Uri.encode(destinationLocation)}&zoom=15&size=600x300&markers=color:red%7Clabel:S%7C${Uri.encode(destinationLocation)}&key=AIzaSyBm7zH5lmtMtmL1gz5b6Hau89lSpqv1pwY"
+
+    // Sjekk om lokasjonen er tilgjengelig
+    val locationReady = userLocation.value != null
+
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(250.dp)
             .clip(RoundedCornerShape(16.dp))
-            .padding(vertical = 8.dp),
-        contentScale = ContentScale.Crop
-    )
+            .clickable {
+                if (locationReady) {
+                    val location = userLocation.value
+                    if (location != null) {
+                        val startLat = location.latitude
+                        val startLng = location.longitude
+
+                        // Bygg Google Maps URL med nåværende posisjon og destinasjon
+                        val gmmIntentUri = "https://www.google.com/maps/dir/?api=1" +
+                                "&origin=$startLat,$startLng" + // Startposisjon
+                                "&destination=${Uri.encode(destinationLocation)}"
+
+                        openGoogleMaps(context, gmmIntentUri)
+                    }
+                } else {
+                    // Hvis brukerens lokasjon ikke er tilgjengelig, åpne destinasjonen uten startpunkt
+                    openGoogleMaps(context, "https://www.google.com/maps/search/?api=1&query=${Uri.encode(destinationLocation)}")
+                }
+            }
+            .background(Color.LightGray),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            painter = rememberAsyncImagePainter(staticMapUrl),
+            contentDescription = "Map of $destinationLocation",
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(250.dp)
+                .clip(RoundedCornerShape(16.dp)),
+            contentScale = ContentScale.Crop
+        )
+    }
 }
 
 @Composable
 fun ActivityRegisterButton(
     isRegistered: Boolean,
+    canRegister: Boolean,
+    ageGroup: Int,
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
+
+    val buttonText = when {
+        !canRegister -> stringResource(R.string.under_age_limit, ageGroup)
+        isRegistered -> stringResource(R.string.unregister)
+        else -> stringResource(R.string.registerr)
+    }
+
+
+    val buttonColor = when {
+        !canRegister -> Color.Gray
+        isRegistered -> Color.Red
+        else -> Color.Black
+    }
+
     Button(
         onClick = {
-            if (isRegistered) {
-                onUnregisterClick()  // Brukeren er allerede registrert, melder seg ut
-            } else {
-                onRegisterClick()  // Brukeren melder seg på
-            }
+            if (!canRegister) return@Button
+            if (isRegistered) onUnregisterClick() else onRegisterClick()
         },
-        colors = ButtonDefaults.buttonColors(containerColor = if (isRegistered) Color.Red else Color.Black),
+        colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 16.dp)
-            .height(48.dp)
+            .height(48.dp),
+        enabled = canRegister
     ) {
-        Text(
-            text = if (isRegistered) "Meld deg ut" else "Meld deg på",
-            color = Color.White
-        )
+        Text(text = buttonText, color = Color.White)
     }
 }
 
 
-
 @Composable
-fun InfoRow(icon: androidx.compose.ui.graphics.vector.ImageVector, mainText: String, subText: String) {
+fun InfoRow(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    mainText: String,
+    subText: String
+) {
     Row(
         modifier = Modifier.padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier.padding(end = 16.dp)
-        ) {
+        Box(modifier = Modifier.padding(end = 16.dp)) {
             ElevatedCardExample(icon = icon)
         }
         Column {
-            Text(
-                text = mainText,
-                fontWeight = FontWeight.Bold,
-                fontSize = 17.sp,
-            )
-            Text(
-                text = subText,
-                color = Color.Gray
-            )
+            Text(text = mainText, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+            Text(text = subText, color = Color.Gray)
         }
     }
 }
 
 @Composable
-fun ElevatedCardExample(icon:androidx.compose.ui.graphics.vector.ImageVector) {
+fun ElevatedCardExample(icon: androidx.compose.ui.graphics.vector.ImageVector) {
     ElevatedCard(
         modifier = Modifier.size(50.dp),
         colors = CardDefaults.elevatedCardColors(containerColor = Color.LightGray)
@@ -258,10 +390,9 @@ fun ElevatedCardExample(icon:androidx.compose.ui.graphics.vector.ImageVector) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier
-                    .size(30.dp)
-
+                modifier = Modifier.size(30.dp)
             )
         }
     }
 }
+

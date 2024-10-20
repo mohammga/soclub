@@ -55,6 +55,7 @@ android {
 dependencies {
 
     implementation(libs.androidx.core.ktx)
+
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
@@ -65,6 +66,7 @@ dependencies {
     implementation(libs.androidx.ui.text.google.fonts)
     implementation(libs.play.services.location)
     implementation(libs.androidx.runtime.livedata)
+    implementation(libs.firebase.storage.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -80,6 +82,7 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("com.google.firebase:firebase-crashlytics-buildtools:3.0.0")
 
+
     ksp("com.google.dagger:hilt-compiler:2.47")
 
     // Firebase
@@ -92,8 +95,14 @@ dependencies {
     // Material
     implementation("androidx.compose.material:material:1.0.5")
     implementation("androidx.compose.material:material-icons-extended:1.0.5")
+    implementation("androidx.compose.material3:material3:1.1.0")
 
     // coil
     implementation ("io.coil-kt:coil-compose:2.4.0")
+
+    // google maps
+    implementation ("com.google.android.gms:play-services-maps:18.0.0")
+    implementation ("com.google.maps.android:maps-compose:2.0.0")
+
 
 }

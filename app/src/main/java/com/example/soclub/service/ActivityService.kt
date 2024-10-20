@@ -1,21 +1,16 @@
 package com.example.soclub.service
 
 import com.example.soclub.models.Activity
+import com.example.soclub.models.createActivity
+import com.example.soclub.models.editActivity
 
 interface ActivityService {
-    suspend fun createActivity(category: String, activity: Activity)
-    suspend fun getActivities(category: String): List<Activity>
-    suspend fun getCategories(): List<String>
-    suspend fun updateActivity(category: String, documentId: String, activity: Activity)
-    suspend fun deleteActivity(category: String, documentId: String)
     suspend fun getActivityById(category: String, activityId: String): Activity?
-
-
-    // Nye metoder for påmelding og avmelding
-    suspend fun isUserRegisteredForActivity(userId: String, activityId: String): Boolean
-    suspend fun registerUserForActivity(userId: String, activityId: String)
-    suspend fun unregisterUserFromActivity(userId: String, activityId: String)
-    suspend fun createRegistration(userId: String, activityId: String, status: String, timestamp: Long)
-    suspend fun updateRegistrationStatus(userId: String, activityId: String, status: String): Boolean
-
+    suspend fun createActivity(category: String, activity: createActivity) // Opprett aktivitet i en kategori
+    suspend fun getActivities(category: String): List<Activity>            // Hent aktiviteter for en kategori
+    suspend fun getCategories(): List<String>                              // Hent alle kategorier
+    suspend fun getAllActivitiesByCreator(creatorId: String): List<editActivity> // Hent alle aktiviteter for en gitt bruker
+    suspend fun updateActivity(category: String, newCategory: String, activityId: String, updatedActivity: createActivity)
+    suspend fun getAllActivities(): List<Activity>
+    suspend fun getActivitiesGroupedByCategory(): Map<String, List<Activity>>
 }

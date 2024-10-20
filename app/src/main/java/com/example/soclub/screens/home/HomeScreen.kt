@@ -2,6 +2,7 @@ package com.example.soclub.screens.home
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,77 +22,289 @@ import androidx.navigation.NavHostController
 import com.example.soclub.models.Activity
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import com.example.soclub.R
 import androidx.compose.foundation.pager.HorizontalPager
-import coil.compose.rememberImagePainter
+import coil.compose.rememberAsyncImagePainter
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.ui.graphics.Color
 
-
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hiltViewModel()) {
     val categories by viewModel.getCategories().observeAsState(emptyList())
-    val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { categories.size })
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var isSelectingArea by remember { mutableStateOf(true) }
+    val selectedCities = remember { mutableStateListOf<String>() }
+    val cities by viewModel.getCities().observeAsState(emptyList())
+    val filteredActivities by viewModel.filteredActivities.observeAsState(emptyList()) // Bruk filtrerte aktiviteter
 
+
+
+
+    Column(modifier = Modifier.fillMaxSize()) {
         if (categories.isNotEmpty()) {
-            ScrollableTabRow(
-                selectedTabIndex = pagerState.currentPage,
-                edgePadding = 2.dp
-            ) {
-                categories.forEachIndexed { index, category ->
-                    Tab(
-                        text = { Text(category) },
-                        selected = pagerState.currentPage == index,
-                        onClick = {
-                            coroutineScope.launch {
-                                pagerState.scrollToPage(index)
-                            }
-                        }
-                    )
-                }
-            }
+            CategoryTabs(categories = categories, pagerState = pagerState)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        //lagt til tittel sjekk om riktig
         val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
-        Text(
-            text = selectedCategory,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
+
+        Row(
             modifier = Modifier
-                .padding(start = 16.dp)
-                .align(Alignment.Start)
-        )
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            CategoryTitle(selectedCategory)
+
+            Icon(
+                imageVector = Icons.Default.FilterList,
+                contentDescription = "Filter",
+                modifier = Modifier.clickable {
+                    showBottomSheet = true
+                    isSelectingArea = true
+                }
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        HorizontalPager(state = pagerState) { page ->
-            val selectedCategory = categories[page]
-            val activities by viewModel.getActivities(selectedCategory).observeAsState(emptyList())
+        if (filteredActivities.isNotEmpty()) {
+            ActivityList(activities = filteredActivities, selectedCategory = selectedCategory, navController = navController)
+        } else {
+            CategoryActivitiesPager(
+                categories = categories,
+                pagerState = pagerState,
+                viewModel = viewModel,
+                navController = navController
+            )
+        }
+    }
 
-            LazyColumn(
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(activities) { activity ->
-                    ActivityItem(activity = activity) {
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false }
+        ) {
+            if (isSelectingArea) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(text = "Filtrer etter", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                        navController.navigate("detail/${selectedCategory}/${activity.id}")
+                    FilterListItem(
+                        title = "Område",
+                        onClick = { isSelectingArea = false },
+                        backgroundColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            } else {
+                Column(modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { isSelectingArea = true }
+                            .padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Tilbake",
+                            modifier = Modifier.padding(end = 16.dp)
+                        )
+                        Text(text = "Tilbake", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                    }
 
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(text = "Velg By", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(300.dp)  // Begrens høyden
+                    ) {
+                        items(cities) { city ->
+                            CitySelectionItem(
+                                city = city,
+                                isSelected = selectedCities.contains(city), // Behold valgte byer
+                                onCitySelected = { isSelected ->
+                                    if (isSelected) {
+                                        selectedCities.add(city)
+                                    } else {
+                                        selectedCities.remove(city)
+                                    }
+                                }
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = {
+                            viewModel.fetchAndFilterActivitiesByCities(selectedCities, categories) // Filtrer aktiviteter etter byer
+                            showBottomSheet = false // Skjul BottomSheet
+                        },
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
+                    ) {
+                        Text(text = "Søk")
+                    }
+
+                    if (filteredActivities.isNotEmpty()) {
+                        Button(
+                            onClick = {
+                                viewModel.resetFilter()
+                                selectedCities.clear()
+                                viewModel.fetchAndFilterActivitiesByCities(emptyList(), categories)
+                                showBottomSheet = false
+                            },
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                        ) {
+                            Text("Nullstill filtrering")
+                        }
+                    }
                     }
                 }
             }
         }
+
+}
+
+
+
+
+@Composable
+fun CategoryActivitiesPager(
+    categories: List<String>,
+    pagerState: PagerState,
+    viewModel: HomeViewModel,
+    navController: NavHostController
+) {
+    HorizontalPager(state = pagerState) { page ->
+        val selectedCategory = categories[page]
+        val activities by viewModel.getActivities(selectedCategory).observeAsState(emptyList())
+
+        ActivityList(activities = activities, selectedCategory = selectedCategory, navController = navController)
     }
 }
 
+@Composable
+fun CitySelectionItem(city: String, isSelected: Boolean, onCitySelected: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCitySelected(!isSelected) }
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = city,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.padding(start = 16.dp)
+        )
+        Checkbox(
+            checked = isSelected,
+            onCheckedChange = { onCitySelected(it) },
+            modifier = Modifier.padding(end = 16.dp)
+        )
+    }
+}
+
+@Composable
+fun FilterListItem(
+    title: String,
+    onClick: () -> Unit,
+    backgroundColor: Color,
+    contentColor: Color
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(backgroundColor)
+            .clickable { onClick() }
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = title,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            color = contentColor,
+            modifier = Modifier.padding(start = 16.dp)
+        )
+        Icon(
+            imageVector = Icons.Default.ArrowForward,
+            contentDescription = "Arrow",
+            tint = contentColor,
+            modifier = Modifier.padding(end = 16.dp)
+        )
+    }
+}
+
+@Composable
+fun CategoryTabs(categories: List<String>, pagerState: PagerState) {
+    val coroutineScope = rememberCoroutineScope()
+
+    ScrollableTabRow(
+        selectedTabIndex = pagerState.currentPage,
+        edgePadding = 2.dp
+    ) {
+        categories.forEachIndexed { index, category ->
+            Tab(
+                text = { Text(category) },
+                selected = pagerState.currentPage == index,
+                onClick = {
+                    coroutineScope.launch {
+                        pagerState.scrollToPage(index)
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun CategoryTitle(category: String) {
+    Text(
+        text = category,
+        fontSize = 20.sp,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(start = 16.dp)
+    )
+}
+
+@Composable
+fun ActivityList(activities: List<Activity>, selectedCategory: String, navController: NavHostController) {
+    LazyColumn(
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.fillMaxSize()
+    ) {
+        items(activities) { activity ->
+            ActivityItem(activity = activity) {
+                navController.navigate("detail/${selectedCategory}/${activity.id}")
+            }
+        }
+    }
+}
 
 @Composable
 fun ActivityItem(activity: Activity, onClick: () -> Unit) {
@@ -100,9 +313,8 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable { onClick() }
     ) {
-
         Image(
-            painter = rememberImagePainter(activity.imageUrl), // Dynamisk bilde fra Firestore
+            painter = rememberAsyncImagePainter(activity.imageUrl),
             contentDescription = activity.title,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -113,15 +325,11 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Viser aktivitetens tittel og informasjon hentet fra Firestore
         Text(
             text = activity.title ?: "Ingen tittel",
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.align(Alignment.Start)
         )
-//        Text(text = activity.description ?: "Ingen beskrivelse", style = MaterialTheme.typography.bodyMedium)
-//        Text(text = "Sted: ${activity.location ?: "Ukjent"}", style = MaterialTheme.typography.bodySmall)
-//        Text(text = "Aldersgruppe: ${activity.ageGroup ?: "Uspesifisert"}", style = MaterialTheme.typography.bodySmall)
     }
 }
