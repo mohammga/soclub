@@ -13,9 +13,37 @@ import com.example.soclub.service.AccountService
 import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import java.util.Date
 import javax.inject.Inject
 import com.google.firebase.Timestamp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
+import kotlin.random.Random
+
+
+
+
+data class NewActivityState(
+    val title: String = "",
+    val description: String = "",
+    val category: String = "",
+    val location: String = "",
+    val address: String = "",
+    val postalCode: String = "",
+    val maxParticipants: String = "",
+    val ageLimit: String = "",
+    val imageUrl: String = "",
+    val date: Timestamp? = Timestamp.now(),
+    val startTime: String = "",
+    val errorMessage: Int? = null,
+    val locationSuggestions: List<String> = emptyList(),
+    val addressSuggestions: List<String> = emptyList(),
+    val postalCodeSuggestions: List<String> = emptyList()
+)
+
+
 
 @HiltViewModel
 class NewActivityViewModel @Inject constructor(
@@ -25,6 +53,8 @@ class NewActivityViewModel @Inject constructor(
 
     var uiState = mutableStateOf(NewActivityState())
         private set
+
+    private val client = OkHttpClient()
 
     fun onTitleChange(newValue: String) {
         uiState.value = uiState.value.copy(title = newValue)
@@ -44,15 +74,22 @@ class NewActivityViewModel @Inject constructor(
 
     fun onLocationChange(newValue: String) {
         uiState.value = uiState.value.copy(location = newValue)
+        fetchKommuneSuggestions(newValue)
+
+        // Clear address and postal code suggestions when the location changes
+        uiState.value = uiState.value.copy(addressSuggestions = emptyList(), postalCodeSuggestions = emptyList())
     }
 
     fun onAddressChange(newValue: String) {
         uiState.value = uiState.value.copy(address = newValue)
+        fetchAddressSuggestions(newValue)
     }
 
-    fun onPostalCodeChange(newValue: String) {
-        uiState.value = uiState.value.copy(postalCode = newValue)
+    fun onAddressSelected(selectedAddress: String) {
+        uiState.value = uiState.value.copy(address = selectedAddress)
+        fetchPostalCodeForAddress(selectedAddress)
     }
+
 
     fun onMaxParticipantsChange(newValue: String) {
         uiState.value = uiState.value.copy(maxParticipants = newValue)
@@ -99,7 +136,7 @@ class NewActivityViewModel @Inject constructor(
             return
         }
 
-        val combinedLocation = "${uiState.value.location}, ${uiState.value.postalCode} ${uiState.value.address}"
+        val combinedLocation = "${uiState.value.address}, ${uiState.value.postalCode}, ${uiState.value.location}"
         val creatorId = accountService.currentUserId
         val timestampDate = uiState.value.date ?: Timestamp.now()
         val startTime = uiState.value.startTime
@@ -131,8 +168,11 @@ class NewActivityViewModel @Inject constructor(
             try {
                 Log.d("NewActivityViewModel", "Creating activity with imageUrl: $imageUrl and location: $combinedLocation")
 
+                val uniqueCode = generateUniqueCode() // Generate the unique code
+
                 val newActivity = createActivity(
                     createdAt = Timestamp.now(),
+                    lastUpdated = Timestamp.now(),
                     creatorId = creatorId,
                     title = uiState.value.title,
                     description = uiState.value.description,
@@ -141,11 +181,12 @@ class NewActivityViewModel @Inject constructor(
                     ageGroup = uiState.value.ageLimit.toIntOrNull() ?: 0,
                     imageUrl = imageUrl,
                     date = date,
-                    startTime = startTime
+                    startTime = startTime,
+                    soclubCode = uniqueCode // Add the unique code here
                 )
 
                 activityService.createActivity(uiState.value.category, newActivity)
-                Log.d("NewActivityViewModel", "Activity created successfully")
+                Log.d("NewActivityViewModel", "Activity created successfully with code $uniqueCode")
 
                 navController.navigate("home")
                 Log.d("NewActivityViewModel", "Navigation to home successful")
@@ -154,19 +195,123 @@ class NewActivityViewModel @Inject constructor(
             }
         }
     }
+
+    private fun generateUniqueCode(): Int {
+        return Random.nextInt(10000000, 99999999) // Generates an 8-digit unique code
+    }
+
+    private fun fetchKommuneSuggestions(query: String) {
+        viewModelScope.launch {
+            if (query.length < 2) {
+                uiState.value = uiState.value.copy(locationSuggestions = emptyList())
+                Log.d("NewActivityViewModel", "Query too short for kommune suggestions")
+                return@launch
+            }
+            try {
+                val url = "https://ws.geonorge.no/adresser/v1/sok?fuzzy=true&kommunenavn=$query&utkoordsys=4258&treffPerSide=10&asciiKompatibel=true"
+                Log.d("NewActivityViewModel", "Fetching kommune suggestions from: $url")
+
+                val request = Request.Builder().url(url).build()
+                val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
+
+                if (!response.isSuccessful) {
+                    Log.e("NewActivityViewModel", "Unsuccessful response: ${response.code}")
+                    return@launch
+                }
+
+                response.body?.let { responseBody ->
+                    val responseString = responseBody.string()
+                    Log.d("NewActivityViewModel", "Response received: $responseString")
+
+                    // Parse JSON and extract the kommunenavn
+                    val json = JSONObject(responseString)
+                    val suggestions = json.getJSONArray("adresser").let { addresses ->
+                        List(addresses.length()) { index ->
+                            val address = addresses.getJSONObject(index)
+                            address.optString("kommunenavn", "")
+                        }.filter { it.isNotBlank() } // Filter ut tomme kommunenavn
+                    }.distinct() // Ensuring uniqueness
+
+                    Log.d("NewActivityViewModel", "Parsed kommune suggestions: $suggestions")
+                    uiState.value = uiState.value.copy(locationSuggestions = suggestions)
+                    Log.d("NewActivityViewModel", "Kommune suggestions updated in uiState")
+                } ?: run {
+                    Log.e("NewActivityViewModel", "Response body is null")
+                }
+            } catch (e: Exception) {
+                Log.e("NewActivityViewModel", "Error fetching kommune suggestions: ${e.message}")
+            }
+        }
+    }
+
+    private fun fetchAddressSuggestions(query: String) {
+        viewModelScope.launch {
+            if (query.length < 2) {
+                uiState.value = uiState.value.copy(addressSuggestions = emptyList())
+                return@launch
+            }
+            val kommune = uiState.value.location
+            if (kommune.isEmpty()) {
+                Log.e("NewActivityViewModel", "Kommune is not selected")
+                return@launch
+            }
+            try {
+                val url = "https://ws.geonorge.no/adresser/v1/sok?sok=$query&kommunenavn=$kommune&treffPerSide=10"
+                val request = Request.Builder().url(url).build()
+                val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
+                if (!response.isSuccessful) {
+                    Log.e("NewActivityViewModel", "Unsuccessful response: ${response.code}")
+                    return@launch
+                }
+
+                response.body?.let { responseBody ->
+                    val responseString = responseBody.string()
+                    val json = JSONObject(responseString)
+                    val suggestions = json.getJSONArray("adresser").let { addresses ->
+                        List(addresses.length()) { index ->
+                            val address = addresses.getJSONObject(index)
+                            val addressKommune = address.optString("kommunenavn", "")
+                            if (addressKommune.equals(kommune, ignoreCase = true)) {
+                                address.getString("adressetekst")
+                            } else {
+                                null
+                            }
+                        }.filterNotNull()
+                    }.distinct() // Remove duplicates
+                    uiState.value = uiState.value.copy(addressSuggestions = suggestions)
+                }
+            } catch (e: Exception) {
+                Log.e("NewActivityViewModel", "Error fetching address suggestions: ${e.message}")
+            }
+        }
+    }
+
+    private fun fetchPostalCodeForAddress(address: String) {
+        viewModelScope.launch {
+            try {
+                val url = "https://ws.geonorge.no/adresser/v1/sok?sok=$address&treffPerSide=1"
+                val request = Request.Builder().url(url).build()
+                val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
+                if (!response.isSuccessful) {
+                    Log.e("NewActivityViewModel", "Unsuccessful response: ${response.code}")
+                    return@launch
+                }
+
+                response.body?.let { responseBody ->
+                    val responseString = responseBody.string()
+                    val json = JSONObject(responseString)
+                    val addresses = json.getJSONArray("adresser")
+                    if (addresses.length() > 0) {
+                        val postalCode = addresses.getJSONObject(0).getString("postnummer")
+                        uiState.value = uiState.value.copy(postalCode = postalCode)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("NewActivityViewModel", "Error fetching postal code for address: ${e.message}")
+            }
+        }
+    }
 }
 
-data class NewActivityState(
-    val title: String = "",
-    val description: String = "",
-    val category: String = "",
-    val location: String = "",
-    val address: String = "",
-    val postalCode: String = "",
-    val maxParticipants: String = "",
-    val ageLimit: String = "",
-    val imageUrl: String = "",
-    val date: Timestamp? = Timestamp.now(),
-    val startTime: String = "",
-    val errorMessage: Int? = null
-)
+
+

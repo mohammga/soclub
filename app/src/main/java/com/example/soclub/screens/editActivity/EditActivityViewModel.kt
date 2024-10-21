@@ -60,7 +60,7 @@ class EditActivityViewModel @Inject constructor(
                         maxParticipants = activity.maxParticipants.toString(),
                         ageLimit = activity.ageGroup.toString(),
                         imageUrl = activity.imageUrl,
-                        date = activity.date,
+                        date = activity.date.toString(),
                         category = category
                     )
                     // Store the old category so it can be checked later if changed
@@ -206,7 +206,7 @@ class EditActivityViewModel @Inject constructor(
                     maxParticipants = uiState.value.maxParticipants.toIntOrNull() ?: 0,
                     ageGroup = uiState.value.ageLimit.toIntOrNull() ?: 0,
                     imageUrl = imageUrl,
-                    date = date
+                   // dette må byttes til timestump date = date
                 )
 
                 // Always use oldCategory and newCategory directly in one call to updateActivity
