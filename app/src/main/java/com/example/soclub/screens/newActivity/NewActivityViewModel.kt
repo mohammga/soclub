@@ -84,8 +84,8 @@ class NewActivityViewModel @Inject constructor(
         uiState.value = uiState.value.copy(date = newValue)
     }
 
-    private fun uploadImageToFirebase(imageUri: Uri, onSuccess: (String) -> Unit, onError: (Exception) -> Unit) {
-        val storageRef = FirebaseStorage.getInstance().reference.child("images/${imageUri.lastPathSegment}")
+    private fun uploadImageToFirebase(imageUri: Uri, category: String, onSuccess: (String) -> Unit, onError: (Exception) -> Unit) {
+        val storageRef = FirebaseStorage.getInstance().reference.child("${category}/${imageUri.lastPathSegment}")
         storageRef.putFile(imageUri)
             .addOnSuccessListener {
                 Log.d("NewActivityViewModel", "Image uploaded successfully")
@@ -178,6 +178,7 @@ class NewActivityViewModel @Inject constructor(
 
         uploadImageToFirebase(
             Uri.parse(uiState.value.imageUrl),
+            category = uiState.value.category,
             onSuccess = { imageUrl ->
                 createActivityAndNavigate(navController, imageUrl, combinedLocation, dateToSend, creatorId)
             },

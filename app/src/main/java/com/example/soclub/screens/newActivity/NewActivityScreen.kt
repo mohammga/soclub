@@ -221,65 +221,18 @@ fun PostalCodeField(value: String, onNewValue: (String) -> Unit) {
     )
 }
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateField(value: String, onNewValue: (String) -> Unit) {
-    var showDialog by remember { mutableStateOf(false) }
-
-    // Formatter to display the selected date
-    val dateFormatter = DateTimeFormatter.ofPattern("EEEE.dd.MM.yyyy", Locale("no"))
-
-    // If no initial date is provided, use today's date
-    val selectedDate = remember(value) {
-        if (value.isBlank()) LocalDate.now() else LocalDate.parse(value, DateTimeFormatter.ISO_DATE)
-    }
-    val formattedDate = remember(selectedDate) { selectedDate.format(dateFormatter) }
-
-    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = selectedDate.toEpochDay() * 24 * 60 * 60 * 1000)
-
-    if (showDialog) {
-        DatePickerDialog(
-            onDismissRequest = { showDialog = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    // Fetch the selected date from datePickerState and convert it to LocalDate
-                    val selectedMillis = datePickerState.selectedDateMillis
-                    val newDate = selectedMillis?.let { millis ->
-                        LocalDate.ofEpochDay(millis / (24 * 60 * 60 * 1000))
-                    }
-                    newDate?.let {
-                        onNewValue(it.format(DateTimeFormatter.ISO_DATE))
-                    }
-                    showDialog = false
-                }) {
-                    Text("OK")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        ) {
-            DatePicker(state = datePickerState)
-        }
-    }
-
-    // The box to display the current selected date
-    Box(
+    OutlinedTextField(
+        value = value,
+        onValueChange = { onNewValue(it) },
+        placeholder = { Text("Dato") },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
-            .clickable { showDialog = true }
-            .border(1.dp, MaterialTheme.colorScheme.primary)
-            .padding(16.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = formattedDate)
-    }
+            .padding(vertical = 8.dp),
+        singleLine = true
+    )
 }
-
 
 @Composable
 fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit) {

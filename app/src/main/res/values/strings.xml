@@ -190,6 +190,7 @@
     <string name="publish_activity">Publiser</string>
     <string name="error_invalid_max_participants">Ugyldig antall deltakere. Må være fra 1 til 100.</string>
     <string name="remove_image">Fjern bilde</string>
+    <string name="label_age">Alder</string>
 
 
 </resources>

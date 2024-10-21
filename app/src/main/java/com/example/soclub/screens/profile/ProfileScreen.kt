@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.rememberAsyncImagePainter
 import com.example.soclub.R
 import com.example.soclub.components.navigation.AppScreens
 import com.example.soclub.models.UserInfo
@@ -39,11 +40,12 @@ fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel 
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        ProfileImage()
+        // Pass the user's image URL or show placeholder if empty
+        ProfileImage(imageUrl = userInfo?.imageUrl)
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Use userInfo?.name to get the name from the UserInfo object
+        // Display user's name or a loading state
         ProfileName(name = userInfo?.name ?: "Laster...")
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -52,6 +54,7 @@ fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel 
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Display account information
         AccountInfoSection(navController, userInfo)
 
         Spacer(modifier = Modifier.weight(1f))
@@ -61,15 +64,28 @@ fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel 
 }
 
 @Composable
-fun ProfileImage() {
-    Image(
-        painter = painterResource(R.drawable.user),
-        contentDescription = stringResource(id = R.string.profile_picture_description),
-        modifier = Modifier
-            .size(100.dp)
-            .clip(CircleShape),
-        contentScale = ContentScale.Crop
-    )
+fun ProfileImage(imageUrl: String?) {
+    if (imageUrl.isNullOrEmpty()) {
+        // Show placeholder image when there's no image URL
+        Image(
+            painter = painterResource(R.drawable.user),
+            contentDescription = stringResource(id = R.string.profile_picture_description),
+            modifier = Modifier
+                .size(100.dp)
+                .clip(CircleShape),
+            contentScale = ContentScale.Crop
+        )
+    } else {
+        // Load image from URL using Coil
+        Image(
+            painter = rememberAsyncImagePainter(model = imageUrl),
+            contentDescription = stringResource(id = R.string.profile_picture_description),
+            modifier = Modifier
+                .size(100.dp)
+                .clip(CircleShape),
+            contentScale = ContentScale.Crop
+        )
+    }
 }
 
 @Composable
@@ -108,7 +124,7 @@ fun AccountInfoSection(navController: NavHostController, userInfo: UserInfo?) {
         Spacer(modifier = Modifier.height(16.dp))
 
         ProfileInfoRow(label = stringResource(id = R.string.label_name), value = userInfo?.name ?: stringResource(id = R.string.loading))
-        ProfileInfoRow(label = "Alder", value = "22")
+        ProfileInfoRow(label = stringResource(id = R.string.label_age), value = (userInfo?.age ?: stringResource(id = R.string.loading)).toString())
         ProfileInfoRow(label = stringResource(id = R.string.label_email), value = userInfo?.email ?: stringResource(id = R.string.loading))
         ProfileInfoRow(label = stringResource(id = R.string.label_ads), onClick = {
             navController.navigate("ads")
