@@ -11,11 +11,10 @@ import com.example.soclub.common.ext.containsLowerCase
 import com.example.soclub.common.ext.containsNoWhitespace
 import com.example.soclub.common.ext.containsUpperCase
 import com.example.soclub.common.ext.isAgeNumeric
-import com.example.soclub.common.ext.isAgeValidMinimum
+import com.example.soclub.common.ext.isAgeValid
 import com.example.soclub.common.ext.isPasswordLongEnough
 import com.example.soclub.common.ext.isValidEmail
 import com.example.soclub.common.ext.isValidName
-import com.example.soclub.common.ext.isValidPassword
 import com.example.soclub.service.AccountService
 import com.example.soclub.components.navigation.AppScreens
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -90,7 +89,7 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
             return
         }
 
-        if (!age.isAgeValidMinimum()) {
+        if (!age.isAgeValid()) {
             uiState.value = uiState.value.copy(errorMessage = R.string.error_age_minimum)
             return
         }
