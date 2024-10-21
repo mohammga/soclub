@@ -66,7 +66,7 @@ fun NewActivityScreen(navController: NavController, viewModel: NewActivityViewMo
                     value = uiState.address,
                     onNewValue = viewModel::onAddressChange,
                     suggestions = addressSuggestions,
-                    onSuggestionClick = viewModel::onAddressSelected, // Change to onAddressSelected to handle address selection
+                    onSuggestionClick = viewModel::onAddressSelected,
                     isEnabled = uiState.location.isNotBlank()
                 )
             }

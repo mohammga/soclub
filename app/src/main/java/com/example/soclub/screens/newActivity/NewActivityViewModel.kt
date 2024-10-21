@@ -182,7 +182,7 @@ class NewActivityViewModel @Inject constructor(
                     imageUrl = imageUrl,
                     date = date,
                     startTime = startTime,
-                    soclubCode = uniqueCode // Add the unique code here
+                    soclubCode = uniqueCode // Adder unike coden "Soclubkode"
                 )
 
                 activityService.createActivity(uiState.value.category, newActivity)
@@ -197,7 +197,7 @@ class NewActivityViewModel @Inject constructor(
     }
 
     private fun generateUniqueCode(): Int {
-        return Random.nextInt(10000000, 99999999) // Generates an 8-digit unique code
+        return Random.nextInt(10000000, 99999999) // gennrener 8 shiffer "code"
     }
 
     private fun fetchKommuneSuggestions(query: String) {
@@ -277,7 +277,7 @@ class NewActivityViewModel @Inject constructor(
                                 null
                             }
                         }.filterNotNull()
-                    }.distinct() // Remove duplicates
+                    }.distinct() // fjerne doblikater
                     uiState.value = uiState.value.copy(addressSuggestions = suggestions)
                 }
             } catch (e: Exception) {
