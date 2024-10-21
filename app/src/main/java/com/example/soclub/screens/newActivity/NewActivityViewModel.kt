@@ -5,11 +5,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import android.util.Log  // For logging
+import android.util.Log
+import androidx.annotation.StringRes
 import com.example.soclub.R
+import com.example.soclub.common.ext.isAgeValid
+import com.example.soclub.common.ext.isValidParticipants
 import com.example.soclub.models.createActivity
 import com.example.soclub.service.ActivityService
-import com.example.soclub.service.AccountService  // For å hente creatorId
+import com.example.soclub.service.AccountService
 import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -29,13 +32,13 @@ data class NewActivityState(
     val ageLimit: String = "",
     val imageUrl: String = "",
     val date: String = "",
-    val errorMessage: Int? = null  // For displaying error messages
+    @StringRes val errorMessage: Int = 0
 )
 
 @HiltViewModel
 class NewActivityViewModel @Inject constructor(
     private val activityService: ActivityService,
-    private val accountService: AccountService  // Injiserer AccountService
+    private val accountService: AccountService
 ) : ViewModel() {
 
     var uiState = mutableStateOf(NewActivityState())
@@ -100,47 +103,95 @@ class NewActivityViewModel @Inject constructor(
     fun onPublishClick(navController: NavController) {
         Log.d("NewActivityViewModel", "Publish button clicked")
 
-        // Check for title and category
+        // Validering for tittel
         if (uiState.value.title.isBlank()) {
             uiState.value = uiState.value.copy(errorMessage = R.string.error_title_required)
             return
         }
 
+        // Validering for bilde
+        if (uiState.value.imageUrl.isBlank()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_image_required)
+            return
+        }
+
+        // Validering for beskrivelse
+        if (uiState.value.description.isBlank()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_description_required)
+            return
+        }
+
+        // Validering for kategori
         if (uiState.value.category.isBlank()) {
             uiState.value = uiState.value.copy(errorMessage = R.string.error_category_required)
             return
         }
 
-        // Set default date to current day if not chosen by user
+        // Validering for sted
+        if (uiState.value.location.isBlank()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_location_required)
+            return
+        }
+
+        // Validering for adresse
+        if (uiState.value.address.isBlank()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_address_required)
+            return
+        }
+
+        // Validering for postnummer
+        if (uiState.value.postalCode.isBlank()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_postal_code_required)
+            return
+        }
+
+        // Validering for antall deltakere
+        if (uiState.value.maxParticipants.isBlank() || uiState.value.maxParticipants.toIntOrNull() == null) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_max_participants_required)
+            return
+        }
+
+        // Validering for aldersgrense (hvis den er spesifisert)
+        if (uiState.value.ageLimit.isNotBlank() && uiState.value.ageLimit.toIntOrNull() == null) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_age_limit)
+            return
+        }
+
+
+        // Validering av maks deltakere
+        if (!uiState.value.maxParticipants.isValidParticipants()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_max_participants)
+            return
+        }
+
+        // Validering av aldersgrense
+        if (!uiState.value.ageLimit.isAgeValid()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_age_limit)
+            return
+        }
+
+
         val currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE.dd.MM.yyyy", Locale("no")))
-        val dateToSend = if (uiState.value.date.isBlank()) currentDate else uiState.value.date
-
+        val dateToSend = uiState.value.date.ifBlank { currentDate }
         val combinedLocation = "${uiState.value.location}, ${uiState.value.postalCode} ${uiState.value.address}"
-
-        // Hent `creatorId` fra AccountService
         val creatorId = accountService.currentUserId
 
-        if (uiState.value.imageUrl.isNotBlank()) {
-            uploadImageToFirebase(
-                Uri.parse(uiState.value.imageUrl),
-                onSuccess = { imageUrl ->
-                    createActivityAndNavigate(navController, imageUrl, combinedLocation, dateToSend, creatorId)
-                },
-                onError = { error ->
-                    Log.e("NewActivityViewModel", "Error uploading image: ${error.message}")
-                }
-            )
-        } else {
-            createActivityAndNavigate(navController, "", combinedLocation, dateToSend, creatorId)
-        }
+        uploadImageToFirebase(
+            Uri.parse(uiState.value.imageUrl),
+            onSuccess = { imageUrl ->
+                createActivityAndNavigate(navController, imageUrl, combinedLocation, dateToSend, creatorId)
+            },
+            onError = { error ->
+                Log.e("NewActivityViewModel", "Error uploading image: ${error.message}")
+            }
+        )
     }
 
     private fun createActivityAndNavigate(navController: NavController, imageUrl: String, combinedLocation: String, date: String, creatorId: String) {
         viewModelScope.launch {
             try {
-                Log.d("NewActivityViewModel", "Creating activity with imageUrl: $imageUrl and location: $combinedLocation")
                 val newActivity = createActivity(
-                    creatorId = creatorId,  // Bruker nå creatorId
+                    creatorId = creatorId,
                     title = uiState.value.title,
                     description = uiState.value.description,
                     location = combinedLocation,

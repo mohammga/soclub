@@ -47,7 +47,15 @@ fun String.isAgeNumeric(): Boolean {
     return this.toIntOrNull() != null
 }
 
-fun String.isAgeValidMinimum(): Boolean {
-    val age = this.toIntOrNull()
-    return age != null && age >= 16
+fun String.isValidParticipants(): Boolean {
+    val participants = this.toIntOrNull()
+    return participants != null && participants in 1..100
 }
+
+fun String.isAgeValid(): Boolean {
+    val age = this.toIntOrNull()
+    return age != null && age in 16..100
+}
+
+
+
