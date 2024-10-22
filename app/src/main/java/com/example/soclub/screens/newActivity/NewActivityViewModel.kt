@@ -200,49 +200,65 @@ class NewActivityViewModel @Inject constructor(
         return Random.nextInt(10000000, 99999999) // gennrener 8 shiffer "code"
     }
 
-    private fun fetchKommuneSuggestions(query: String) {
-        viewModelScope.launch {
-            if (query.length < 2) {
-                uiState.value = uiState.value.copy(locationSuggestions = emptyList())
-                Log.d("NewActivityViewModel", "Query too short for kommune suggestions")
+private fun fetchAllKommuner() {
+    viewModelScope.launch {
+        try {
+            // Kartverkets API URL for å hente alle kommuner
+            val url = "https://api.kartverket.no/kommuneinfo/v1/kommuner"
+            Log.d("NewActivityViewModel", "Fetching all kommuner from: $url")
+
+            val request = Request.Builder().url(url).build()
+            val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
+
+            if (!response.isSuccessful) {
+                Log.e("NewActivityViewModel", "Unsuccessful response: ${response.code}")
                 return@launch
             }
-            try {
-                val url = "https://ws.geonorge.no/adresser/v1/sok?fuzzy=true&kommunenavn=$query&utkoordsys=4258&treffPerSide=1000&asciiKompatibel=true"
-                Log.d("NewActivityViewModel", "Fetching kommune suggestions from: $url")
 
-                val request = Request.Builder().url(url).build()
-                val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
+            response.body?.let { responseBody ->
+                val responseString = responseBody.string()
+                Log.d("NewActivityViewModel", "Response received: $responseString")
 
-                if (!response.isSuccessful) {
-                    Log.e("NewActivityViewModel", "Unsuccessful response: ${response.code}")
-                    return@launch
-                }
+                // Parse JSON and extract kommunenavn
+                val json = JSONArray(responseString)
+                val kommuneList = List(json.length()) { index ->
+                    val kommune = json.getJSONObject(index)
+                    kommune.optString("kommunenavn", "")
+                }.filter { it.isNotBlank() } // Filter ut tomme kommunenavn
 
-                response.body?.let { responseBody ->
-                    val responseString = responseBody.string()
-                    Log.d("NewActivityViewModel", "Response received: $responseString")
-
-                    // Parse JSON and extract the kommunenavn
-                    val json = JSONObject(responseString)
-                    val suggestions = json.getJSONArray("adresser").let { addresses ->
-                        List(addresses.length()) { index ->
-                            val address = addresses.getJSONObject(index)
-                            address.optString("kommunenavn", "")
-                        }.filter { it.isNotBlank() } // Filter ut tomme kommunenavn
-                    }.distinct() // Ensuring uniqueness
-
-                    Log.d("NewActivityViewModel", "Parsed kommune suggestions: $suggestions")
-                    uiState.value = uiState.value.copy(locationSuggestions = suggestions)
-                    Log.d("NewActivityViewModel", "Kommune suggestions updated in uiState")
-                } ?: run {
-                    Log.e("NewActivityViewModel", "Response body is null")
-                }
-            } catch (e: Exception) {
-                Log.e("NewActivityViewModel", "Error fetching kommune suggestions: ${e.message}")
+                Log.d("NewActivityViewModel", "Parsed kommuner: $kommuneList")
+                // Lagre listen med kommuner i ViewModel eller en annen passende datastruktur
+                uiState.value = uiState.value.copy(allKommuner = kommuneList)
+                Log.d("NewActivityViewModel", "All kommuner stored in uiState")
+            } ?: run {
+                Log.e("NewActivityViewModel", "Response body is null")
             }
+        } catch (e: Exception) {
+            Log.e("NewActivityViewModel", "Error fetching all kommuner: ${e.message}")
         }
     }
+}
+
+private fun fetchKommuneSuggestions(query: String) {
+    viewModelScope.launch {
+        if (query.length < 2) {
+            uiState.value = uiState.value.copy(locationSuggestions = emptyList())
+            Log.d("NewActivityViewModel", "Query too short for kommune suggestions")
+            return@launch
+        }
+
+        // Hent listen med alle kommuner fra UI state
+        val allKommuner = uiState.value.allKommuner ?: return@launch
+
+        // Filtrer kommuner som matcher brukerens input
+        val suggestions = allKommuner.filter { it.startsWith(query, ignoreCase = true) }
+        
+        Log.d("NewActivityViewModel", "Filtered kommune suggestions: $suggestions")
+        uiState.value = uiState.value.copy(locationSuggestions = suggestions)
+        Log.d("NewActivityViewModel", "Kommune suggestions updated in uiState")
+    }
+}
+
 
     private fun fetchAddressSuggestions(query: String) {
         viewModelScope.launch {
