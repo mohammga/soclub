@@ -218,13 +218,7 @@ fun LocationField(value: String, onNewValue: (String) -> Unit, suggestions: List
 
 
 @Composable
-fun AddressField(
-    value: String,
-    onNewValue: (String) -> Unit,
-    suggestions: List<String>,
-    onSuggestionClick: (String) -> Unit,
-    isEnabled: Boolean
-) {
+fun AddressField(value: String, onNewValue: (String) -> Unit, suggestions: List<String>, onSuggestionClick: (String) -> Unit, isEnabled: Boolean) {
     var expanded by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -237,26 +231,18 @@ fun AddressField(
                 }
             },
             placeholder = { Text("Adresse") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            enabled = isEnabled,  // Gjør tekstfeltet inaktivt hvis "Kommune" ikke er valgt
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            enabled = isEnabled,
             singleLine = true
         )
 
         if (isEnabled) {
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 suggestions.forEach { suggestion ->
-                    DropdownMenuItem(
-                        text = { Text(text = suggestion) },
-                        onClick = {
-                            onSuggestionClick(suggestion)
-                            expanded = false
-                        }
-                    )
+                    DropdownMenuItem(text = { Text(text = suggestion) }, onClick = {
+                        onSuggestionClick(suggestion)
+                        expanded = false
+                    })
                 }
             }
         }

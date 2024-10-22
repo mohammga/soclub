@@ -132,8 +132,11 @@ class NewActivityViewModel @Inject constructor(
 
     fun onAddressSelected(selectedAddress: String) {
         uiState.value = uiState.value.copy(address = selectedAddress)
-        fetchPostalCodeForAddress(selectedAddress)
+
+        // Hent postnummer basert på valgt adresse og kommune
+        fetchPostalCodeForAddress(selectedAddress, uiState.value.location)
     }
+
 
     fun onMaxParticipantsChange(newValue: String) {
         uiState.value = uiState.value.copy(maxParticipants = newValue)
@@ -258,9 +261,21 @@ class NewActivityViewModel @Inject constructor(
                 return@launch
             }
             try {
-                val url = "https://ws.geonorge.no/adresser/v1/sok?sok=$query&kommunenavn=$kommune&treffPerSide=1000"
+                // Bygg URL-en for å tillate fuzzy søk og bruke adressetekst som inneholder filter
+                val url = "https://ws.geonorge.no/adresser/v1/sok" +
+                        "?fuzzy=true" +  // Tillat mer fleksible treff
+                        "&adressetekst=$query" +  // Søk med adressetekst
+                        "&kommunenavn=$kommune" +  // Filtrer på valgt kommune
+                        "&utkoordsys=4258" +  // Koordinatsystem
+                        "&treffPerSide=12" +  // Øk antall treff per side for å få flere adresser
+                        "&side=0" +  // Første side med resultater
+                        "&asciiKompatibel=true"  // Håndtering av spesialtegn
+
+                Log.d("NewActivityViewModel", "Fetching address suggestions from: $url")
+
                 val request = Request.Builder().url(url).build()
                 val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
+
                 if (!response.isSuccessful) {
                     Log.e("NewActivityViewModel", "Unsuccessful response: ${response.code}")
                     return@launch
@@ -273,13 +288,16 @@ class NewActivityViewModel @Inject constructor(
                         List(addresses.length()) { index ->
                             val address = addresses.getJSONObject(index)
                             val addressKommune = address.optString("kommunenavn", "")
+                            // Returner kun adresser fra riktig kommune
                             if (addressKommune.equals(kommune, ignoreCase = true)) {
                                 address.getString("adressetekst")
                             } else {
                                 null
                             }
                         }.filterNotNull()
-                    }.distinct() // fjerne doblikater
+                    }.distinct()
+
+                    Log.d("NewActivityViewModel", "Fetched address suggestions: $suggestions")
                     uiState.value = uiState.value.copy(addressSuggestions = suggestions)
                 }
             } catch (e: Exception) {
@@ -288,12 +306,26 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    private fun fetchPostalCodeForAddress(address: String) {
+
+
+    private fun fetchPostalCodeForAddress(address: String, kommune: String) {
         viewModelScope.launch {
             try {
-                val url = "https://ws.geonorge.no/adresser/v1/sok?sok=$address&treffPerSide=1"
+                // Bygg URL-en for å hente postnummer basert på adressen og kommunenavnet
+                val url = "https://ws.geonorge.no/adresser/v1/sok" +
+                        "?fuzzy=false" +  // Kan settes til true hvis du ønsker å tillate små feil
+                        "&adressetekst=$address" +  // Søk etter spesifikk adresse
+                        "&kommunenavn=$kommune" +  // Kommunenavn for mer presist resultat
+                        "&utkoordsys=4258" +  // Koordinatsystem
+                        "&treffPerSide=1" +  // Vi trenger kun én presis treff
+                        "&side=0" +  // Første side med resultater
+                        "&asciiKompatibel=true"  // ASCII-kompatibel for håndtering av spesialtegn
+
+                Log.d("NewActivityViewModel", "Fetching postal code from: $url")  // Logg forespørselen
+
                 val request = Request.Builder().url(url).build()
                 val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
+
                 if (!response.isSuccessful) {
                     Log.e("NewActivityViewModel", "Unsuccessful response: ${response.code}")
                     return@launch
@@ -303,16 +335,24 @@ class NewActivityViewModel @Inject constructor(
                     val responseString = responseBody.string()
                     val json = JSONObject(responseString)
                     val addresses = json.getJSONArray("adresser")
+
+                    // Hvis det er treff, hent postnummer
                     if (addresses.length() > 0) {
                         val postalCode = addresses.getJSONObject(0).getString("postnummer")
+                        Log.d("NewActivityViewModel", "Fetched postal code: $postalCode")
+
+                        // Oppdater state med postnummeret
                         uiState.value = uiState.value.copy(postalCode = postalCode)
+                    } else {
+                        Log.e("NewActivityViewModel", "No addresses found for: $address, $kommune")
                     }
                 }
             } catch (e: Exception) {
-                Log.e("NewActivityViewModel", "Error fetching postal code for address: ${e.message}")
+                Log.e("NewActivityViewModel", "Error fetching postal code: ${e.message}")
             }
         }
     }
+
 }
 
 
