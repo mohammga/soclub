@@ -29,9 +29,11 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import com.example.soclub.R
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -59,8 +61,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -69,7 +70,9 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
             Icon(
                 imageVector = Icons.Default.FilterList,
                 contentDescription = "Filter",
-                modifier = Modifier.clickable {
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .clickable {
                     showBottomSheet = true
                     isSelectingArea = true
                 }
@@ -313,18 +316,33 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable { onClick() }
     ) {
-        Image(
-            painter = rememberAsyncImagePainter(activity.imageUrl),
-            contentDescription = activity.title,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .clip(RoundedCornerShape(16.dp))
-        )
+
+        // Check if the imageUrl is null or empty, then show a placeholder
+        if (activity.imageUrl.isEmpty()) {
+            Image(
+                painter = painterResource(id = R.drawable.placeholder),
+                contentDescription = stringResource(id = R.string.change_ad_picture),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(16.dp))
+            )
+        } else {
+            Image(
+                painter = rememberAsyncImagePainter(activity.imageUrl),
+                contentDescription = activity.title,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(16.dp))
+            )
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Title for the activity
         Text(
             text = activity.title ?: "Ingen tittel",
             fontSize = 16.sp,
