@@ -56,54 +56,32 @@ class HomeViewModel @Inject constructor(
     val filteredActivities: LiveData<List<Activity>> get() = _filteredActivities
 
 
-    fun filterActivitiesByCities(selectedCities: List<String>) {
+    fun fetchAndFilterActivitiesByCities(selectedCities: List<String>, selectedCategory: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val activities = activityService.getAllActivities() // Hent alle aktiviteter
-                val filtered = activities.filter { activity ->
-                    selectedCities.contains(activity.location) // Filtrer basert på by
+                // Hent aktiviteter for den valgte kategorien
+                val activities = activityService.getActivities(selectedCategory)
+
+                // Filtrer aktivitetene som allerede er hentet basert på de valgte byene
+                val filtered = if (selectedCities.isNotEmpty()) {
+                    activities.filter { activity ->
+                        selectedCities.contains(activity.location)
+                    }
+                } else {
+                    activities // Hvis ingen byer er valgt, vis alle aktivitetene i den valgte kategorien
                 }
+
                 _filteredActivities.postValue(filtered) // Oppdater LiveData med filtrerte aktiviteter
             } catch (e: Exception) {
-                _filteredActivities.postValue(emptyList()) // I tilfelle feil
+                _filteredActivities.postValue(emptyList()) // Håndter feil ved å vise tom liste
             }
         }
     }
-
-    fun fetchAndFilterActivitiesByCities(selectedCities: List<String>, categories: List<String>) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val filteredActivities = mutableListOf<Activity>()
-                // Hent aktiviteter for hver kategori og filtrer etter valgte byer
-                for (category in categories) {
-                    val activities = activityService.getActivities(category)
-                    val filtered = activities.filter { activity ->
-                        selectedCities.contains(activity.location) // Sjekk om aktiviteten er i en valgt by
-                    }
-                    filteredActivities.addAll(filtered)
-                }
-                _filteredActivities.postValue(filteredActivities) // Oppdater filtrerte aktiviteter
-            } catch (e: Exception) {
-                _filteredActivities.postValue(emptyList()) // Håndter feil
-            }
-        }
-    }
-
-
 
 
     fun resetFilter() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val allActivities = activityService.getAllActivities() // Hent alle aktiviteter på nytt
-                _filteredActivities.postValue(allActivities) // Oppdater visningen
-            } catch (e: Exception) {
-                _filteredActivities.postValue(emptyList())
-            }
-        }
+        _filteredActivities.postValue(emptyList()) // Nullstill filtrerte aktiviteter
     }
-
-
 
 
 

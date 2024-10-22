@@ -109,12 +109,6 @@ class NewActivityViewModel @Inject constructor(
             return
         }
 
-        // Validering for bilde
-        if (uiState.value.imageUrl.isBlank()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_image_required)
-            return
-        }
-
         // Validering for beskrivelse
         if (uiState.value.description.isBlank()) {
             uiState.value = uiState.value.copy(errorMessage = R.string.error_description_required)

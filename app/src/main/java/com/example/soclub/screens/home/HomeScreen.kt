@@ -29,9 +29,11 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import com.example.soclub.R
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +46,15 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
     val selectedCities = remember { mutableStateListOf<String>() }
     val cities by viewModel.getCities().observeAsState(emptyList())
     val filteredActivities by viewModel.filteredActivities.observeAsState(emptyList()) // Bruk filtrerte aktiviteter
+
+    val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
+    val activities by viewModel.getActivities(selectedCategory).observeAsState(emptyList())
+
+    // Oppdater aktivitetene automatisk når brukeren bytter kategori
+    LaunchedEffect(pagerState.currentPage) {
+        // Utfør søkefunksjonalitet automatisk når vi bytter kategori
+        viewModel.fetchAndFilterActivitiesByCities(selectedCities, selectedCategory)
+    }
 
 
 
@@ -59,8 +70,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -69,7 +79,9 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
             Icon(
                 imageVector = Icons.Default.FilterList,
                 contentDescription = "Filter",
-                modifier = Modifier.clickable {
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .clickable {
                     showBottomSheet = true
                     isSelectingArea = true
                 }
@@ -78,9 +90,20 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
         Spacer(modifier = Modifier.height(16.dp))
 
+
+        // Hvis vi har filtrerte aktiviteter, vis disse, ellers vis aktiviteter for den valgte kategorien
         if (filteredActivities.isNotEmpty()) {
             ActivityList(activities = filteredActivities, selectedCategory = selectedCategory, navController = navController)
+        } else if (selectedCities.isNotEmpty() && filteredActivities.isEmpty()) {
+            // Hvis filtreringen er utført, men ingen aktiviteter samsvarer, vis feilmelding
+            Text(
+                text = "Det er ingen aktiviteter i ${selectedCities.joinToString(", ")} for denne kategorien.",
+                modifier = Modifier.padding(16.dp),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
         } else {
+            // Hvis det ikke er noen filtrering, vis aktivitetene for den valgte kategorien
             CategoryActivitiesPager(
                 categories = categories,
                 pagerState = pagerState,
@@ -89,6 +112,22 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
             )
         }
     }
+
+//        if (filteredActivities.isNotEmpty()) {
+//            ActivityList(activities = filteredActivities, selectedCategory = selectedCategory, navController = navController)
+//        } else {
+//            // Hvis det ikke finnes filtrerte aktiviteter, vis aktivitetene i kategorien
+//            CategoryActivitiesPager(
+//                categories = categories,
+//                pagerState = pagerState,
+//                viewModel = viewModel,
+//                navController = navController
+//            )
+//        }
+//    }
+
+
+
 
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -156,7 +195,9 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
                     Button(
                         onClick = {
-                            viewModel.fetchAndFilterActivitiesByCities(selectedCities, categories) // Filtrer aktiviteter etter byer
+                            // Filtrer aktiviteter basert på valgte byer kun for den valgte kategorien
+                            val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
+                            viewModel.fetchAndFilterActivitiesByCities(selectedCities, selectedCategory)
                             showBottomSheet = false // Skjul BottomSheet
                         },
                         modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
@@ -164,24 +205,26 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                         Text(text = "Søk")
                     }
 
+
                     if (filteredActivities.isNotEmpty()) {
                         Button(
                             onClick = {
-                                viewModel.resetFilter()
-                                selectedCities.clear()
-                                viewModel.fetchAndFilterActivitiesByCities(emptyList(), categories)
-                                showBottomSheet = false
+                                val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
+                                selectedCities.clear() // Tøm listen over valgte byer
+                                viewModel.resetFilter() // Nullstill filtreringen
+                                viewModel.fetchAndFilterActivitiesByCities(emptyList(), selectedCategory) // Gjenopprett aktivitetene for valgt kategori
+                                showBottomSheet = false // Skjul BottomSheet
                             },
                             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
                         ) {
                             Text("Nullstill filtrering")
                         }
                     }
+
                     }
                 }
             }
         }
-
 }
 
 
@@ -313,18 +356,33 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable { onClick() }
     ) {
-        Image(
-            painter = rememberAsyncImagePainter(activity.imageUrl),
-            contentDescription = activity.title,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .clip(RoundedCornerShape(16.dp))
-        )
+
+        // Check if the imageUrl is null or empty, then show a placeholder
+        if (activity.imageUrl.isEmpty()) {
+            Image(
+                painter = painterResource(id = R.drawable.placeholder),
+                contentDescription = stringResource(id = R.string.change_ad_picture),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(16.dp))
+            )
+        } else {
+            Image(
+                painter = rememberAsyncImagePainter(activity.imageUrl),
+                contentDescription = activity.title,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(16.dp))
+            )
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Title for the activity
         Text(
             text = activity.title ?: "Ingen tittel",
             fontSize = 16.sp,
