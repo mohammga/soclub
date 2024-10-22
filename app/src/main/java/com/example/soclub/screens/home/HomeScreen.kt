@@ -47,6 +47,15 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
     val cities by viewModel.getCities().observeAsState(emptyList())
     val filteredActivities by viewModel.filteredActivities.observeAsState(emptyList()) // Bruk filtrerte aktiviteter
 
+    val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
+    val activities by viewModel.getActivities(selectedCategory).observeAsState(emptyList())
+
+    // Oppdater aktivitetene automatisk når brukeren bytter kategori
+    LaunchedEffect(pagerState.currentPage) {
+        // Utfør søkefunksjonalitet automatisk når vi bytter kategori
+        viewModel.fetchAndFilterActivitiesByCities(selectedCities, selectedCategory)
+    }
+
 
 
 
@@ -84,6 +93,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
         if (filteredActivities.isNotEmpty()) {
             ActivityList(activities = filteredActivities, selectedCategory = selectedCategory, navController = navController)
         } else {
+            // Hvis det ikke finnes filtrerte aktiviteter, vis aktivitetene i kategorien
             CategoryActivitiesPager(
                 categories = categories,
                 pagerState = pagerState,
@@ -159,7 +169,9 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
                     Button(
                         onClick = {
-                            viewModel.fetchAndFilterActivitiesByCities(selectedCities, categories) // Filtrer aktiviteter etter byer
+                            // Filtrer aktiviteter basert på valgte byer kun for den valgte kategorien
+                            val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
+                            viewModel.fetchAndFilterActivitiesByCities(selectedCities, selectedCategory)
                             showBottomSheet = false // Skjul BottomSheet
                         },
                         modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
@@ -167,24 +179,26 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                         Text(text = "Søk")
                     }
 
+
                     if (filteredActivities.isNotEmpty()) {
                         Button(
                             onClick = {
-                                viewModel.resetFilter()
-                                selectedCities.clear()
-                                viewModel.fetchAndFilterActivitiesByCities(emptyList(), categories)
-                                showBottomSheet = false
+                                val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
+                                selectedCities.clear() // Tøm listen over valgte byer
+                                viewModel.resetFilter() // Nullstill filtreringen
+                                viewModel.fetchAndFilterActivitiesByCities(emptyList(), selectedCategory) // Gjenopprett aktivitetene for valgt kategori
+                                showBottomSheet = false // Skjul BottomSheet
                             },
                             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
                         ) {
                             Text("Nullstill filtrering")
                         }
                     }
+                    
                     }
                 }
             }
         }
-
 }
 
 
