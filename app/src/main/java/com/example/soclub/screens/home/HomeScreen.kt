@@ -90,10 +90,20 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
         Spacer(modifier = Modifier.height(16.dp))
 
+
+        // Hvis vi har filtrerte aktiviteter, vis disse, ellers vis aktiviteter for den valgte kategorien
         if (filteredActivities.isNotEmpty()) {
             ActivityList(activities = filteredActivities, selectedCategory = selectedCategory, navController = navController)
+        } else if (selectedCities.isNotEmpty() && filteredActivities.isEmpty()) {
+            // Hvis filtreringen er utført, men ingen aktiviteter samsvarer, vis feilmelding
+            Text(
+                text = "Det er ingen aktiviteter i ${selectedCities.joinToString(", ")} for denne kategorien.",
+                modifier = Modifier.padding(16.dp),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
         } else {
-            // Hvis det ikke finnes filtrerte aktiviteter, vis aktivitetene i kategorien
+            // Hvis det ikke er noen filtrering, vis aktivitetene for den valgte kategorien
             CategoryActivitiesPager(
                 categories = categories,
                 pagerState = pagerState,
@@ -102,6 +112,22 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
             )
         }
     }
+
+//        if (filteredActivities.isNotEmpty()) {
+//            ActivityList(activities = filteredActivities, selectedCategory = selectedCategory, navController = navController)
+//        } else {
+//            // Hvis det ikke finnes filtrerte aktiviteter, vis aktivitetene i kategorien
+//            CategoryActivitiesPager(
+//                categories = categories,
+//                pagerState = pagerState,
+//                viewModel = viewModel,
+//                navController = navController
+//            )
+//        }
+//    }
+
+
+
 
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -194,7 +220,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                             Text("Nullstill filtrering")
                         }
                     }
-                    
+
                     }
                 }
             }
