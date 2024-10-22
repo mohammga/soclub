@@ -1,5 +1,6 @@
 package com.example.soclub.screens.newActivity
 
+
 import android.net.Uri
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -19,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.json.JSONArray
 import org.json.JSONObject
 import kotlin.random.Random
 
@@ -44,7 +46,6 @@ data class NewActivityState(
 )
 
 
-
 @HiltViewModel
 class NewActivityViewModel @Inject constructor(
     private val activityService: ActivityService,
@@ -55,6 +56,43 @@ class NewActivityViewModel @Inject constructor(
         private set
 
     private val client = OkHttpClient()
+
+    // Liste som lagrer alle kommuner
+    private var kommuner: List<String> = listOf()
+
+    init {
+        // Last inn kommuner ved oppstart
+        loadKommuner()
+    }
+
+    // Funksjon for å hente kommuner fra Kartverket API
+    private fun loadKommuner() {
+        viewModelScope.launch {
+            try {
+                val url = "https://api.kartverket.no/kommuneinfo/v1/kommuner"
+                val request = Request.Builder().url(url).build()
+                val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
+
+                if (response.isSuccessful) {
+                    response.body?.let { responseBody ->
+                        val responseString = responseBody.string()
+                        val json = JSONArray(responseString)
+
+                        // Ekstrakt kommunenavn fra JSON-responsen
+                        kommuner = List(json.length()) { index ->
+                            val kommuneObj = json.getJSONObject(index)
+                            kommuneObj.getString("kommunenavnNorsk").uppercase()
+                        }
+                    }
+                } else {
+                    Log.e("NewActivityViewModel", "Error loading kommuner: ${response.code}")
+                }
+            } catch (e: Exception) {
+                Log.e("NewActivityViewModel", "Error: ${e.message}")
+            }
+        }
+    }
+
 
     fun onTitleChange(newValue: String) {
         uiState.value = uiState.value.copy(title = newValue)
@@ -72,11 +110,18 @@ class NewActivityViewModel @Inject constructor(
         uiState.value = uiState.value.copy(category = newValue)
     }
 
+    // Funksjon for å håndtere input i LocationField og gi forslag fra kommuner-listen
     fun onLocationChange(newValue: String) {
         uiState.value = uiState.value.copy(location = newValue)
-        fetchKommuneSuggestions(newValue)
 
-        // Clear address and postal code suggestions when the location changes
+        if (newValue.length >= 2) {
+            val suggestions = kommuner.filter { it.startsWith(newValue.uppercase()) }
+            uiState.value = uiState.value.copy(locationSuggestions = suggestions)
+        } else {
+            uiState.value = uiState.value.copy(locationSuggestions = emptyList())
+        }
+
+        // Tøm adresse- og postkodesuggesjoner når lokasjonen endres
         uiState.value = uiState.value.copy(addressSuggestions = emptyList(), postalCodeSuggestions = emptyList())
     }
 
@@ -89,7 +134,6 @@ class NewActivityViewModel @Inject constructor(
         uiState.value = uiState.value.copy(address = selectedAddress)
         fetchPostalCodeForAddress(selectedAddress)
     }
-
 
     fun onMaxParticipantsChange(newValue: String) {
         uiState.value = uiState.value.copy(maxParticipants = newValue)
@@ -200,64 +244,6 @@ class NewActivityViewModel @Inject constructor(
         return Random.nextInt(10000000, 99999999) // gennrener 8 shiffer "code"
     }
 
-private fun fetchAllKommuner() {
-    viewModelScope.launch {
-        try {
-            // Kartverkets API URL for å hente alle kommuner
-            val url = "https://api.kartverket.no/kommuneinfo/v1/kommuner"
-            Log.d("NewActivityViewModel", "Fetching all kommuner from: $url")
-
-            val request = Request.Builder().url(url).build()
-            val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
-
-            if (!response.isSuccessful) {
-                Log.e("NewActivityViewModel", "Unsuccessful response: ${response.code}")
-                return@launch
-            }
-
-            response.body?.let { responseBody ->
-                val responseString = responseBody.string()
-                Log.d("NewActivityViewModel", "Response received: $responseString")
-
-                // Parse JSON and extract kommunenavn
-                val json = JSONArray(responseString)
-                val kommuneList = List(json.length()) { index ->
-                    val kommune = json.getJSONObject(index)
-                    kommune.optString("kommunenavn", "")
-                }.filter { it.isNotBlank() } // Filter ut tomme kommunenavn
-
-                Log.d("NewActivityViewModel", "Parsed kommuner: $kommuneList")
-                // Lagre listen med kommuner i ViewModel eller en annen passende datastruktur
-                uiState.value = uiState.value.copy(allKommuner = kommuneList)
-                Log.d("NewActivityViewModel", "All kommuner stored in uiState")
-            } ?: run {
-                Log.e("NewActivityViewModel", "Response body is null")
-            }
-        } catch (e: Exception) {
-            Log.e("NewActivityViewModel", "Error fetching all kommuner: ${e.message}")
-        }
-    }
-}
-
-private fun fetchKommuneSuggestions(query: String) {
-    viewModelScope.launch {
-        if (query.length < 2) {
-            uiState.value = uiState.value.copy(locationSuggestions = emptyList())
-            Log.d("NewActivityViewModel", "Query too short for kommune suggestions")
-            return@launch
-        }
-
-        // Hent listen med alle kommuner fra UI state
-        val allKommuner = uiState.value.allKommuner ?: return@launch
-
-        // Filtrer kommuner som matcher brukerens input
-        val suggestions = allKommuner.filter { it.startsWith(query, ignoreCase = true) }
-        
-        Log.d("NewActivityViewModel", "Filtered kommune suggestions: $suggestions")
-        uiState.value = uiState.value.copy(locationSuggestions = suggestions)
-        Log.d("NewActivityViewModel", "Kommune suggestions updated in uiState")
-    }
-}
 
 
     private fun fetchAddressSuggestions(query: String) {
