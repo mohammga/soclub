@@ -208,7 +208,7 @@ class NewActivityViewModel @Inject constructor(
                 return@launch
             }
             try {
-                val url = "https://ws.geonorge.no/adresser/v1/sok?fuzzy=true&kommunenavn=$query&utkoordsys=4258&treffPerSide=10&asciiKompatibel=true"
+                val url = "https://ws.geonorge.no/adresser/v1/sok?fuzzy=true&kommunenavn=$query&utkoordsys=4258&treffPerSide=1000&asciiKompatibel=true"
                 Log.d("NewActivityViewModel", "Fetching kommune suggestions from: $url")
 
                 val request = Request.Builder().url(url).build()
