@@ -256,7 +256,7 @@ class NewActivityViewModel @Inject constructor(
                 return@launch
             }
             try {
-                val url = "https://ws.geonorge.no/adresser/v1/sok?sok=$query&kommunenavn=$kommune&treffPerSide=10"
+                val url = "https://ws.geonorge.no/adresser/v1/sok?sok=$query&kommunenavn=$kommune&treffPerSide=1000"
                 val request = Request.Builder().url(url).build()
                 val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
                 if (!response.isSuccessful) {
