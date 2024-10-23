@@ -138,7 +138,7 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit) {
 @Composable
 fun CategoryField(value: String, onNewValue: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    val categories = listOf("Festivaler", "Forslag", "Klatring", "Mat", "Reise", "Trening")
+    val categories = listOf("Festivaler", "Klatring", "Mat", "Reise", "Trening")
 
     var selectedText by remember { mutableStateOf(value) }
 
