@@ -57,8 +57,10 @@ class NewActivityViewModel @Inject constructor(
 
     private val client = OkHttpClient()
 
+
     // Liste som lagrer alle kommuner
     private var kommuner: List<String> = listOf()
+
 
     init {
         // Last inn kommuner ved oppstart
@@ -251,60 +253,88 @@ class NewActivityViewModel @Inject constructor(
 
     private fun fetchAddressSuggestions(query: String) {
         viewModelScope.launch {
-            if (query.length < 2) {
+            if (query.isBlank()) {
                 uiState.value = uiState.value.copy(addressSuggestions = emptyList())
                 return@launch
             }
-            val kommune = uiState.value.location
-            if (kommune.isEmpty()) {
-                Log.e("NewActivityViewModel", "Kommune is not selected")
+
+            // Regex for å finne gatenavn og husnummer
+            val regex = """^([a-zA-ZøæåØÆÅ\s]+)(\d+.*)?$""".toRegex()
+            val matchResult = regex.find(query.trim())
+
+            val streetName = matchResult?.groups?.get(1)?.value?.trim() ?: ""
+            val houseNumber = matchResult?.groups?.get(2)?.value?.trim() ?: ""
+
+            // Sjekk om brukeren har skrevet et gyldig gatenavn
+            if (streetName.isEmpty()) {
+                Log.e("NewActivityViewModel", "Ugyldig gatenavn")
                 return@launch
             }
+
+            val kommune = uiState.value.location
+            if (kommune.isEmpty()) {
+                Log.e("NewActivityViewModel", "Kommune er ikke valgt")
+                return@launch
+            }
+
             try {
-                // Bygg URL-en for å tillate fuzzy søk og bruke adressetekst som inneholder filter
-                val url = "https://ws.geonorge.no/adresser/v1/sok" +
-                        "?fuzzy=true" +  // Tillat mer fleksible treff
-                        "&adressetekst=$query" +  // Søk med adressetekst
-                        "&kommunenavn=$kommune" +  // Filtrer på valgt kommune
-                        "&utkoordsys=4258" +  // Koordinatsystem
-                        "&treffPerSide=12" +  // Øk antall treff per side for å få flere adresser
-                        "&side=0" +  // Første side med resultater
-                        "&asciiKompatibel=true"  // Håndtering av spesialtegn
+                val allSuggestions = mutableListOf<String>()
+                var page = 0
+                var hasMoreResults = true
 
-                Log.d("NewActivityViewModel", "Fetching address suggestions from: $url")
+                while (hasMoreResults) {
+                    // Konstruer API-forespørselen med gatenavn og husnummer hvis husnummer er skrevet inn
+                    val url = "https://ws.geonorge.no/adresser/v1/sok" +
+                            "?fuzzy=true" +  // Tillat fleksible treff
+                            "&adressenavn=$streetName" +  // Gatenavn
+                            if (houseNumber.isNotEmpty()) "&nummer=$houseNumber" else "" +  // Husnummer hvis det er skrevet
+                                    "&kommunenavn=$kommune" +  // Kommune
+                                    "&utkoordsys=4258" +  // Koordinatsystem
+                                    "&treffPerSide=12" +  // Øk antall treff per side
+                                    "&side=$page" +  // Paginering
+                                    "&asciiKompatibel=true"  // Håndter spesialtegn
 
-                val request = Request.Builder().url(url).build()
-                val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
+                    Log.d("NewActivityViewModel", "Henter adresseforslag fra: $url")
 
-                if (!response.isSuccessful) {
-                    Log.e("NewActivityViewModel", "Unsuccessful response: ${response.code}")
-                    return@launch
-                }
+                    val request = Request.Builder().url(url).build()
+                    val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
 
-                response.body?.let { responseBody ->
-                    val responseString = responseBody.string()
-                    val json = JSONObject(responseString)
-                    val suggestions = json.getJSONArray("adresser").let { addresses ->
-                        List(addresses.length()) { index ->
-                            val address = addresses.getJSONObject(index)
-                            val addressKommune = address.optString("kommunenavn", "")
-                            // Returner kun adresser fra riktig kommune
-                            if (addressKommune.equals(kommune, ignoreCase = true)) {
-                                address.getString("adressetekst")
-                            } else {
-                                null
+                    if (!response.isSuccessful) {
+                        Log.e("NewActivityViewModel", "Feil ved forespørsel: ${response.code}")
+                        return@launch
+                    }
+
+                    response.body?.let { responseBody ->
+                        val responseString = responseBody.string()
+                        val json = JSONObject(responseString)
+                        val suggestions = json.getJSONArray("adresser").let { addresses ->
+                            List(addresses.length()) { index ->
+                                val address = addresses.getJSONObject(index)
+                                val adressetekst = address.getString("adressetekst")
+                                adressetekst
                             }
-                        }.filterNotNull()
-                    }.distinct()
+                        }
 
-                    Log.d("NewActivityViewModel", "Fetched address suggestions: $suggestions")
-                    uiState.value = uiState.value.copy(addressSuggestions = suggestions)
+                        allSuggestions.addAll(suggestions)
+
+                        // Hvis vi får mindre enn 100 treff, stopp paginering
+                        hasMoreResults = suggestions.size == 12
+                        page++
+                    }
                 }
+
+                Log.d("NewActivityViewModel", "Hentede adresseforslag: $allSuggestions")
+                uiState.value = uiState.value.copy(addressSuggestions = allSuggestions)
+
             } catch (e: Exception) {
-                Log.e("NewActivityViewModel", "Error fetching address suggestions: ${e.message}")
+                Log.e("NewActivityViewModel", "Feil ved henting av adresseforslag: ${e.message}")
             }
         }
     }
+
+
+
+
 
 
 

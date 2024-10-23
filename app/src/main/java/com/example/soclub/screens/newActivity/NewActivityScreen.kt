@@ -184,13 +184,17 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit) {
 @Composable
 fun LocationField(value: String, onNewValue: (String) -> Unit, suggestions: List<String>, onSuggestionClick: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
+    var currentInput by remember { mutableStateOf(value) }
+    var displaySuggestions by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
-            value = value,
+            value = currentInput,
             onValueChange = {
+                currentInput = it
                 onNewValue(it)
-                expanded = it.isNotEmpty() && suggestions.isNotEmpty()
+                expanded = it.isNotEmpty()  // Hold menyen åpen
+                displaySuggestions = false  // Skjul forslag mens brukeren skriver
             },
             placeholder = { Text("Sted") },
             modifier = Modifier
@@ -199,57 +203,93 @@ fun LocationField(value: String, onNewValue: (String) -> Unit, suggestions: List
             singleLine = true
         )
 
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            suggestions.forEach { suggestion ->
-                DropdownMenuItem(
-                    text = { Text(text = suggestion) },
-                    onClick = {
-                        onSuggestionClick(suggestion)
-                        expanded = false
-                    }
-                )
+        // Bruk LaunchedEffect for å introdusere en forsinkelse før forslagene vises
+        LaunchedEffect(currentInput) {
+            if (currentInput.isNotEmpty()) {
+                kotlinx.coroutines.delay(300)  // Forsinkelse på 300 ms
+                displaySuggestions = suggestions.isNotEmpty()
+            } else {
+                displaySuggestions = false
+            }
+        }
+
+        if (expanded && displaySuggestions) {
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                suggestions.forEach { suggestion ->
+                    DropdownMenuItem(
+                        text = { Text(text = suggestion) },
+                        onClick = {
+                            currentInput = suggestion
+                            onSuggestionClick(suggestion)
+                            expanded = false  // Lukk menyen når forslag er valgt
+                        }
+                    )
+                }
             }
         }
     }
 }
+
+
 
 
 @Composable
 fun AddressField(value: String, onNewValue: (String) -> Unit, suggestions: List<String>, onSuggestionClick: (String) -> Unit, isEnabled: Boolean) {
     var expanded by remember { mutableStateOf(false) }
+    var currentInput by remember { mutableStateOf(value) }
+    var displaySuggestions by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
-            value = value,
+            value = currentInput,
             onValueChange = {
                 if (isEnabled) {
+                    currentInput = it
                     onNewValue(it)
-                    expanded = it.isNotEmpty() && suggestions.isNotEmpty()
+                    expanded = it.isNotEmpty()  // Hold menyen åpen
+                    displaySuggestions = false  // Skjul forslag mens brukeren skriver
                 }
             },
             placeholder = { Text("Adresse") },
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
             enabled = isEnabled,
             singleLine = true
         )
 
-        if (isEnabled) {
-            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        // Bruk LaunchedEffect for å introdusere en forsinkelse før forslagene vises
+        LaunchedEffect(currentInput) {
+            if (currentInput.isNotEmpty() && isEnabled) {
+                kotlinx.coroutines.delay(300)  // Forsinkelse på 300 ms
+                displaySuggestions = suggestions.isNotEmpty()
+            } else {
+                displaySuggestions = false
+            }
+        }
+
+        if (expanded && displaySuggestions && isEnabled) {
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
                 suggestions.forEach { suggestion ->
-                    DropdownMenuItem(text = { Text(text = suggestion) }, onClick = {
-                        onSuggestionClick(suggestion)
-                        expanded = false
-                    })
+                    DropdownMenuItem(
+                        text = { Text(text = suggestion) },
+                        onClick = {
+                            currentInput = suggestion
+                            onSuggestionClick(suggestion)
+                            expanded = false  // Lukk menyen når forslag er valgt
+                        }
+                    )
                 }
             }
         }
     }
 }
-
-
 
 @Composable
 fun PostalCodeField(value: String, onNewValue: (String) -> Unit, suggestions: List<String>, onSuggestionClick: (String) -> Unit) {
