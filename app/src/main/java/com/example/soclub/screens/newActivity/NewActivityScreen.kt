@@ -9,11 +9,13 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -74,9 +76,7 @@ fun NewActivityScreen(navController: NavController, viewModel: NewActivityViewMo
             item {
                 PostalCodeField(
                     value = uiState.postalCode,
-                    onNewValue = {}, // Postnummeret kan ikke endres av brukeren
-                    suggestions = emptyList(),
-                    onSuggestionClick = {},
+
 
                 )
             }
@@ -182,49 +182,45 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit) {
 }
 
 @Composable
-fun LocationField(value: String, onNewValue: (String) -> Unit, suggestions: List<String>, onSuggestionClick: (String) -> Unit) {
+fun LocationField(
+    value: String,
+    onNewValue: (String) -> Unit,
+    suggestions: List<String>,
+    onSuggestionClick: (String) -> Unit
+) {
     var expanded by remember { mutableStateOf(false) }
     var currentInput by remember { mutableStateOf(value) }
-    var displaySuggestions by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        OutlinedTextField(
+        // Bruk TextField for å representere søkefunksjonaliteten
+        TextField(
             value = currentInput,
             onValueChange = {
                 currentInput = it
                 onNewValue(it)
-                expanded = it.isNotEmpty()  // Hold menyen åpen
-                displaySuggestions = false  // Skjul forslag mens brukeren skriver
+                expanded = it.isNotEmpty() && suggestions.isNotEmpty()  // Vis forslag bare når det er input og forslag
             },
-            placeholder = { Text("Sted") },
+            placeholder = { Text("Søk etter sted...") },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            singleLine = true
+                .padding(vertical = 8.dp)
         )
 
-        // Bruk LaunchedEffect for å introdusere en forsinkelse før forslagene vises
-        LaunchedEffect(currentInput) {
-            if (currentInput.isNotEmpty()) {
-                kotlinx.coroutines.delay(300)  // Forsinkelse på 300 ms
-                displaySuggestions = suggestions.isNotEmpty()
-            } else {
-                displaySuggestions = false
-            }
-        }
-
-        if (expanded && displaySuggestions) {
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
+        // Vis forslag i en liste under TextField
+        if (expanded) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 200.dp)  // Begrens høyden på forslagene for å unngå at de tar over hele skjermen
             ) {
-                suggestions.forEach { suggestion ->
+                items(suggestions) { suggestion ->
+                    // Hver linje i forslagene
                     DropdownMenuItem(
                         text = { Text(text = suggestion) },
                         onClick = {
                             currentInput = suggestion
                             onSuggestionClick(suggestion)
-                            expanded = false  // Lukk menyen når forslag er valgt
+                            expanded = false  // Lukk menyen etter valg
                         }
                     )
                 }
@@ -235,54 +231,51 @@ fun LocationField(value: String, onNewValue: (String) -> Unit, suggestions: List
 
 
 
-
 @Composable
-fun AddressField(value: String, onNewValue: (String) -> Unit, suggestions: List<String>, onSuggestionClick: (String) -> Unit, isEnabled: Boolean) {
+fun AddressField(
+    value: String,
+    onNewValue: (String) -> Unit,
+    suggestions: List<String>,
+    onSuggestionClick: (String) -> Unit,
+    isEnabled: Boolean
+) {
     var expanded by remember { mutableStateOf(false) }
     var currentInput by remember { mutableStateOf(value) }
-    var displaySuggestions by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        OutlinedTextField(
+        // Bruk TextField for søkefeltet
+        TextField(
             value = currentInput,
             onValueChange = {
                 if (isEnabled) {
                     currentInput = it
                     onNewValue(it)
-                    expanded = it.isNotEmpty()  // Hold menyen åpen
-                    displaySuggestions = false  // Skjul forslag mens brukeren skriver
+                    expanded = it.isNotEmpty() && suggestions.isNotEmpty()  // Vis forslag bare hvis det er input og forslag
                 }
             },
-            placeholder = { Text("Adresse") },
+            placeholder = { Text("Søk etter adresse...") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
-            enabled = isEnabled,
-            singleLine = true
+            singleLine = true,
+            enabled = isEnabled
         )
 
-        // Bruk LaunchedEffect for å introdusere en forsinkelse før forslagene vises
-        LaunchedEffect(currentInput) {
-            if (currentInput.isNotEmpty() && isEnabled) {
-                kotlinx.coroutines.delay(300)  // Forsinkelse på 300 ms
-                displaySuggestions = suggestions.isNotEmpty()
-            } else {
-                displaySuggestions = false
-            }
-        }
-
-        if (expanded && displaySuggestions && isEnabled) {
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
+        // Vis forslag i en liste under TextField
+        if (expanded) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 200.dp)  // Begrens høyden på forslagene for å unngå at de tar for mye plass
             ) {
-                suggestions.forEach { suggestion ->
+                items(suggestions) { suggestion ->
+                    // Hver linje i forslagene
                     DropdownMenuItem(
                         text = { Text(text = suggestion) },
                         onClick = {
                             currentInput = suggestion
                             onSuggestionClick(suggestion)
-                            expanded = false  // Lukk menyen når forslag er valgt
+                            expanded = false  // Lukk menyen etter valg
                         }
                     )
                 }
@@ -291,41 +284,26 @@ fun AddressField(value: String, onNewValue: (String) -> Unit, suggestions: List<
     }
 }
 
-@Composable
-fun PostalCodeField(value: String, onNewValue: (String) -> Unit, suggestions: List<String>, onSuggestionClick: (String) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
 
+
+
+@Composable
+fun PostalCodeField(value: String) {
     Column(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
             value = value,
-            onValueChange = {
-                onNewValue(it)
-                expanded = it.isNotEmpty() && suggestions.isNotEmpty()
-            },
+            onValueChange = {},
             placeholder = { Text("Postnummer") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            singleLine = true
+            singleLine = true,
+            enabled = false  // Deaktiverer inputfeltet, slik at brukeren ikke kan trykke eller endre det
         )
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            suggestions.forEach { suggestion ->
-                DropdownMenuItem(
-                    text = { Text(text = suggestion) },
-                    onClick = {
-                        onSuggestionClick(suggestion)
-                        expanded = false
-                    }
-                )
-            }
-        }
     }
 }
+
 
 
 @Composable
@@ -473,10 +451,4 @@ fun PublishButton(navController: NavController, viewModel: NewActivityViewModel)
     ) {
         Text(text = stringResource(id = R.string.publish_activity))
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun NewActivityScreenPreview() {
-    NewActivityScreen(rememberNavController())
 }
