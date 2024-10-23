@@ -47,17 +47,31 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
     val cities by viewModel.getCities().observeAsState(emptyList())
     val filteredActivities by viewModel.filteredActivities.observeAsState(emptyList()) // Bruk filtrerte aktiviteter
 
-    val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
-    val activities by viewModel.getActivities(selectedCategory).observeAsState(emptyList())
+    // GPS-relaterte variabler
+    val location by viewModel.getCurrentLocation().observeAsState(null)
+    var userCity by remember { mutableStateOf<String?>(null) }
 
-    // Oppdater aktivitetene automatisk når brukeren bytter kategori
-    LaunchedEffect(pagerState.currentPage) {
-        // Utfør søkefunksjonalitet automatisk når vi bytter kategori
-        viewModel.fetchAndFilterActivitiesByCities(selectedCities, selectedCategory)
+    // Når vi har GPS-posisjonen, bruk geokoding for å hente byen
+    LaunchedEffect(location) {
+        location?.let {
+            userCity = viewModel.getCityFromLocation(it)
+        }
     }
 
+    // Når brukerens by er hentet, oppdater aktivitetene for "Forslag" kategorien
+    val activities by viewModel.getActivities("Forslag").observeAsState(emptyList())
 
-
+    // Håndter kategoriendring og oppdater aktivitetene
+    LaunchedEffect(pagerState.currentPage) {
+        val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
+        if (selectedCategory == "Forslag") {
+            // Hent aktiviteter for brukerens by når "Forslag" er valgt
+            viewModel.getActivities("Forslag")
+        } else {
+            // Hent vanlige aktiviteter for andre kategorier
+            viewModel.fetchAndFilterActivitiesByCities(selectedCities, selectedCategory)
+        }
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (categories.isNotEmpty()) {
@@ -76,26 +90,27 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
         ) {
             CategoryTitle(selectedCategory)
 
-            Icon(
-                imageVector = Icons.Default.FilterList,
-                contentDescription = "Filter",
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .clickable {
-                    showBottomSheet = true
-                    isSelectingArea = true
-                }
-            )
+            // Vis filterikonet kun hvis kategorien ikke er "Forslag"
+            if (selectedCategory != "Forslag") {
+                Icon(
+                    imageVector = Icons.Default.FilterList,
+                    contentDescription = "Filter",
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .clickable {
+                            showBottomSheet = true
+                            isSelectingArea = true
+                        }
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
 
         // Hvis vi har filtrerte aktiviteter, vis disse, ellers vis aktiviteter for den valgte kategorien
         if (filteredActivities.isNotEmpty()) {
             ActivityList(activities = filteredActivities, selectedCategory = selectedCategory, navController = navController)
         } else if (selectedCities.isNotEmpty() && filteredActivities.isEmpty()) {
-            // Hvis filtreringen er utført, men ingen aktiviteter samsvarer, vis feilmelding
             Text(
                 text = "Det er ingen aktiviteter i ${selectedCities.joinToString(", ")} for denne kategorien.",
                 modifier = Modifier.padding(16.dp),
@@ -103,31 +118,19 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                 fontWeight = FontWeight.Bold
             )
         } else {
-            // Hvis det ikke er noen filtrering, vis aktivitetene for den valgte kategorien
-            CategoryActivitiesPager(
-                categories = categories,
-                pagerState = pagerState,
-                viewModel = viewModel,
-                navController = navController
-            )
+            // Hvis "Forslag" er valgt, vis aktiviteter basert på brukerens by
+            if (selectedCategory == "Forslag" && activities.isNotEmpty()) {
+                ActivityList(activities = activities, selectedCategory = selectedCategory, navController = navController)
+            } else {
+                CategoryActivitiesPager(
+                    categories = categories,
+                    pagerState = pagerState,
+                    viewModel = viewModel,
+                    navController = navController
+                )
+            }
         }
     }
-
-//        if (filteredActivities.isNotEmpty()) {
-//            ActivityList(activities = filteredActivities, selectedCategory = selectedCategory, navController = navController)
-//        } else {
-//            // Hvis det ikke finnes filtrerte aktiviteter, vis aktivitetene i kategorien
-//            CategoryActivitiesPager(
-//                categories = categories,
-//                pagerState = pagerState,
-//                viewModel = viewModel,
-//                navController = navController
-//            )
-//        }
-//    }
-
-
-
 
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -205,7 +208,6 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                         Text(text = "Søk")
                     }
 
-
                     if (filteredActivities.isNotEmpty()) {
                         Button(
                             onClick = {
@@ -220,13 +222,11 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                             Text("Nullstill filtrering")
                         }
                     }
-
-                    }
                 }
             }
         }
+    }
 }
-
 
 
 
@@ -244,6 +244,7 @@ fun CategoryActivitiesPager(
         ActivityList(activities = activities, selectedCategory = selectedCategory, navController = navController)
     }
 }
+
 
 @Composable
 fun CitySelectionItem(city: String, isSelected: Boolean, onCitySelected: (Boolean) -> Unit) {

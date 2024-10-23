@@ -124,8 +124,6 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit) {
     )
 }
 
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryField(value: String, onNewValue: (String) -> Unit) {
@@ -220,6 +218,7 @@ fun PostalCodeField(value: String, onNewValue: (String) -> Unit) {
         singleLine = true
     )
 }
+
 
 @Composable
 fun DateField(value: String, onNewValue: (String) -> Unit) {
