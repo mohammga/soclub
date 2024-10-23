@@ -91,13 +91,14 @@ fun NewActivityScreen(navController: NavController, viewModel: NewActivityViewMo
 
             item { Spacer(modifier = Modifier.height(5.dp)) }
 
-            if (errorMessage.isNotEmpty()) {
+            if (uiState.errorMessage != null) {
                 item {
                     Text(
-                        text = errorMessage,
+                        text = stringResource(id = uiState.errorMessage!!),
                         modifier = Modifier
                             .align(Alignment.CenterHorizontally)
-                            .padding(top = 10.dp)
+                            .padding(top = 10.dp),
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
             }

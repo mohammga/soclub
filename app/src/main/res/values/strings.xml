@@ -155,6 +155,7 @@
     <string name="placeholder_age_limit">Aldersgrense</string>
     <string name="placeholder_category">Kategori</string>
     <string name="cancel">Avbryt</string>
+    <string name="error_age_limit_exceeded">Aldersgrensen kan ikke være over 100</string>
 
 
     <!---->

@@ -145,7 +145,13 @@ class NewActivityViewModel @Inject constructor(
     }
 
     fun onAgeLimitChange(newValue: String) {
-        uiState.value = uiState.value.copy(ageLimit = newValue)
+        val age = newValue.toIntOrNull()
+
+        if (age != null && age > 100) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_age_limit_exceeded)
+        } else {
+            uiState.value = uiState.value.copy(ageLimit = newValue, errorMessage = null)
+        }
     }
 
     fun onDateChange(newValue: Timestamp) {
