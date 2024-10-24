@@ -1,5 +1,6 @@
 package com.example.soclub.screens.entries
 
+import android.icu.text.SimpleDateFormat
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,6 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
+import com.google.firebase.Timestamp
+import java.util.Locale
 
 
 @Composable
@@ -100,13 +103,14 @@ fun ActiveEntriesList(viewModel: EntriesScreenViewModel = hiltViewModel()) {
                 EntryItemCancelButton(
                     imageUrl = activity.imageUrl, // Send imageUrl fra databasen
                     title = activity.title,
-                    time = activity.date.toString(),
+                    date = activity.date,  // Vi bruker "date" nå, ikke "time"
                     onCancelClick = { /* Håndter kansellering */ }
                 )
             }
         }
     }
 }
+
 
 //@Composable
 //fun InactiveEntriesList(viewModel: EntriesScreenViewModel = hiltViewModel()) {
@@ -170,7 +174,7 @@ fun cancelled(viewModel: EntriesScreenViewModel = hiltViewModel()) {
                 EntryItem(
                     imageUrl = activity.imageUrl, // Bruk et standardbilde inntil dynamiske bilder er på plass
                     title = activity.title,
-                    time = activity.date.toString(),
+                    date = activity?.date,
                     onCancelClick = { /* Håndter kansellering */ }
                 )
             }
@@ -178,13 +182,11 @@ fun cancelled(viewModel: EntriesScreenViewModel = hiltViewModel()) {
     }
 }
 
-
-
 @Composable
 fun EntryItem(
-    imageUrl: String?, // Endre fra imageRes til imageUrl
+    imageUrl: String?,
     title: String,
-    time: String,
+    date: Timestamp?,  // Bruker Timestamp i stedet for String
     onCancelClick: () -> Unit
 ) {
     Row(
@@ -205,23 +207,22 @@ fun EntryItem(
                 fontWeight = FontWeight.Bold
             )
 
-            Text(
-                text = time,
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Spacer(modifier = Modifier.height(28.dp))
+            DateDisplay(date = date)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             HorizontalDivider(thickness = 1.dp)
         }
     }
 }
 
-
 @Composable
 fun EntryItemCancelButton(
-    imageUrl: String?, // Endre fra imageRes til imageUrl
+    imageUrl: String?,
     title: String,
-    time: String,
+    date: Timestamp?,  // Bruker Timestamp
     onCancelClick: () -> Unit
 ) {
     Row(
@@ -231,7 +232,7 @@ fun EntryItemCancelButton(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        EventImage(imageUrl) // Send imageUrl til EventImage
+        EventImage(imageUrl) // Viser bildet
 
         Spacer(modifier = Modifier.width(16.dp))
 
@@ -242,10 +243,8 @@ fun EntryItemCancelButton(
                 fontWeight = FontWeight.Bold
             )
 
-            Text(
-                text = time,
-                style = MaterialTheme.typography.bodyMedium
-            )
+            // Bruker DateDisplay-funksjonen for å vise dato
+            DateDisplay(date = date)
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -268,6 +267,24 @@ fun EventImage(imageUrl: String?) {
             .height(100.dp)
             .clip(RoundedCornerShape(8.dp)),
         contentScale = ContentScale.Crop
+    )
+}
+
+@Composable
+fun DateDisplay(date: Timestamp?) {
+    // Sjekk om dato er null, hvis den er det viser vi en fallback tekst
+    val formattedDate = date?.let {
+        val sdf = SimpleDateFormat("EEEE, d. MMMM yyyy, HH:mm", Locale("no", "NO")) // Norsk lokalisering
+        val dateStr = sdf.format(it.toDate())
+        // Gjør første bokstav i ukedagen stor
+        dateStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+    } ?: "Ukjent tid"  // Fallback om datoen er null
+
+    // Vis formatert dato
+    Text(
+        text = formattedDate,
+        style = MaterialTheme.typography.bodyMedium,
+        modifier = Modifier.padding(vertical = 4.dp)
     )
 }
 
