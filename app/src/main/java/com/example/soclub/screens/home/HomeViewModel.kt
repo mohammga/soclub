@@ -38,6 +38,7 @@ class HomeViewModel @Inject constructor(
     }
 
     // Oppdater `userCity` når plasseringen hentes
+    @SuppressLint("MissingPermission")
     private fun fetchUserLocation() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -156,6 +157,11 @@ class HomeViewModel @Inject constructor(
         }
         return null
     }
+
+    fun resetActivities() {
+        _filteredActivities.postValue(emptyList()) // Nullstill aktivitetene
+    }
+
 
 
 

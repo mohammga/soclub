@@ -61,17 +61,18 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
     // Når brukerens by er hentet, oppdater aktivitetene for "Forslag" kategorien
     val activities by viewModel.getActivities("Forslag").observeAsState(emptyList())
 
-    // Håndter kategoriendring og oppdater aktivitetene
     LaunchedEffect(pagerState.currentPage) {
         val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
         if (selectedCategory == "Forslag") {
-            // Hent aktiviteter for brukerens by når "Forslag" er valgt
+            // Nullstill aktivitetene før vi henter nye for "Forslag"
+            viewModel.resetActivities()  // Implementer denne i viewModel for å tømme aktiviteter
             viewModel.getActivities("Forslag")
         } else {
-            // Hent vanlige aktiviteter for andre kategorier
             viewModel.fetchAndFilterActivitiesByCities(selectedCities, selectedCategory)
         }
     }
+
+
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (categories.isNotEmpty()) {
