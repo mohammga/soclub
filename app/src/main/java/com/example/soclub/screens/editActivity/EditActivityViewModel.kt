@@ -1,23 +1,19 @@
 package com.example.soclub.screens.editActivity
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import android.util.Log
 import com.example.soclub.R
 import com.example.soclub.models.createActivity
 import com.example.soclub.service.ActivityService
 import com.example.soclub.service.AccountService
-import com.google.firebase.Timestamp
 import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
@@ -31,9 +27,8 @@ data class EditActivityState(
     val maxParticipants: String = "",
     val ageLimit: String = "",
     val imageUrl: String = "",
-    val date: String = "",
+    val date: Timestamp? = null,  // Bruker Timestamp for dato
     val startTime: String = "",
-    val endTime: String = "",   // New field for end time
     val errorMessage: Int? = null
 )
 
@@ -46,13 +41,16 @@ class EditActivityViewModel @Inject constructor(
     var uiState = mutableStateOf(EditActivityState())
         private set
 
+    // Holder den gamle kategorien for å spore endringer
     private var oldCategory: String? = null
 
+    // Last inn eksisterende aktivitet
     fun loadActivity(category: String, activityId: String) {
         viewModelScope.launch {
             try {
                 val activity = activityService.getActivityById(category, activityId)
                 if (activity != null) {
+                    // Fyll inn UI-staten med eksisterende data
                     uiState.value = uiState.value.copy(
                         title = activity.title,
                         description = activity.description,
@@ -62,7 +60,7 @@ class EditActivityViewModel @Inject constructor(
                         maxParticipants = activity.maxParticipants.toString(),
                         ageLimit = activity.ageGroup.toString(),
                         imageUrl = activity.imageUrl,
-                        date = activity.date?.toDate().toString(),
+                        date = activity.date,  // Bruker Timestamp for dato
                         startTime = activity.startTime,
                         category = category
                     )
@@ -82,60 +80,108 @@ class EditActivityViewModel @Inject constructor(
         uiState.value = uiState.value.copy(description = newValue)
     }
 
+    fun onImageSelected(imagePath: String) {
+        uiState.value = uiState.value.copy(imageUrl = imagePath)
+    }
+
+    fun onCategoryChange(newValue: String) {
+        uiState.value = uiState.value.copy(category = newValue)
+    }
+
+    fun onLocationChange(newValue: String) {
+        uiState.value = uiState.value.copy(location = newValue)
+    }
+
+    fun onAddressChange(newValue: String) {
+        uiState.value = uiState.value.copy(address = newValue)
+    }
+
+    fun onPostalCodeChange(newValue: String) {
+        uiState.value = uiState.value.copy(postalCode = newValue)
+    }
+
     fun onMaxParticipantsChange(newValue: String) {
         uiState.value = uiState.value.copy(maxParticipants = newValue)
+    }
+
+    fun onAgeLimitChange(newValue: String) {
+        uiState.value = uiState.value.copy(ageLimit = newValue)
+    }
+
+    fun onDateChange(newValue: Timestamp) {
+        uiState.value = uiState.value.copy(date = newValue)
     }
 
     fun onStartTimeChange(newValue: String) {
         uiState.value = uiState.value.copy(startTime = newValue)
     }
 
+    private fun uploadImageToFirebase(
+        imageUri: Uri,
+        onSuccess: (String) -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        val storageRef = FirebaseStorage.getInstance().reference.child("images/${imageUri.lastPathSegment}")
+        storageRef.putFile(imageUri)
+            .addOnSuccessListener {
+                Log.d("EditActivityViewModel", "Image uploaded successfully")
+                storageRef.downloadUrl.addOnSuccessListener { uri ->
+                    Log.d("EditActivityViewModel", "Image URL fetched: $uri")
+                    onSuccess(uri.toString())
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.e("EditActivityViewModel", "Error uploading image: ${exception.message}")
+                onError(exception)
+            }
+    }
 
-    fun onSaveClick(navController: NavController, currentCategory: String, activityId: String) {  // activityId må sendes inn her
-        if (uiState.value.title.isBlank() || uiState.value.category.isBlank()) {
+    fun onSaveClick(navController: NavController, currentCategory: String, activityId: String) {
+        Log.d("EditActivityViewModel", "Save button clicked")
+
+        if (uiState.value.title.isBlank()) {
             uiState.value = uiState.value.copy(errorMessage = R.string.error_title_required)
             return
         }
 
-        val dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm", Locale.getDefault())
-        val dateAndTime = "${uiState.value.date} ${uiState.value.startTime}"
-        val timestampDate = try {
-            val localDateTime = LocalDateTime.parse(dateAndTime, dateFormatter)
-            Timestamp(Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant()))  // Bruk Timestamp(Date)
-        } catch (e: Exception) {
-            Timestamp.now()  // Fallback hvis datoformatet er feil
+        if (uiState.value.category.isBlank()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_category_required)
+            return
         }
 
-        val combinedLocation = "${uiState.value.location}, ${uiState.value.postalCode} ${uiState.value.address}"
+        val combinedLocation = "${uiState.value.address}, ${uiState.value.postalCode}, ${uiState.value.location}"
         val creatorId = accountService.currentUserId
 
         if (uiState.value.imageUrl.isNotBlank()) {
             uploadImageToFirebase(
                 Uri.parse(uiState.value.imageUrl),
                 onSuccess = { imageUrl ->
-                    handleUpdate(navController, imageUrl, combinedLocation, timestampDate, creatorId, activityId)  // Pass activityId here
+                    handleUpdate(navController, imageUrl, combinedLocation, currentCategory, activityId, creatorId)
                 },
                 onError = { error ->
                     Log.e("EditActivityViewModel", "Error uploading image: ${error.message}")
                 }
             )
         } else {
-            handleUpdate(navController, "", combinedLocation, timestampDate, creatorId, activityId)  // Pass activityId here
+            handleUpdate(navController, "", combinedLocation, currentCategory, activityId, creatorId)
         }
     }
-
 
     private fun handleUpdate(
         navController: NavController,
         imageUrl: String,
         combinedLocation: String,
-        date: Timestamp,
-        creatorId: String,
-        activityId: String // activityId må sendes hit
+        currentCategory: String,
+        activityId: String,
+        creatorId: String
     ) {
         viewModelScope.launch {
             try {
+                Log.d("EditActivityViewModel", "Updating activity with imageUrl: $imageUrl")
+
                 val updatedActivity = createActivity(
+                    createdAt = Timestamp.now(),  // Assuming updated creation time
+                    lastUpdated = Timestamp.now(),  // Timestamp for last update
                     creatorId = creatorId,
                     title = uiState.value.title,
                     description = uiState.value.description,
@@ -143,23 +189,26 @@ class EditActivityViewModel @Inject constructor(
                     maxParticipants = uiState.value.maxParticipants.toIntOrNull() ?: 0,
                     ageGroup = uiState.value.ageLimit.toIntOrNull() ?: 0,
                     imageUrl = imageUrl,
-                    date = date,
-                    startTime = uiState.value.startTime,
-
+                    date = uiState.value.date ?: Timestamp.now(),  // Bruker Timestamp for dato
+                    startTime = uiState.value.startTime
                 )
 
-                val oldCategory = oldCategory ?: uiState.value.category
+                // Oppdater aktiviteten i Firebase
+                val oldCategory = oldCategory ?: currentCategory
                 activityService.updateActivity(oldCategory, uiState.value.category, activityId, updatedActivity)
 
+                Log.d("EditActivityViewModel", "Activity updated successfully")
                 navController.navigate("home")
             } catch (e: Exception) {
                 Log.e("EditActivityViewModel", "Error updating activity: ${e.message}")
             }
         }
     }
+}
 
 
-    private fun uploadImageToFirebase(
+
+private fun uploadImageToFirebase(
         imageUri: Uri,
         onSuccess: (String) -> Unit,
         onError: (Exception) -> Unit
@@ -171,5 +220,5 @@ class EditActivityViewModel @Inject constructor(
             }
             .addOnFailureListener { onError(it) }
     }
-}
+
 
