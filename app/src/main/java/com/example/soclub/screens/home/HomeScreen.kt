@@ -47,6 +47,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
     val cities by viewModel.getCities().observeAsState(emptyList())
     val filteredActivities by viewModel.filteredActivities.observeAsState(emptyList()) // Bruk filtrerte aktiviteter
 
+
     // GPS-relaterte variabler
     val location by viewModel.getCurrentLocation().observeAsState(null)
     var userCity by remember { mutableStateOf<String?>(null) }
@@ -59,14 +60,14 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
     }
 
     // Når brukerens by er hentet, oppdater aktivitetene for "Forslag" kategorien
-    val activities by viewModel.getActivities("Forslag").observeAsState(emptyList())
+    val activities by viewModel.getActivities("Nærme Aktiviteter").observeAsState(emptyList())
 
     LaunchedEffect(pagerState.currentPage) {
         val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
-        if (selectedCategory == "Forslag") {
+        if (selectedCategory == "Nærme Aktiviteter") {
             // Nullstill aktivitetene før vi henter nye for "Forslag"
             viewModel.resetActivities()  // Implementer denne i viewModel for å tømme aktiviteter
-            viewModel.getActivities("Forslag")
+            viewModel.getActivities("Nærme Aktiviteter")
         } else {
             viewModel.fetchAndFilterActivitiesByCities(selectedCities, selectedCategory)
         }
@@ -92,7 +93,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
             CategoryTitle(selectedCategory)
 
             // Vis filterikonet kun hvis kategorien ikke er "Forslag"
-            if (selectedCategory != "Forslag") {
+            if (selectedCategory != "Nærme Aktiviteter") {
                 Icon(
                     imageVector = Icons.Default.FilterList,
                     contentDescription = "Filter",
@@ -120,7 +121,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
             )
         } else {
             // Hvis "Forslag" er valgt, vis aktiviteter basert på brukerens by
-            if (selectedCategory == "Forslag" && activities.isNotEmpty()) {
+            if (selectedCategory == "Nærme Aktiviteter" && activities.isNotEmpty()) {
                 ActivityList(activities = activities, selectedCategory = selectedCategory, navController = navController)
             } else {
                 CategoryActivitiesPager(
@@ -344,12 +345,19 @@ fun ActivityList(activities: List<Activity>, selectedCategory: String, navContro
         modifier = Modifier.fillMaxSize()
     ) {
         items(activities) { activity ->
+            // Hvis vi er på "Forslag", bruk aktiviteten sin kategori til å navigere
+            val categoryToUse = if (selectedCategory == "Nærme Aktiviteter") {
+                activity.category ?: "ukjent"  // Sørg for at aktiviteten har kategori
+            } else {
+                selectedCategory
+            }
             ActivityItem(activity = activity) {
-                navController.navigate("detail/${selectedCategory}/${activity.id}")
+                navController.navigate("detail/${categoryToUse}/${activity.id}")
             }
         }
     }
 }
+
 
 @Composable
 fun ActivityItem(activity: Activity, onClick: () -> Unit) {
@@ -358,7 +366,6 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable { onClick() }
     ) {
-
         // Check if the imageUrl is null or empty, then show a placeholder
         if (activity.imageUrl.isEmpty()) {
             Image(
@@ -391,5 +398,14 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             fontWeight = FontWeight.Medium,
             modifier = Modifier.align(Alignment.Start)
         )
+
+        // Show the city/location under the title
+        Text(
+            text = activity.location ?: "Ukjent sted",
+            fontSize = 14.sp,
+            color = Color.Gray, // Gi byen en lysere farge
+            modifier = Modifier.align(Alignment.Start)
+        )
     }
 }
+

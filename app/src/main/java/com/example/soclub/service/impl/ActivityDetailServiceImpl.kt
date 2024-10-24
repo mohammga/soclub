@@ -25,15 +25,19 @@ class ActivityDetailServiceImpl @Inject constructor(
 
         // Hent full adresse
         val fullLocation = activity?.location ?: "Ukjent"
-
         val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
 
-        // Returner hele adressen og siste del av adressen
-        return activity?.copy(
-            restOfAddress = restOfAddress, // Resten av adressen
+        // Hent date fra dokumentet
+        val date = documentSnapshot.getTimestamp("date")
 
+        // Returner aktiviteten med date og resten av adressen
+        return activity?.copy(
+            restOfAddress = restOfAddress,
+            date = date // Legg til date her
         )
     }
+
+
 
 
     override suspend fun isUserRegisteredForActivity(userId: String, activityId: String): Boolean {

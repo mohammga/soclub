@@ -59,22 +59,22 @@ class HomeViewModel @Inject constructor(
             val categories = activityService.getCategories().toMutableList()
 
             // Legg til den statiske kategorien "Test 22" først i listen
-            categories.add(0, "Forslag")
+            categories.add(0, "Nærme Aktiviteter")
 
             emit(categories)
         } catch (e: Exception) {
-            emit(listOf("Forslag")) // Returner bare "Forslag" hvis noe går galt
+            emit(listOf("Nærme Aktiviteter")) // Returner bare "Forslag" hvis noe går galt
         }
     }
 
-    // Hent aktiviteter for en valgt kategori eller "Forslag"-kategorien basert på brukerens by
     fun getActivities(category: String) = liveData(Dispatchers.IO) {
         try {
-            val activities = if (category == "Forslag") {
-                // Hvis `userCity` er tilgjengelig, bruk den, ellers bruk default fallback
+            val activities = if (category == "Nærme Aktiviteter") {
+                // Bruk GPS-byen eller fallback-byen (f.eks. "Fredrikstad")
                 val cityToFilter = _userCity.value ?: "Fredrikstad"
+                // Filtrer aktiviteter basert på brukerens by
                 activityService.getAllActivities().filter { activity ->
-                    activity.location?.contains(cityToFilter, ignoreCase = true) == true
+                    activity.location.contains(cityToFilter, ignoreCase = true)
                 }
             } else {
                 activityService.getActivities(category)
@@ -84,6 +84,7 @@ class HomeViewModel @Inject constructor(
             emit(emptyList<Activity>())
         }
     }
+
 
 
     // Hent alle tilgjengelige byer fra aktivitetene
