@@ -47,15 +47,31 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
     val cities by viewModel.getCities().observeAsState(emptyList())
     val filteredActivities by viewModel.filteredActivities.observeAsState(emptyList()) // Bruk filtrerte aktiviteter
 
-    val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
-    val activities by viewModel.getActivities(selectedCategory).observeAsState(emptyList())
 
-    // Oppdater aktivitetene automatisk når brukeren bytter kategori
-    LaunchedEffect(pagerState.currentPage) {
-        // Utfør søkefunksjonalitet automatisk når vi bytter kategori
-        viewModel.fetchAndFilterActivitiesByCities(selectedCities, selectedCategory)
+    // GPS-relaterte variabler
+    val location by viewModel.getCurrentLocation().observeAsState(null)
+    var userCity by remember { mutableStateOf<String?>(null) }
+
+    // Når vi har GPS-posisjonen, bruk geokoding for å hente byen
+    LaunchedEffect(location) {
+        location?.let {
+            userCity = viewModel.getCityFromLocation(it)
+        }
     }
 
+    // Når brukerens by er hentet, oppdater aktivitetene for "Forslag" kategorien
+    val activities by viewModel.getActivities("Nærme Aktiviteter").observeAsState(emptyList())
+
+    LaunchedEffect(pagerState.currentPage) {
+        val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
+        if (selectedCategory == "Nærme Aktiviteter") {
+            // Nullstill aktivitetene før vi henter nye for "Forslag"
+            viewModel.resetActivities()  // Implementer denne i viewModel for å tømme aktiviteter
+            viewModel.getActivities("Nærme Aktiviteter")
+        } else {
+            viewModel.fetchAndFilterActivitiesByCities(selectedCities, selectedCategory)
+        }
+    }
 
 
 
@@ -76,26 +92,27 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
         ) {
             CategoryTitle(selectedCategory)
 
-            Icon(
-                imageVector = Icons.Default.FilterList,
-                contentDescription = "Filter",
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .clickable {
-                    showBottomSheet = true
-                    isSelectingArea = true
-                }
-            )
+            // Vis filterikonet kun hvis kategorien ikke er "Forslag"
+            if (selectedCategory != "Nærme Aktiviteter") {
+                Icon(
+                    imageVector = Icons.Default.FilterList,
+                    contentDescription = "Filter",
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .clickable {
+                            showBottomSheet = true
+                            isSelectingArea = true
+                        }
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
 
         // Hvis vi har filtrerte aktiviteter, vis disse, ellers vis aktiviteter for den valgte kategorien
         if (filteredActivities.isNotEmpty()) {
             ActivityList(activities = filteredActivities, selectedCategory = selectedCategory, navController = navController)
         } else if (selectedCities.isNotEmpty() && filteredActivities.isEmpty()) {
-            // Hvis filtreringen er utført, men ingen aktiviteter samsvarer, vis feilmelding
             Text(
                 text = "Det er ingen aktiviteter i ${selectedCities.joinToString(", ")} for denne kategorien.",
                 modifier = Modifier.padding(16.dp),
@@ -103,31 +120,19 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                 fontWeight = FontWeight.Bold
             )
         } else {
-            // Hvis det ikke er noen filtrering, vis aktivitetene for den valgte kategorien
-            CategoryActivitiesPager(
-                categories = categories,
-                pagerState = pagerState,
-                viewModel = viewModel,
-                navController = navController
-            )
+            // Hvis "Forslag" er valgt, vis aktiviteter basert på brukerens by
+            if (selectedCategory == "Nærme Aktiviteter" && activities.isNotEmpty()) {
+                ActivityList(activities = activities, selectedCategory = selectedCategory, navController = navController)
+            } else {
+                CategoryActivitiesPager(
+                    categories = categories,
+                    pagerState = pagerState,
+                    viewModel = viewModel,
+                    navController = navController
+                )
+            }
         }
     }
-
-//        if (filteredActivities.isNotEmpty()) {
-//            ActivityList(activities = filteredActivities, selectedCategory = selectedCategory, navController = navController)
-//        } else {
-//            // Hvis det ikke finnes filtrerte aktiviteter, vis aktivitetene i kategorien
-//            CategoryActivitiesPager(
-//                categories = categories,
-//                pagerState = pagerState,
-//                viewModel = viewModel,
-//                navController = navController
-//            )
-//        }
-//    }
-
-
-
 
     if (showBottomSheet) {
         ModalBottomSheet(
@@ -205,7 +210,6 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                         Text(text = "Søk")
                     }
 
-
                     if (filteredActivities.isNotEmpty()) {
                         Button(
                             onClick = {
@@ -220,13 +224,11 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                             Text("Nullstill filtrering")
                         }
                     }
-
-                    }
                 }
             }
         }
+    }
 }
-
 
 
 
@@ -244,6 +246,7 @@ fun CategoryActivitiesPager(
         ActivityList(activities = activities, selectedCategory = selectedCategory, navController = navController)
     }
 }
+
 
 @Composable
 fun CitySelectionItem(city: String, isSelected: Boolean, onCitySelected: (Boolean) -> Unit) {
@@ -342,12 +345,19 @@ fun ActivityList(activities: List<Activity>, selectedCategory: String, navContro
         modifier = Modifier.fillMaxSize()
     ) {
         items(activities) { activity ->
+            // Hvis vi er på "Forslag", bruk aktiviteten sin kategori til å navigere
+            val categoryToUse = if (selectedCategory == "Nærme Aktiviteter") {
+                activity.category ?: "ukjent"  // Sørg for at aktiviteten har kategori
+            } else {
+                selectedCategory
+            }
             ActivityItem(activity = activity) {
-                navController.navigate("detail/${selectedCategory}/${activity.id}")
+                navController.navigate("detail/${categoryToUse}/${activity.id}")
             }
         }
     }
 }
+
 
 @Composable
 fun ActivityItem(activity: Activity, onClick: () -> Unit) {
@@ -356,7 +366,6 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable { onClick() }
     ) {
-
         // Check if the imageUrl is null or empty, then show a placeholder
         if (activity.imageUrl.isEmpty()) {
             Image(
@@ -389,5 +398,14 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             fontWeight = FontWeight.Medium,
             modifier = Modifier.align(Alignment.Start)
         )
+
+        // Show the city/location under the title
+        Text(
+            text = activity.location ?: "Ukjent sted",
+            fontSize = 14.sp,
+            color = Color.Gray, // Gi byen en lysere farge
+            modifier = Modifier.align(Alignment.Start)
+        )
     }
 }
+

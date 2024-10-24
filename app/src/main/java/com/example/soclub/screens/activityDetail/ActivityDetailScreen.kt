@@ -48,8 +48,9 @@ import com.google.android.gms.location.LocationServices
 import androidx.core.app.ActivityCompat
 import android.Manifest
 import android.content.pm.PackageManager
-import android.util.Log
-
+import android.icu.text.SimpleDateFormat
+import com.google.firebase.Timestamp
+import java.util.Locale
 
 
 
@@ -70,8 +71,6 @@ fun ActivityDetailScreen(
     activityId: String?,
     viewModel: ActivityDetailViewModel = hiltViewModel()
 ) {
-
-
 
     val activity = viewModel.activity.collectAsState().value
     val isRegistered = viewModel.isRegistered.collectAsState().value
@@ -157,14 +156,17 @@ fun ActivityDetailsContent(
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
-    val context = LocalContext.current // Få tilgang til konteksten her
+    val context = LocalContext.current
     val fullLocation = activity?.location ?: stringResource(R.string.unknown_location)
-    val lastWord = fullLocation.substringAfterLast(" ") // Den siste delen av adressen (f.eks. by eller postnummer)
-    val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent") // Resten av adressen
+    val lastWord = fullLocation.substringAfterLast(" ")
+    val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
 
     Column(modifier = Modifier.padding(16.dp)) {
         ActivityTitle(activity?.title ?: stringResource(R.string.activity_no_title))
-        ActivityDate()
+
+        // Bruk date fra aktiviteten
+        ActivityDate(date = activity?.date)
+
         InfoRow(
             icon = Icons.Default.LocationOn,
             mainText = lastWord,
@@ -202,6 +204,8 @@ fun ActivityDetailsContent(
 }
 
 
+
+
 @Composable
 fun ActivityImage(imageUrl: String) {
     Image(
@@ -229,12 +233,23 @@ fun ActivityTitle(title: String) {
 }
 
 @Composable
-fun ActivityDate() {
+fun ActivityDate(date: Timestamp?) {
+    // Konverter Timestamp til et lesbart datoformat på norsk
+    val formattedDate = date?.let {
+        val sdf = SimpleDateFormat("EEEE, d. MMMM yyyy, HH:mm", Locale("no", "NO")) // Norsk lokalisering
+        val dateStr = sdf.format(it.toDate())
+        // Gjør første bokstav i ukedagen stor
+        dateStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+    } ?: "Ukjent tid"
+
     Text(
-        text = "Tirsdag. 28. august 2024",
+        text = formattedDate,
         modifier = Modifier.padding(vertical = 4.dp)
     )
 }
+
+
+
 
 @Composable
 fun ActivityDescription(description: String) {
