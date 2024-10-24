@@ -108,39 +108,39 @@ fun ActiveEntriesList(viewModel: EntriesScreenViewModel = hiltViewModel()) {
     }
 }
 
-@Composable
-fun InactiveEntriesList(viewModel: EntriesScreenViewModel = hiltViewModel()) {
-    val inactiveActivities by viewModel.notActiveActivities.collectAsState()
-    val isLoadingInactive by viewModel.isLoadingInactive.collectAsState()
-
-    if (isLoadingInactive) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator() // Viser en spinner mens data lastes
-        }
-    } else if (inactiveActivities.isEmpty()) {
-        Text(text = "Ingen utgåtte aktiviteter funnet", modifier = Modifier.padding(16.dp))
-    } else {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(inactiveActivities.size) { index ->
-                val activity = inactiveActivities[index]
-                EntryItem(
-                    imageUrl = activity.imageUrl, // Bruk et standardbilde inntil dynamiske bilder er på plass
-                    title = activity.title,
-                    time = activity.date.toString(),
-                    onCancelClick = { /* Håndter kansellering */ }
-                )
-            }
-        }
-    }
-}
+//@Composable
+//fun InactiveEntriesList(viewModel: EntriesScreenViewModel = hiltViewModel()) {
+//    val inactiveActivities by viewModel.notActiveActivities.collectAsState()
+//    val isLoadingInactive by viewModel.isLoadingInactive.collectAsState()
+//
+//    if (isLoadingInactive) {
+//        Box(
+//            modifier = Modifier.fillMaxSize(),
+//            contentAlignment = Alignment.Center
+//        ) {
+//            CircularProgressIndicator() // Viser en spinner mens data lastes
+//        }
+//    } else if (inactiveActivities.isEmpty()) {
+//        Text(text = "Ingen utgåtte aktiviteter funnet", modifier = Modifier.padding(16.dp))
+//    } else {
+//        LazyColumn(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .padding(16.dp),
+//            verticalArrangement = Arrangement.spacedBy(16.dp)
+//        ) {
+//            items(inactiveActivities.size) { index ->
+//                val activity = inactiveActivities[index]
+//                EntryItem(
+//                    imageUrl = activity.imageUrl, // Bruk et standardbilde inntil dynamiske bilder er på plass
+//                    title = activity.title,
+//                    time = activity.date.toString(),
+//                    onCancelClick = { /* Håndter kansellering */ }
+//                )
+//            }
+//        }
+//    }
+//}
 
 
 

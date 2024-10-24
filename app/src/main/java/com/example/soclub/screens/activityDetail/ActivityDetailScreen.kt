@@ -48,6 +48,7 @@ import com.google.android.gms.location.LocationServices
 import androidx.core.app.ActivityCompat
 import android.Manifest
 import android.content.pm.PackageManager
+import android.icu.text.SimpleDateFormat
 import com.google.firebase.Timestamp
 import java.util.Locale
 
@@ -233,10 +234,12 @@ fun ActivityTitle(title: String) {
 
 @Composable
 fun ActivityDate(date: Timestamp?) {
-    // Konverter Timestamp til et lesbart datoformat
+    // Konverter Timestamp til et lesbart datoformat på norsk
     val formattedDate = date?.let {
-        val sdf = java.text.SimpleDateFormat("EEEE, d. MMM yyyy, HH:mm", Locale.getDefault())
-        sdf.format(it.toDate()) // Konverterer Timestamp til Date og så til String
+        val sdf = SimpleDateFormat("EEEE, d. MMMM yyyy, HH:mm", Locale("no", "NO")) // Norsk lokalisering
+        val dateStr = sdf.format(it.toDate())
+        // Gjør første bokstav i ukedagen stor
+        dateStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
     } ?: "Ukjent tid"
 
     Text(
@@ -244,6 +247,7 @@ fun ActivityDate(date: Timestamp?) {
         modifier = Modifier.padding(vertical = 4.dp)
     )
 }
+
 
 
 
