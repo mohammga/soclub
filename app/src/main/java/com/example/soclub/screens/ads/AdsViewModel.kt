@@ -35,7 +35,7 @@ fun fetchActivitiesByCreator() {
                     maxParticipants = it.maxParticipants,
                     location = it.location,
                     date = it.date,
-                    time = it.time,
+                    startTime = it.startTime,
                     category = it.category  // Inkluder kategori her
                 )
             }

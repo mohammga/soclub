@@ -42,7 +42,7 @@ fun AdsScreen(
                 EntryItem(
                     imageUrl = activity.imageUrl,
                     title = activity.title,
-                    time = activity.time,
+                    time = activity.startTime,
                     activityId = activity.creatorId, // activityId her representerer creatorId fra backend
                     category = activity.category, // Pass in the correct category for this activity
                     navController = navController
