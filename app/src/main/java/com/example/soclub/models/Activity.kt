@@ -21,8 +21,11 @@ data class Activity(
     val date: Timestamp? = null,
     val creatorId: String = "",
     val createdAt: Timestamp = Timestamp.now(),
-    val startTime: String = ""
+    val startTime: String = "",
+    val category: String? = null  // Legg til kategori her
 )
+
+
 
 
 data class createActivity(

@@ -22,15 +22,22 @@ class ActivityDetailServiceImpl @Inject constructor(
             .await()
 
         val activity = documentSnapshot.toObject(Activity::class.java)
+
+        // Hent full adresse
         val fullLocation = activity?.location ?: "Ukjent"
-        val lastWord = fullLocation.substringAfterLast(" ")
         val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
 
+        // Hent date fra dokumentet
+        val date = documentSnapshot.getTimestamp("date")
+
+        // Returner aktiviteten med date og resten av adressen
         return activity?.copy(
-            location = lastWord,
-            restOfAddress = restOfAddress
+            restOfAddress = restOfAddress,
+            date = date // Legg til date her
         )
     }
+
+
 
 
     override suspend fun isUserRegisteredForActivity(userId: String, activityId: String): Boolean {
@@ -110,6 +117,9 @@ class ActivityDetailServiceImpl @Inject constructor(
                 }
             }
     }
+
+
+
 
 
 }

@@ -5,22 +5,40 @@ import android.app.TimePickerDialog
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -46,11 +64,11 @@ fun NewActivityScreen(navController: NavController, viewModel: NewActivityViewMo
                 .fillMaxSize()
                 .padding(16.dp),
         ) {
+            item { ImageUploadSection(viewModel::onImageSelected) }
+
             item { TitleField(value = uiState.title, onNewValue = viewModel::onTitleChange) }
 
             item { DescriptionField(value = uiState.description, onNewValue = viewModel::onDescriptionChange) }
-
-            item { ImageUploadSection(viewModel::onImageSelected) }
 
             item { CategoryField(value = uiState.category, onNewValue = viewModel::onCategoryChange) }
 
@@ -91,6 +109,7 @@ fun NewActivityScreen(navController: NavController, viewModel: NewActivityViewMo
 
             item { Spacer(modifier = Modifier.height(5.dp)) }
 
+
             if (uiState.errorMessage != null) {
                 item {
                     Text(
@@ -100,6 +119,15 @@ fun NewActivityScreen(navController: NavController, viewModel: NewActivityViewMo
                             .padding(top = 10.dp),
                         color = MaterialTheme.colorScheme.error
                     )
+
+
+            if (uiState.errorMessage != 0) {
+                item {
+                Text(
+                    text = stringResource(id = uiState.errorMessage),
+                    color = Color.Red
+                )
+
                 }
             }
 
@@ -378,6 +406,20 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit) {
     }
 }
 
+
+fun DateField(value: String, onNewValue: (String) -> Unit) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = { onNewValue(it) },
+        placeholder = { Text("Dato") },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        singleLine = true
+    )
+}
+
+
 @Composable
 fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit) {
     OutlinedTextField(
@@ -420,27 +462,98 @@ fun ImageUploadSection(onImageSelected: (String) -> Unit) {
     }
 
     Column {
-        Text(text = stringResource(id = R.string.upload_image), style = MaterialTheme.typography.bodyMedium)
-
-        Button(
-            onClick = { galleryLauncher.launch("image/*") },
-            modifier = Modifier.fillMaxWidth()
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
         ) {
-            Text(text = stringResource(id = R.string.choose_image))
+            if (selectedImageUri != null) {
+                // Vise det valgte bildet
+                AsyncImage(
+                    model = selectedImageUri,
+                    contentDescription = stringResource(id = R.string.selected_image),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp)
+                        .clip(RoundedCornerShape(16.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                // Vise plassholderbildet
+                Image(
+                    painter = painterResource(id = R.drawable.placeholder),
+                    contentDescription = stringResource(id = R.string.change_ad_picture),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp)
+                        .clip(RoundedCornerShape(16.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }
         }
 
-        selectedImageUri?.let {
-            Spacer(modifier = Modifier.height(16.dp))
-            AsyncImage(
-                model = it,
-                contentDescription = stringResource(id = R.string.selected_image),
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = stringResource(id = R.string.change_ad_picture),
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp
+        )
+
+        // Endre innholdet i raden basert på om et bilde er valgt eller ikke
+        if (selectedImageUri != null) {
+            // Vise alternativet for å fjerne bilde
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
-            )
+                    .clickable { /* Ingen handling, bildesletting håndteres av knappen over */ },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ClickableText(
+                    text = AnnotatedString(stringResource(id = R.string.remove_image)), // Oppdatere teksten til "Fjern bilde"
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    ),
+                    onClick = {
+                        selectedImageUri = null // Fjern bildet
+                    }
+                )
+
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = stringResource(id = R.string.remove_image),
+                    tint = Color.Gray
+                )
+            }
+        } else {
+            // Vise alternativet for å laste opp nytt bilde
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { galleryLauncher.launch("image/*") },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ClickableText(
+                    text = AnnotatedString(stringResource(id = R.string.upload_new_picture)),
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    ),
+                    onClick = { galleryLauncher.launch("image/*") },
+                )
+
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                    contentDescription = stringResource(id = R.string.upload_new_picture),
+                    tint = Color.Gray
+                )
+            }
         }
     }
 }
+
 
 @Composable
 fun PublishButton(navController: NavController, viewModel: NewActivityViewModel) {

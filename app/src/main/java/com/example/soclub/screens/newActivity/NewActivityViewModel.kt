@@ -7,7 +7,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import android.util.Log
+import androidx.annotation.StringRes
 import com.example.soclub.R
+import com.example.soclub.common.ext.isAgeValid
+import com.example.soclub.common.ext.isValidParticipants
 import com.example.soclub.models.createActivity
 import com.example.soclub.service.ActivityService
 import com.example.soclub.service.AccountService
@@ -43,6 +46,9 @@ data class NewActivityState(
     val locationSuggestions: List<String> = emptyList(),
     val addressSuggestions: List<String> = emptyList(),
     val postalCodeSuggestions: List<String> = emptyList()
+    val date: String = "",
+    @StringRes val errorMessage: Int = 0
+
 )
 
 
@@ -158,6 +164,7 @@ class NewActivityViewModel @Inject constructor(
         uiState.value = uiState.value.copy(date = newValue)
     }
 
+
     fun onStartTimeChange(newValue: String) {
         uiState.value = uiState.value.copy(startTime = newValue)
     }
@@ -181,11 +188,21 @@ class NewActivityViewModel @Inject constructor(
     fun onPublishClick(navController: NavController) {
         Log.d("NewActivityViewModel", "Publish button clicked")
 
+
+
+        // Validering for tittel
         if (uiState.value.title.isBlank()) {
             uiState.value = uiState.value.copy(errorMessage = R.string.error_title_required)
             return
         }
 
+        // Validering for beskrivelse
+        if (uiState.value.description.isBlank()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_description_required)
+            return
+        }
+
+        // Validering for kategori
         if (uiState.value.category.isBlank()) {
             uiState.value = uiState.value.copy(errorMessage = R.string.error_category_required)
             return
@@ -208,7 +225,68 @@ class NewActivityViewModel @Inject constructor(
             )
         } else {
             createActivityAndNavigate(navController, "", combinedLocation, timestampDate, startTime, creatorId)
+
+            
+        // Validering for sted
+        if (uiState.value.location.isBlank()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_location_required)
+            return
         }
+
+        // Validering for adresse
+        if (uiState.value.address.isBlank()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_address_required)
+            return
+        }
+
+        // Validering for postnummer
+        if (uiState.value.postalCode.isBlank()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_postal_code_required)
+            return
+        }
+
+        // Validering for antall deltakere
+        if (uiState.value.maxParticipants.isBlank() || uiState.value.maxParticipants.toIntOrNull() == null) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_max_participants_required)
+            return
+
+        }
+
+        // Validering for aldersgrense (hvis den er spesifisert)
+        if (uiState.value.ageLimit.isNotBlank() && uiState.value.ageLimit.toIntOrNull() == null) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_age_limit)
+            return
+        }
+
+
+        // Validering av maks deltakere
+        if (!uiState.value.maxParticipants.isValidParticipants()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_max_participants)
+            return
+        }
+
+        // Validering av aldersgrense
+        if (!uiState.value.ageLimit.isAgeValid()) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_age_limit)
+            return
+        }
+
+
+        val currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE.dd.MM.yyyy", Locale("no")))
+        val dateToSend = uiState.value.date.ifBlank { currentDate }
+        val combinedLocation = "${uiState.value.location}, ${uiState.value.postalCode} ${uiState.value.address}"
+        val creatorId = accountService.currentUserId
+
+        uploadImageToFirebase(
+            Uri.parse(uiState.value.imageUrl),
+            category = uiState.value.category,
+            onSuccess = { imageUrl ->
+                createActivityAndNavigate(navController, imageUrl, combinedLocation, dateToSend, creatorId)
+            },
+            onError = { error ->
+                Log.e("NewActivityViewModel", "Error uploading image: ${error.message}")
+            }
+        )
     }
 
     private fun createActivityAndNavigate(
@@ -228,6 +306,8 @@ class NewActivityViewModel @Inject constructor(
                 val newActivity = createActivity(
                     createdAt = Timestamp.now(),
                     lastUpdated = Timestamp.now(),
+                val newActivity = createActivity(
+
                     creatorId = creatorId,
                     title = uiState.value.title,
                     description = uiState.value.description,
@@ -250,6 +330,7 @@ class NewActivityViewModel @Inject constructor(
             }
         }
     }
+
 
     private fun generateUniqueCode(): Int {
         return Random.nextInt(10000000, 99999999) // gennrener 8 shiffer "code"
@@ -392,4 +473,7 @@ class NewActivityViewModel @Inject constructor(
 }
 
 
+
+
+}
 
