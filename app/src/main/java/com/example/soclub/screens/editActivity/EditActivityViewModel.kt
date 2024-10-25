@@ -209,7 +209,7 @@ class EditActivityViewModel @Inject constructor(
                     maxParticipants = uiState.value.maxParticipants.toIntOrNull() ?: 0,
                     ageGroup = uiState.value.ageLimit.toIntOrNull() ?: 0,
                     imageUrl = imageUrl,
-                    date = date
+                   // dette må byttes til timestump date = date
                 )
 
                 // Always use oldCategory and newCategory directly in one call to updateActivity
