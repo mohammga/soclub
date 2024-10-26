@@ -1,25 +1,31 @@
 package com.example.soclub.screens.newActivity
 
+
 import android.net.Uri
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import android.util.Log
-import androidx.annotation.StringRes
 import com.example.soclub.R
-import com.example.soclub.common.ext.isAgeValid
-import com.example.soclub.common.ext.isValidParticipants
 import com.example.soclub.models.createActivity
 import com.example.soclub.service.ActivityService
 import com.example.soclub.service.AccountService
 import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import javax.inject.Inject
+import com.google.firebase.Timestamp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONArray
+import org.json.JSONObject
+import kotlin.random.Random
+
+
+
 
 data class NewActivityState(
     val title: String = "",
@@ -31,9 +37,14 @@ data class NewActivityState(
     val maxParticipants: String = "",
     val ageLimit: String = "",
     val imageUrl: String = "",
-    val date: String = "",
-    @StringRes val errorMessage: Int = 0
+    val date: Timestamp? = Timestamp.now(),
+    val startTime: String = "",
+    val errorMessage: Int? = null,
+    val locationSuggestions: List<String> = emptyList(),
+    val addressSuggestions: List<String> = emptyList(),
+    val postalCodeSuggestions: List<String> = emptyList()
 )
+
 
 @HiltViewModel
 class NewActivityViewModel @Inject constructor(
@@ -43,6 +54,47 @@ class NewActivityViewModel @Inject constructor(
 
     var uiState = mutableStateOf(NewActivityState())
         private set
+
+    private val client = OkHttpClient()
+
+
+    // Liste som lagrer alle kommuner
+    private var kommuner: List<String> = listOf()
+
+
+    init {
+        // Last inn kommuner ved oppstart
+        loadKommuner()
+    }
+
+    // Funksjon for å hente kommuner fra Kartverket API
+    private fun loadKommuner() {
+        viewModelScope.launch {
+            try {
+                val url = "https://api.kartverket.no/kommuneinfo/v1/kommuner"
+                val request = Request.Builder().url(url).build()
+                val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
+
+                if (response.isSuccessful) {
+                    response.body?.let { responseBody ->
+                        val responseString = responseBody.string()
+                        val json = JSONArray(responseString)
+
+                        // Ekstrakt kommunenavn fra JSON-responsen
+                        kommuner = List(json.length()) { index ->
+                            val kommuneObj = json.getJSONObject(index)
+                            kommuneObj.getString("kommunenavnNorsk").uppercase()
+                        }
+                    }
+                } else {
+                    Log.e("NewActivityViewModel", "Error loading kommuner: ${response.code}")
+                }
+            } catch (e: Exception) {
+                Log.e("NewActivityViewModel", "Error: ${e.message}")
+            }
+        }
+    }
+
 
     fun onTitleChange(newValue: String) {
         uiState.value = uiState.value.copy(title = newValue)
@@ -60,32 +112,58 @@ class NewActivityViewModel @Inject constructor(
         uiState.value = uiState.value.copy(category = newValue)
     }
 
+    // Funksjon for å håndtere input i LocationField og gi forslag fra kommuner-listen
     fun onLocationChange(newValue: String) {
         uiState.value = uiState.value.copy(location = newValue)
+
+        if (newValue.length >= 2) {
+            val suggestions = kommuner.filter { it.startsWith(newValue.uppercase()) }
+            uiState.value = uiState.value.copy(locationSuggestions = suggestions)
+        } else {
+            uiState.value = uiState.value.copy(locationSuggestions = emptyList())
+        }
+
+        // Tøm adresse- og postkodesuggesjoner når lokasjonen endres
+        uiState.value = uiState.value.copy(addressSuggestions = emptyList(), postalCodeSuggestions = emptyList())
     }
 
     fun onAddressChange(newValue: String) {
         uiState.value = uiState.value.copy(address = newValue)
+        fetchAddressSuggestions(newValue)
     }
 
-    fun onPostalCodeChange(newValue: String) {
-        uiState.value = uiState.value.copy(postalCode = newValue)
+    fun onAddressSelected(selectedAddress: String) {
+        uiState.value = uiState.value.copy(address = selectedAddress)
+
+        // Hent postnummer basert på valgt adresse og kommune
+        fetchPostalCodeForAddress(selectedAddress, uiState.value.location)
     }
+
 
     fun onMaxParticipantsChange(newValue: String) {
         uiState.value = uiState.value.copy(maxParticipants = newValue)
     }
 
     fun onAgeLimitChange(newValue: String) {
-        uiState.value = uiState.value.copy(ageLimit = newValue)
+        val age = newValue.toIntOrNull()
+
+        if (age != null && age > 100) {
+            uiState.value = uiState.value.copy(errorMessage = R.string.error_age_limit_exceeded)
+        } else {
+            uiState.value = uiState.value.copy(ageLimit = newValue, errorMessage = null)
+        }
     }
 
-    fun onDateChange(newValue: String) {
+    fun onDateChange(newValue: Timestamp) {
         uiState.value = uiState.value.copy(date = newValue)
     }
 
-    private fun uploadImageToFirebase(imageUri: Uri, category: String, onSuccess: (String) -> Unit, onError: (Exception) -> Unit) {
-        val storageRef = FirebaseStorage.getInstance().reference.child("${category}/${imageUri.lastPathSegment}")
+    fun onStartTimeChange(newValue: String) {
+        uiState.value = uiState.value.copy(startTime = newValue)
+    }
+
+    private fun uploadImageToFirebase(imageUri: Uri, onSuccess: (String) -> Unit, onError: (Exception) -> Unit) {
+        val storageRef = FirebaseStorage.getInstance().reference.child("images/${imageUri.lastPathSegment}")
         storageRef.putFile(imageUri)
             .addOnSuccessListener {
                 Log.d("NewActivityViewModel", "Image uploaded successfully")
@@ -103,89 +181,53 @@ class NewActivityViewModel @Inject constructor(
     fun onPublishClick(navController: NavController) {
         Log.d("NewActivityViewModel", "Publish button clicked")
 
-        // Validering for tittel
         if (uiState.value.title.isBlank()) {
             uiState.value = uiState.value.copy(errorMessage = R.string.error_title_required)
             return
         }
 
-        // Validering for beskrivelse
-        if (uiState.value.description.isBlank()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_description_required)
-            return
-        }
-
-        // Validering for kategori
         if (uiState.value.category.isBlank()) {
             uiState.value = uiState.value.copy(errorMessage = R.string.error_category_required)
             return
         }
 
-        // Validering for sted
-        if (uiState.value.location.isBlank()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_location_required)
-            return
-        }
-
-        // Validering for adresse
-        if (uiState.value.address.isBlank()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_address_required)
-            return
-        }
-
-        // Validering for postnummer
-        if (uiState.value.postalCode.isBlank()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_postal_code_required)
-            return
-        }
-
-        // Validering for antall deltakere
-        if (uiState.value.maxParticipants.isBlank() || uiState.value.maxParticipants.toIntOrNull() == null) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_max_participants_required)
-            return
-        }
-
-        // Validering for aldersgrense (hvis den er spesifisert)
-        if (uiState.value.ageLimit.isNotBlank() && uiState.value.ageLimit.toIntOrNull() == null) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_age_limit)
-            return
-        }
-
-
-        // Validering av maks deltakere
-        if (!uiState.value.maxParticipants.isValidParticipants()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_max_participants)
-            return
-        }
-
-        // Validering av aldersgrense
-        if (!uiState.value.ageLimit.isAgeValid()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_age_limit)
-            return
-        }
-
-
-        val currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE.dd.MM.yyyy", Locale("no")))
-        val dateToSend = uiState.value.date.ifBlank { currentDate }
-        val combinedLocation = "${uiState.value.location}, ${uiState.value.postalCode} ${uiState.value.address}"
+        val combinedLocation = "${uiState.value.address}, ${uiState.value.postalCode}, ${uiState.value.location}"
         val creatorId = accountService.currentUserId
+        val timestampDate = uiState.value.date ?: Timestamp.now()
+        val startTime = uiState.value.startTime
 
-        uploadImageToFirebase(
-            Uri.parse(uiState.value.imageUrl),
-            category = uiState.value.category,
-            onSuccess = { imageUrl ->
-                createActivityAndNavigate(navController, imageUrl, combinedLocation, dateToSend, creatorId)
-            },
-            onError = { error ->
-                Log.e("NewActivityViewModel", "Error uploading image: ${error.message}")
-            }
-        )
+        if (uiState.value.imageUrl.isNotBlank()) {
+            uploadImageToFirebase(
+                Uri.parse(uiState.value.imageUrl),
+                onSuccess = { imageUrl ->
+                    createActivityAndNavigate(navController, imageUrl, combinedLocation, timestampDate, startTime, creatorId)
+                },
+                onError = { error ->
+                    Log.e("NewActivityViewModel", "Error uploading image: ${error.message}")
+                }
+            )
+        } else {
+            createActivityAndNavigate(navController, "", combinedLocation, timestampDate, startTime, creatorId)
+        }
     }
 
-    private fun createActivityAndNavigate(navController: NavController, imageUrl: String, combinedLocation: String, date: String, creatorId: String) {
+    private fun createActivityAndNavigate(
+        navController: NavController,
+        imageUrl: String,
+        combinedLocation: String,
+        date: Timestamp,
+        startTime: String,
+        creatorId: String
+    ) {
         viewModelScope.launch {
             try {
+                Log.d("NewActivityViewModel", "Creating activity with imageUrl: $imageUrl and location: $combinedLocation")
+
+                val uniqueCode = generateUniqueCode() // Generate the unique code
+
                 val newActivity = createActivity(
+                    createdAt = Timestamp.now(),
+                    lastUpdated = Timestamp.now(),
                     creatorId = creatorId,
                     title = uiState.value.title,
                     description = uiState.value.description,
@@ -193,13 +235,14 @@ class NewActivityViewModel @Inject constructor(
                     maxParticipants = uiState.value.maxParticipants.toIntOrNull() ?: 0,
                     ageGroup = uiState.value.ageLimit.toIntOrNull() ?: 0,
                     imageUrl = imageUrl,
-                    date = date
+                    date = date,
+                    startTime = startTime,
+                    soclubCode = uniqueCode // Adder unike coden "Soclubkode"
                 )
 
                 activityService.createActivity(uiState.value.category, newActivity)
-                Log.d("NewActivityViewModel", "Activity created successfully")
+                Log.d("NewActivityViewModel", "Activity created successfully with code $uniqueCode")
 
-                // Navigate to home after successfully creating the activity
                 navController.navigate("home")
                 Log.d("NewActivityViewModel", "Navigation to home successful")
             } catch (e: Exception) {
@@ -207,4 +250,144 @@ class NewActivityViewModel @Inject constructor(
             }
         }
     }
+
+    private fun generateUniqueCode(): Int {
+        return Random.nextInt(10000000, 99999999) // gennrener 8 shiffer "code"
+    }
+
+
+
+    private fun fetchAddressSuggestions(query: String) {
+        viewModelScope.launch {
+            if (query.isBlank()) {
+                uiState.value = uiState.value.copy(addressSuggestions = emptyList())
+                return@launch
+            }
+
+            // Regex for å finne gatenavn og husnummer
+            val regex = """^([a-zA-ZøæåØÆÅ\s]+)(\d+.*)?$""".toRegex()
+            val matchResult = regex.find(query.trim())
+
+            val streetName = matchResult?.groups?.get(1)?.value?.trim() ?: ""
+            val houseNumber = matchResult?.groups?.get(2)?.value?.trim() ?: ""
+
+            // Sjekk om brukeren har skrevet et gyldig gatenavn
+            if (streetName.isEmpty()) {
+                Log.e("NewActivityViewModel", "Ugyldig gatenavn")
+                return@launch
+            }
+
+            val kommune = uiState.value.location
+            if (kommune.isEmpty()) {
+                Log.e("NewActivityViewModel", "Kommune er ikke valgt")
+                return@launch
+            }
+
+            try {
+                val allSuggestions = mutableListOf<String>()
+                var page = 0
+                var hasMoreResults = true
+
+                while (hasMoreResults) {
+                    // Konstruer API-forespørselen med gatenavn og husnummer hvis husnummer er skrevet inn
+                    val url = "https://ws.geonorge.no/adresser/v1/sok" +
+                            "?fuzzy=true" +  // Tillat fleksible treff
+                            "&adressenavn=$streetName" +  // Gatenavn
+                            if (houseNumber.isNotEmpty()) "&nummer=$houseNumber" else "" +  // Husnummer hvis det er skrevet
+                                    "&kommunenavn=$kommune" +  // Kommune
+                                    "&utkoordsys=4258" +  // Koordinatsystem
+                                    "&treffPerSide=12" +  // Øk antall treff per side
+                                    "&side=$page" +  // Paginering
+                                    "&asciiKompatibel=true"  // Håndter spesialtegn
+
+                    Log.d("NewActivityViewModel", "Henter adresseforslag fra: $url")
+
+                    val request = Request.Builder().url(url).build()
+                    val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
+
+                    if (!response.isSuccessful) {
+                        Log.e("NewActivityViewModel", "Feil ved forespørsel: ${response.code}")
+                        return@launch
+                    }
+
+                    response.body?.let { responseBody ->
+                        val responseString = responseBody.string()
+                        val json = JSONObject(responseString)
+                        val suggestions = json.getJSONArray("adresser").let { addresses ->
+                            List(addresses.length()) { index ->
+                                val address = addresses.getJSONObject(index)
+                                val adressetekst = address.getString("adressetekst")
+                                adressetekst
+                            }
+                        }
+
+                        allSuggestions.addAll(suggestions)
+
+                        // Hvis vi får mindre enn 100 treff, stopp paginering
+                        hasMoreResults = suggestions.size == 12
+                        page++
+                    }
+                }
+
+                Log.d("NewActivityViewModel", "Hentede adresseforslag: $allSuggestions")
+                uiState.value = uiState.value.copy(addressSuggestions = allSuggestions)
+
+            } catch (e: Exception) {
+                Log.e("NewActivityViewModel", "Feil ved henting av adresseforslag: ${e.message}")
+            }
+        }
+    }
+
+
+
+
+
+
+
+    private fun fetchPostalCodeForAddress(address: String, kommune: String) {
+        viewModelScope.launch {
+            try {
+                // Bygg URL-en for å hente postnummer basert på adressen og kommunenavnet
+                val url = "https://ws.geonorge.no/adresser/v1/sok" +
+                        "?fuzzy=false" +  // Kan settes til true hvis du ønsker å tillate små feil
+                        "&adressetekst=$address" +  // Søk etter spesifikk adresse
+                        "&kommunenavn=$kommune" +  // Kommunenavn for mer presist resultat
+                        "&utkoordsys=4258" +  // Koordinatsystem
+                        "&treffPerSide=1" +  // Vi trenger kun én presis treff
+                        "&side=0" +  // Første side med resultater
+                        "&asciiKompatibel=true"  // ASCII-kompatibel for håndtering av spesialtegn
+
+                Log.d("NewActivityViewModel", "Fetching postal code from: $url")  // Logg forespørselen
+
+                val request = Request.Builder().url(url).build()
+                val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
+
+                if (!response.isSuccessful) {
+                    Log.e("NewActivityViewModel", "Unsuccessful response: ${response.code}")
+                    return@launch
+                }
+
+                response.body?.let { responseBody ->
+                    val responseString = responseBody.string()
+                    val json = JSONObject(responseString)
+                    val addresses = json.getJSONArray("adresser")
+
+                    // Hvis det er treff, hent postnummer
+                    if (addresses.length() > 0) {
+                        val postalCode = addresses.getJSONObject(0).getString("postnummer")
+                        Log.d("NewActivityViewModel", "Fetched postal code: $postalCode")
+
+                        // Oppdater state med postnummeret
+                        uiState.value = uiState.value.copy(postalCode = postalCode)
+                    } else {
+                        Log.e("NewActivityViewModel", "No addresses found for: $address, $kommune")
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("NewActivityViewModel", "Error fetching postal code: ${e.message}")
+            }
+        }
+    }
+
 }
+
