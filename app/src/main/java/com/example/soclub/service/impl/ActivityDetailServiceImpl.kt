@@ -27,15 +27,20 @@ class ActivityDetailServiceImpl @Inject constructor(
         val fullLocation = activity?.location ?: "Ukjent"
         val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
 
-        // Hent date fra dokumentet
+        // Hent dato fra dokumentet
         val date = documentSnapshot.getTimestamp("date")
 
-        // Returner aktiviteten med date og resten av adressen
+        // Hent startTime som String fra dokumentet
+        val startTime = documentSnapshot.getString("startTime") ?: "Ukjent tid"
+
+        // Returner aktiviteten med date, restOfAddress, og startTime
         return activity?.copy(
             restOfAddress = restOfAddress,
-            date = date // Legg til date her
+            date = date,
+            startTime = startTime // Legg til startTime her
         )
     }
+
 
 
 

@@ -22,7 +22,6 @@ import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.Timestamp
 import java.util.Locale
 
-
 @Composable
 fun EntriesScreen(navController: NavHostController) {
     val (selectedTab, setSelectedTab) = remember { mutableStateOf(0) }
@@ -30,17 +29,10 @@ fun EntriesScreen(navController: NavHostController) {
     Column(modifier = Modifier.fillMaxSize()) {
         Tabs(selectedTab = selectedTab, setSelectedTab = setSelectedTab)
 
-        if (selectedTab == 0) {
-            ActiveEntriesList()
-        }
-
-        if (selectedTab == 1) {
-            // utløpte aktiviteter
-        }
-
-        if (selectedTab == 2) {
-            cancelled()
-
+        when (selectedTab) {
+            0 -> ActiveEntriesList(navController)
+            1 -> ExpiredEntriesList(navController)
+            2 -> CancelledEntriesList(navController)
         }
     }
 }
@@ -77,105 +69,104 @@ fun Tabs(selectedTab: Int, setSelectedTab: (Int) -> Unit) {
     }
 }
 
+@Composable
+fun ExpiredEntriesList(navController: NavHostController, viewModel: EntriesScreenViewModel = hiltViewModel()) {
+    val expiredActivities by viewModel.expiredActivities.collectAsState()
+    val isLoadingExpired by viewModel.isLoadingExpired.collectAsState() // Vi legger til en loader hvis nødvendig
 
+    if (isLoadingExpired) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else if (expiredActivities.isEmpty()) {
+        Text(text = "Ingen utløpte aktiviteter funnet", modifier = Modifier.padding(16.dp))
+    } else {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(expiredActivities.size) { index ->
+                val activity = expiredActivities[index]
+                ExpiredEntryItem(
+                    imageUrl = activity.imageUrl,
+                    title = activity.title,
+                    date = activity.date,
+                    onClick = {
+                        activity.category?.let { category ->
+                            activity.id?.let { id ->
+                                navController.navigate("detail/$category/$id")
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+}
 
 @Composable
-fun ActiveEntriesList(viewModel: EntriesScreenViewModel = hiltViewModel()) {
+fun ActiveEntriesList(navController: NavHostController, viewModel: EntriesScreenViewModel = hiltViewModel()) {
     val activeActivities by viewModel.activeActivities.collectAsState()
     val isLoading by viewModel.isLoadingActive.collectAsState()
 
     if (isLoading) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
     } else {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(activeActivities.size) { index ->
                 val activity = activeActivities[index]
-                EntryItemCancelButton(
-                    imageUrl = activity.imageUrl, // Send imageUrl fra databasen
+                ActiveEntryItem(
+                    imageUrl = activity.imageUrl,
                     title = activity.title,
-                    date = activity.date,  // Vi bruker "date" nå, ikke "time"
-                    onCancelClick = { /* Håndter kansellering */ }
+                    date = activity.date,
+                    onCancelClick = { viewModel.cancelRegistration(activity.id) },
+                    onClick = {
+                        activity.category?.let { category ->
+                            activity.id?.let { id ->
+                                navController.navigate("detail/$category/$id")
+                            }
+                        }
+                    }
                 )
             }
         }
     }
 }
 
-
-//@Composable
-//fun InactiveEntriesList(viewModel: EntriesScreenViewModel = hiltViewModel()) {
-//    val inactiveActivities by viewModel.notActiveActivities.collectAsState()
-//    val isLoadingInactive by viewModel.isLoadingInactive.collectAsState()
-//
-//    if (isLoadingInactive) {
-//        Box(
-//            modifier = Modifier.fillMaxSize(),
-//            contentAlignment = Alignment.Center
-//        ) {
-//            CircularProgressIndicator() // Viser en spinner mens data lastes
-//        }
-//    } else if (inactiveActivities.isEmpty()) {
-//        Text(text = "Ingen utgåtte aktiviteter funnet", modifier = Modifier.padding(16.dp))
-//    } else {
-//        LazyColumn(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(16.dp),
-//            verticalArrangement = Arrangement.spacedBy(16.dp)
-//        ) {
-//            items(inactiveActivities.size) { index ->
-//                val activity = inactiveActivities[index]
-//                EntryItem(
-//                    imageUrl = activity.imageUrl, // Bruk et standardbilde inntil dynamiske bilder er på plass
-//                    title = activity.title,
-//                    time = activity.date.toString(),
-//                    onCancelClick = { /* Håndter kansellering */ }
-//                )
-//            }
-//        }
-//    }
-//}
-
-
-
 @Composable
-fun cancelled(viewModel: EntriesScreenViewModel = hiltViewModel()) {
-    val inactiveActivities by viewModel.notActiveActivities.collectAsState()
-    val isLoadingInactive by viewModel.isLoadingInactive.collectAsState()
+fun CancelledEntriesList(navController: NavHostController, viewModel: EntriesScreenViewModel = hiltViewModel()) {
+    val cancelledActivities by viewModel.notActiveActivities.collectAsState()
+    val isLoadingCancelledActivities by viewModel.isLoadingInactive.collectAsState()
 
-    if (isLoadingInactive) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator() // Viser en spinner mens data lastes
+    if (isLoadingCancelledActivities) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
         }
-    } else if (inactiveActivities.isEmpty()) {
+    } else if (cancelledActivities.isEmpty()) {
         Text(text = "Ingen utgåtte aktiviteter funnet", modifier = Modifier.padding(16.dp))
     } else {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            items(inactiveActivities.size) { index ->
-                val activity = inactiveActivities[index]
-                EntryItem(
-                    imageUrl = activity.imageUrl, // Bruk et standardbilde inntil dynamiske bilder er på plass
+            items(cancelledActivities.size) { index ->
+                val activity = cancelledActivities[index]
+                CancelledEntryItem(
+                    imageUrl = activity.imageUrl,
                     title = activity.title,
-                    date = activity?.date,
-                    onCancelClick = { /* Håndter kansellering */ }
+                    date = activity.date,
+                    onClick = {
+                        activity.category?.let { category ->
+                            activity.id?.let { id ->
+                                navController.navigate("detail/$category/$id")
+                            }
+                        }
+                    }
                 )
             }
         }
@@ -183,75 +174,72 @@ fun cancelled(viewModel: EntriesScreenViewModel = hiltViewModel()) {
 }
 
 @Composable
-fun EntryItem(
+fun ExpiredEntryItem(
     imageUrl: String?,
-    title: String,
-    date: Timestamp?,  // Bruker Timestamp i stedet for String
-    onCancelClick: () -> Unit
+    title: String?,
+    date: Timestamp?,
+    onClick: () -> Unit
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { /* Håndter klikk på oppføringen */ },
+        modifier = Modifier.fillMaxWidth().clickable { onClick() }.padding(8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        EventImage(imageUrl) // Send imageUrl til EventImage
-
+        EventImage(imageUrl)
         Spacer(modifier = Modifier.width(16.dp))
-
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-
+            Text(text = title ?: "Ukjent tittel", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             DateDisplay(date = date)
-
-            Spacer(modifier = Modifier.height(8.dp))
-
             Spacer(modifier = Modifier.height(16.dp))
-
             HorizontalDivider(thickness = 1.dp)
         }
     }
 }
 
 @Composable
-fun EntryItemCancelButton(
+fun ActiveEntryItem(
     imageUrl: String?,
     title: String,
-    date: Timestamp?,  // Bruker Timestamp
-    onCancelClick: () -> Unit
+    date: Timestamp?,
+    onCancelClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { /* Håndter klikk på oppføringen */ },
+        modifier = Modifier.fillMaxWidth().clickable { onClick() }.padding(8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        EventImage(imageUrl) // Viser bildet
-
+        EventImage(imageUrl)
         Spacer(modifier = Modifier.width(16.dp))
-
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-
-            // Bruker DateDisplay-funksjonen for å vise dato
+            Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             DateDisplay(date = date)
-
             Spacer(modifier = Modifier.height(8.dp))
-
             CancelButton(onClick = onCancelClick)
-
             Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider(thickness = 1.dp)
+        }
+    }
+}
 
+@Composable
+fun CancelledEntryItem(
+    imageUrl: String?,
+    title: String?,
+    date: Timestamp?,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().clickable { onClick() }.padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        EventImage(imageUrl)
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = title ?: "Ukjent tittel", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            DateDisplay(date = date)
+            Spacer(modifier = Modifier.height(16.dp))
             HorizontalDivider(thickness = 1.dp)
         }
     }
@@ -259,8 +247,14 @@ fun EntryItemCancelButton(
 
 @Composable
 fun EventImage(imageUrl: String?) {
+    val imagePainter = if (imageUrl.isNullOrEmpty()) {
+        rememberAsyncImagePainter("defaultImageUrl") // Erstatt med en faktisk URL eller placeholder-bilde
+    } else {
+        rememberAsyncImagePainter(imageUrl)
+    }
+
     Image(
-        painter = rememberAsyncImagePainter(imageUrl), // Bruk URL fra imageUrl
+        painter = imagePainter,
         contentDescription = null,
         modifier = Modifier
             .width(100.dp)
@@ -272,15 +266,12 @@ fun EventImage(imageUrl: String?) {
 
 @Composable
 fun DateDisplay(date: Timestamp?) {
-    // Sjekk om dato er null, hvis den er det viser vi en fallback tekst
     val formattedDate = date?.let {
-        val sdf = SimpleDateFormat("EEEE, d. MMMM yyyy, HH:mm", Locale("no", "NO")) // Norsk lokalisering
+        val sdf = SimpleDateFormat("EEEE, d. MMMM yyyy, HH:mm", Locale("no", "NO"))
         val dateStr = sdf.format(it.toDate())
-        // Gjør første bokstav i ukedagen stor
         dateStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-    } ?: "Ukjent tid"  // Fallback om datoen er null
+    } ?: "Ukjent tid"
 
-    // Vis formatert dato
     Text(
         text = formattedDate,
         style = MaterialTheme.typography.bodyMedium,
