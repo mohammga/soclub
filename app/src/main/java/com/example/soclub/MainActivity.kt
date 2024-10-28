@@ -64,7 +64,6 @@ class MainActivity : ComponentActivity() {
         }
 
 
-
         // Request permissions
         requestPermission()
 

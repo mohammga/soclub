@@ -22,9 +22,6 @@ data class Activity(
     val category: String? = null
 )
 
-
-
-
 data class createActivity(
     val creatorId: String = "",
     val imageUrl: String = "",
