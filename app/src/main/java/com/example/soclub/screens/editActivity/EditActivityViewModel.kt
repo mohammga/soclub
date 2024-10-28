@@ -14,7 +14,6 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import java.util.Locale
 import javax.inject.Inject
 
 data class EditActivityState(
@@ -27,7 +26,7 @@ data class EditActivityState(
     val maxParticipants: String = "",
     val ageLimit: String = "",
     val imageUrl: String = "",
-    val date: Timestamp? = null,  // Bruker Timestamp for dato
+    val date: Timestamp? = null,
     val startTime: String = "",
     val errorMessage: Int? = null
 )
@@ -41,10 +40,10 @@ class EditActivityViewModel @Inject constructor(
     var uiState = mutableStateOf(EditActivityState())
         private set
 
-    // Holder den gamle kategorien for å spore endringer
+
     private var oldCategory: String? = null
 
-    // Last inn eksisterende aktivitet
+
     fun loadActivity(category: String, activityId: String) {
         viewModelScope.launch {
             try {
@@ -135,6 +134,18 @@ class EditActivityViewModel @Inject constructor(
                 onError(exception)
             }
     }
+
+    fun onDeleteClick(navController: NavController, category: String, activityId: String) {
+        viewModelScope.launch {
+            try {
+                activityService.deleteActivity(category, activityId)
+                navController.navigate("adsScreen") // Naviger til AdsScreen etter sletting
+            } catch (e: Exception) {
+                Log.e("EditActivityViewModel", "Error deleting activity: ${e.message}")
+            }
+        }
+    }
+
 
     fun onSaveClick(navController: NavController, currentCategory: String, activityId: String) {
         Log.d("EditActivityViewModel", "Save button clicked")

@@ -43,8 +43,8 @@ fun AdsScreen(
                     imageUrl = activity.imageUrl,
                     title = activity.title,
                     time = activity.startTime,
-                    activityId = activity.creatorId, // activityId her representerer creatorId fra backend
-                    category = activity.category, // Pass in the correct category for this activity
+                    activityId = activity.creatorId,
+                    category = activity.category,
                     navController = navController
                 )
             }
@@ -57,8 +57,8 @@ fun EntryItem(
     imageUrl: String?,
     title: String?,
     time: String?,
-    activityId: String,  // Pass activityId for navigation
-    category: String,  // Pass category for navigation
+    activityId: String,
+    category: String,
     navController: NavController
 ) {
     Row(
@@ -89,9 +89,7 @@ fun EntryItem(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            EditButton {
-                navController.navigate("editActivity/$category/$activityId")
-            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             HorizontalDivider(thickness = 1.dp)
@@ -112,15 +110,4 @@ fun EventImage(imageUrl: String) {
     )
 }
 
-@Composable
-fun EditButton(onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        shape = RoundedCornerShape(24.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(32.dp)
-    ) {
-        Text(text = "Endre")
-    }
-}
+

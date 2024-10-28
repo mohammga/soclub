@@ -18,7 +18,7 @@ data class EditProfileState(
     val firstname: String = "",
     val lastname: String = "",
     @StringRes val errorMessage: Int = 0,
-    val isDirty: Boolean = false // Ny variabel for å spore endringer
+    val isDirty: Boolean = false
 )
 
 @HiltViewModel

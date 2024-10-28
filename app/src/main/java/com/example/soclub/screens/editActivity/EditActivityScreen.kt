@@ -11,7 +11,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -38,7 +37,7 @@ fun EditActivityScreen(
 ) {
     val uiState by viewModel.uiState
 
-    // Last inn aktiviteten ved oppstart
+
     LaunchedEffect(Unit) {
         viewModel.loadActivity(category, activityId)
     }
@@ -60,7 +59,8 @@ fun EditActivityScreen(
             item { StartTimeField(value = uiState.startTime, onNewValue = viewModel::onStartTimeChange) }
             item { MaxParticipantsField(value = uiState.maxParticipants, onNewValue = viewModel::onMaxParticipantsChange) }
             item { AgeLimitField(value = uiState.ageLimit, onNewValue = viewModel::onAgeLimitChange) }
-            item { SaveChangesButton(navController, viewModel, category, activityId) }
+            item { SaveChangesButton(navController, viewModel, category, activityId)}
+            item {DeleteButton(navController, viewModel, category, activityId)}
         }
     }
 }
@@ -72,6 +72,17 @@ fun SaveChangesButton(navController: NavController, viewModel: EditActivityViewM
         modifier = Modifier.fillMaxWidth()
     ) {
         Text(text = "Lagre endringer")
+    }
+}
+
+@Composable
+fun DeleteButton(navController: NavController, viewModel: EditActivityViewModel, category: String, activityId: String) {
+    Button(
+        onClick = { viewModel.onDeleteClick(navController, category, activityId) },
+        modifier = Modifier.fillMaxWidth(1f),
+        colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.error)
+    ) {
+        Text(text = "Slett")
     }
 }
 
@@ -325,3 +336,4 @@ fun ImageUploadSection(onImageSelected: (String) -> Unit, imageUrl: String) {
         }
     }
 }
+

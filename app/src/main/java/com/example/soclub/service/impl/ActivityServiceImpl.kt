@@ -24,17 +24,7 @@ class ActivityServiceImpl @Inject constructor(
             .document(activityId)
             .get()
             .await()
-
-        val activity = documentSnapshot.toObject(Activity::class.java)
-
-        val fullLocation = activity?.location ?: "Ukjent"
-        val lastWord = fullLocation.substringAfterLast(" ")
-        val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
-
-        return activity?.copy(
-            location = lastWord,
-            restOfAddress = restOfAddress
-        )
+        return documentSnapshot.toObject(Activity::class.java)
     }
 
     override suspend fun getActivities(category: String): List<Activity> {
@@ -42,17 +32,7 @@ class ActivityServiceImpl @Inject constructor(
             .collection("activities").get().await()
 
         return snapshot.documents.mapNotNull { document ->
-            val activity = document.toObject(Activity::class.java)
-
-            val fullLocation = activity?.location ?: "Ukjent"
-            val lastWord = fullLocation.substringAfterLast(" ")
-            val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
-
-            activity?.copy(
-                id = document.id,
-                location = lastWord,
-                description = restOfAddress
-            )
+            document.toObject(Activity::class.java)?.copy(id = document.id)
         }
     }
 
@@ -69,18 +49,7 @@ class ActivityServiceImpl @Inject constructor(
                 .get().await()
 
             activitiesSnapshot.documents.mapNotNullTo(allActivities) { document ->
-                val activity = document.toObject(editActivity::class.java)
-
-                val fullLocation = activity?.location ?: "Ukjent"
-                val lastWord = fullLocation.substringAfterLast(" ")
-                val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
-
-                activity?.copy(
-                    id = document.id,
-                    location = lastWord,
-                    description = restOfAddress,
-                    category = categoryName
-                )
+                document.toObject(editActivity::class.java)?.copy(id = document.id, category = categoryName)
             }
         }
 
@@ -100,7 +69,6 @@ class ActivityServiceImpl @Inject constructor(
                 .document(activityId)
                 .delete()
                 .await()
-
             createActivity(newCategory, updatedActivity)
         } else {
             firestore.collection("category")
@@ -110,5 +78,14 @@ class ActivityServiceImpl @Inject constructor(
                 .set(updatedActivity)
                 .await()
         }
+    }
+
+    override suspend fun deleteActivity(category: String, activityId: String) {
+        firestore.collection("category")
+            .document(category)
+            .collection("activities")
+            .document(activityId)
+            .delete()
+            .await()
     }
 }

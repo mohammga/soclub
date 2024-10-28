@@ -101,23 +101,14 @@ private fun ChangePasswordButton(
     snackbarHostState: SnackbarHostState,
     coroutineScope: CoroutineScope
 ) {
-    // Hent ressurser for meldinger før coroutineScope
-    val errorMessageText = viewModel.uiState.value.errorMessage.takeIf { it != 0 }
-        ?.let { stringResource(id = it) }
     val successMessageText = stringResource(id = R.string.password_change)
 
     Button(
         onClick = {
             viewModel.onChangePasswordClick()
-
             coroutineScope.launch {
-                // Hvis det er feil, vis en feilmelding, ellers vis en suksessmelding
-                if (errorMessageText != null) {
-                    snackbarHostState.showSnackbar(
-                        message = errorMessageText,
-                        duration = SnackbarDuration.Long
-                    )
-                } else {
+                // Hvis passordet er endret, vis en suksessmelding, ellers ikke vis noe
+                if (viewModel.uiState.value.errorMessage == 0) {
                     snackbarHostState.showSnackbar(
                         message = successMessageText,
                         duration = SnackbarDuration.Long
@@ -132,6 +123,7 @@ private fun ChangePasswordButton(
         Text(text = stringResource(id = R.string.update_password_button))
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
