@@ -193,14 +193,14 @@ fun LocationField(
 
     Column(modifier = Modifier.fillMaxWidth()) {
         // Bruk TextField for å representere søkefunksjonaliteten
-        TextField(
+        OutlinedTextField(
             value = currentInput,
             onValueChange = {
                 currentInput = it
                 onNewValue(it)
                 expanded = it.isNotEmpty() && suggestions.isNotEmpty()  // Vis forslag bare når det er input og forslag
             },
-            placeholder = { Text("Søk etter sted...") },
+            placeholder = { Text("Sted") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
@@ -244,7 +244,7 @@ fun AddressField(
 
     Column(modifier = Modifier.fillMaxWidth()) {
         // Bruk TextField for søkefeltet
-        TextField(
+        OutlinedTextField(
             value = currentInput,
             onValueChange = {
                 if (isEnabled) {
@@ -253,7 +253,7 @@ fun AddressField(
                     expanded = it.isNotEmpty() && suggestions.isNotEmpty()  // Vis forslag bare hvis det er input og forslag
                 }
             },
-            placeholder = { Text("Søk etter adresse...") },
+            placeholder = { Text("Adresse") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
