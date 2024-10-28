@@ -50,14 +50,16 @@ class EditActivityViewModel @Inject constructor(
             try {
                 val activity = activityService.getActivityById(category, activityId)
                 if (activity != null) {
+                    // Splitt adressefeltet fra databasen
+                    val addressParts = activity.location.split(", ")
+
                     // Fyll inn UI-staten med eksisterende data
                     uiState.value = uiState.value.copy(
                         title = activity.title,
                         description = activity.description,
-                        //SPLITE LOCATION TIL Å KUN HENTE BY
-                        location = activity.location.split(",").last().trim(),
-                        address = activity.location.split(",").first().trim(),
-                        postalCode = activity.location.split(", ").getOrNull(1) ?: "",
+                        address = addressParts.getOrNull(0)?.trim() ?: "",  // Dammyr 11
+                        postalCode = addressParts.getOrNull(1)?.split(" ")?.getOrNull(0) ?: "", // 1605
+                        location = addressParts.getOrNull(1)?.split(" ")?.drop(1)?.joinToString(" ") ?: "", // Fredrikstad
                         maxParticipants = activity.maxParticipants.toString(),
                         ageLimit = activity.ageGroup.toString(),
                         imageUrl = activity.imageUrl,
@@ -72,6 +74,7 @@ class EditActivityViewModel @Inject constructor(
             }
         }
     }
+
 
     fun onTitleChange(newValue: String) {
         uiState.value = uiState.value.copy(title = newValue)
