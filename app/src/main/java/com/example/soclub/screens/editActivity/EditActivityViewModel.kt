@@ -1,11 +1,11 @@
 package com.example.soclub.screens.editActivity
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import android.util.Log
 import com.example.soclub.R
 import com.example.soclub.models.createActivity
 import com.example.soclub.service.ActivityService
@@ -53,8 +53,9 @@ class EditActivityViewModel @Inject constructor(
                     uiState.value = uiState.value.copy(
                         title = activity.title,
                         description = activity.description,
-                        location = activity.location,
-                        address = activity.restOfAddress,
+                        //SPLITE LOCATION TIL Å KUN HENTE BY
+                        location = activity.location.split(",").last().trim(),
+                        address = activity.location.split(",").first().trim(),
                         postalCode = activity.location.split(", ").getOrNull(1) ?: "",
                         maxParticipants = activity.maxParticipants.toString(),
                         ageLimit = activity.ageGroup.toString(),
@@ -160,7 +161,7 @@ class EditActivityViewModel @Inject constructor(
             return
         }
 
-        val combinedLocation = "${uiState.value.address}, ${uiState.value.postalCode}, ${uiState.value.location}"
+        val combinedLocation = "${uiState.value.address}, ${uiState.value.postalCode} ${uiState.value.location}"
         val creatorId = accountService.currentUserId
 
         if (uiState.value.imageUrl.isNotBlank()) {
