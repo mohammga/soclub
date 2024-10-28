@@ -42,7 +42,7 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    // Bruk LaunchedEffect for å hente profilinformasjonen når skjermen vises
+
     LaunchedEffect(Unit) {
         viewModel.loadUserProfile()
     }
@@ -98,7 +98,7 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                             }
                         }
                     },
-                    enabled = uiState.isDirty // Knappen aktiveres kun hvis det er gjort endringer
+                    enabled = uiState.isDirty
                 )
 
             }
@@ -256,7 +256,7 @@ fun SaveButton(onClick: () -> Unit, enabled: Boolean) {
             .fillMaxWidth()
             .height(48.dp),
         colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
-        enabled = enabled // Deaktiverer knappen hvis det ikke er noen endringer
+        enabled = enabled
     ) {
         Text(text = stringResource(id = R.string.save_changes_button), color = Color.White)
     }

@@ -15,7 +15,7 @@ import com.example.soclub.service.AccountService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import com.example.soclub.common.ext.isValidPassword
+
 
 data class ChangePasswordState(
     val oldPassword: String = "",

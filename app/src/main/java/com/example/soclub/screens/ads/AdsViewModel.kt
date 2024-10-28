@@ -11,39 +11,38 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-// Bruk HiltViewModel og injiser ActivityService
 @HiltViewModel
 class AdsViewModel @Inject constructor(
     private val activityService: ActivityService,
-    private val accountService: AccountService // Injiserer AccountService for å få currentUserId
+    private val accountService: AccountService
 ) : ViewModel() {
 
     private val _activities = MutableStateFlow<List<editActivity>>(emptyList())
     val activities: StateFlow<List<editActivity>> = _activities
 
-fun fetchActivitiesByCreator() {
-    val creatorId = accountService.currentUserId
-    viewModelScope.launch {
-        try {
-            val fetchedActivities = activityService.getAllActivitiesByCreator(creatorId).map {
-                editActivity(
-                    creatorId = it.id,
-                    imageUrl = it.imageUrl,
-                    title = it.title,
-                    description = it.description,
-                    ageGroup = it.ageGroup,
-                    maxParticipants = it.maxParticipants,
-                    location = it.location,
-                    date = it.date,
-                    time = it.time,
-                    category = it.category  // Inkluder kategori her
-                )
+    fun fetchActivitiesByCreator() {
+        val creatorId = accountService.currentUserId
+        viewModelScope.launch {
+            try {
+                val fetchedActivities = activityService.getAllActivitiesByCreator(creatorId).map {
+                    editActivity(
+                        creatorId = it.id,
+                        imageUrl = it.imageUrl,
+                        title = it.title,
+                        description = it.description,
+                        ageGroup = it.ageGroup,
+                        maxParticipants = it.maxParticipants,
+                        location = it.location,
+                        date = it.date,
+                        startTime = it.startTime,
+                        category = it.category
+                    )
+                }
+                _activities.value = fetchedActivities
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _activities.value = listOf()
             }
-            _activities.value = fetchedActivities
-        } catch (e: Exception) {
-            e.printStackTrace()
-            _activities.value = listOf()
         }
     }
-}
 }

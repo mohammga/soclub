@@ -191,7 +191,7 @@ class NewActivityViewModel @Inject constructor(
             return
         }
 
-        val combinedLocation = "${uiState.value.address}, ${uiState.value.postalCode}, ${uiState.value.location}"
+        val combinedLocation = "${uiState.value.address}, ${uiState.value.postalCode} ${uiState.value.location}"
         val creatorId = accountService.currentUserId
         val timestampDate = uiState.value.date ?: Timestamp.now()
         val startTime = uiState.value.startTime
