@@ -78,7 +78,7 @@ fun NewActivityScreen(navController: NavController, viewModel: NewActivityViewMo
                     value = uiState.postalCode,
 
 
-                )
+                    )
             }
 
             item { DateField(value = uiState.date?.toDate()?.time ?: 0L, onNewValue = viewModel::onDateChange) }
@@ -91,14 +91,13 @@ fun NewActivityScreen(navController: NavController, viewModel: NewActivityViewMo
 
             item { Spacer(modifier = Modifier.height(5.dp)) }
 
-            if (uiState.errorMessage != null) {
+            if (errorMessage.isNotEmpty()) {
                 item {
                     Text(
-                        text = stringResource(id = uiState.errorMessage!!),
+                        text = errorMessage,
                         modifier = Modifier
                             .align(Alignment.CenterHorizontally)
-                            .padding(top = 10.dp),
-                        color = MaterialTheme.colorScheme.error
+                            .padding(top = 10.dp)
                     )
                 }
             }
@@ -138,7 +137,7 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit) {
 @Composable
 fun CategoryField(value: String, onNewValue: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    val categories = listOf("Festivaler", "Klatring", "Mat", "Reise", "Trening")
+    val categories = listOf("Festivaler","Klatring", "Mat", "Reise", "Trening")
 
     var selectedText by remember { mutableStateOf(value) }
 
@@ -194,14 +193,14 @@ fun LocationField(
 
     Column(modifier = Modifier.fillMaxWidth()) {
         // Bruk TextField for å representere søkefunksjonaliteten
-        TextField(
+        OutlinedTextField(
             value = currentInput,
             onValueChange = {
                 currentInput = it
                 onNewValue(it)
                 expanded = it.isNotEmpty() && suggestions.isNotEmpty()  // Vis forslag bare når det er input og forslag
             },
-            placeholder = { Text("Søk etter sted...") },
+            placeholder = { Text("Sted") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
@@ -245,7 +244,7 @@ fun AddressField(
 
     Column(modifier = Modifier.fillMaxWidth()) {
         // Bruk TextField for søkefeltet
-        TextField(
+        OutlinedTextField(
             value = currentInput,
             onValueChange = {
                 if (isEnabled) {
@@ -254,7 +253,7 @@ fun AddressField(
                     expanded = it.isNotEmpty() && suggestions.isNotEmpty()  // Vis forslag bare hvis det er input og forslag
                 }
             },
-            placeholder = { Text("Søk etter adresse...") },
+            placeholder = { Text("Adresse") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),

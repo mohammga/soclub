@@ -97,6 +97,7 @@
     <string name="profile_name_label">Navn</string>
     <string name="profile_email_label">E-postadresse</string>
     <string name="change_profile_picture">Bytt Profilbilde</string>
+    <string name="change_ad_picture">Bytt Annonsebilde</string>
     <string name="upload_new_picture">Last opp et nytt bilde</string>
     <string name="save_changes_button">Lagre endringer</string>
     <string name="profile_info_updated">Personlig info er endret</string>
@@ -148,14 +149,24 @@
 
     <!-- newaktiviti  -->
     <string name="create_activity">Opprett Aktivitet</string>
-    <string name="placeholder_title">Tittel</string>
+    <string name="placeholder_title">Annonseoverskrift</string>
     <string name="placeholder_description">Beskrivelse</string>
-    <string name="placeholder_location">Sted</string>
+    <string name="placeholder_location">Poststed</string>
     <string name="placeholder_max_participants">Maks Antall Deltakere</string>
     <string name="placeholder_age_limit">Aldersgrense</string>
     <string name="placeholder_category">Kategori</string>
     <string name="cancel">Avbryt</string>
     <string name="error_age_limit_exceeded">Aldersgrensen kan ikke være over 100</string>
+
+    <string name="error_description_required">Beskrivelse er påkrevd</string>
+    <string name="error_location_required">Sted er påkrevd</string>
+    <string name="error_address_required">Adresse er påkrevd</string>
+    <string name="error_postal_code_required">Postnummer er påkrevd</string>
+    <string name="error_max_participants_required">Antall deltakere er påkrevd</string>
+    <string name="error_invalid_age_limit">Ugyldig aldersgrense. Må være fra 16 til 100.</string>
+
+
+
 
 
     <!---->
@@ -168,7 +179,7 @@
 
 
     <!-- Error messages -->
-    <string name="error_title_required">Tittel er påkrevd</string>
+    <string name="error_title_required">Annonseoverskrift er påkrevd</string>
     <string name="error_category_required">Kategori er påkrevd</string>
     <string name="upload_image">Last opp bilde</string>
     <string name="choose_image">Velg bilde</string>
@@ -177,5 +188,10 @@
     <string name="error_image_required">Bilde er påkrevd</string>
 
     <!-- Button text -->
-    <string name="publish_activity">Publiser Aktivitet</string>
+    <string name="publish_activity">Publiser</string>
+    <string name="error_invalid_max_participants">Ugyldig antall deltakere. Må være fra 1 til 100.</string>
+    <string name="remove_image">Fjern bilde</string>
+    <string name="label_age">Alder</string>
+
+
 </resources>

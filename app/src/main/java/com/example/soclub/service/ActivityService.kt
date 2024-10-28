@@ -12,4 +12,6 @@ interface ActivityService {
     suspend fun getAllActivitiesByCreator(creatorId: String): List<editActivity>
     suspend fun updateActivity(category: String, newCategory: String, activityId: String, updatedActivity: createActivity)
     suspend fun deleteActivity(category: String, activityId: String) // Ny funksjon for å slette en aktivitet
+    suspend fun getAllActivities(): List<Activity>
+    suspend fun getActivitiesGroupedByCategory(): Map<String, List<Activity>>
 }

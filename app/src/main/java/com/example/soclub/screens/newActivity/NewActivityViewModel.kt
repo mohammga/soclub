@@ -391,5 +391,3 @@ class NewActivityViewModel @Inject constructor(
 
 }
 
-
-

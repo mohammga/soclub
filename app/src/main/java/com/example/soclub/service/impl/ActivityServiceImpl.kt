@@ -88,4 +88,49 @@ class ActivityServiceImpl @Inject constructor(
             .delete()
             .await()
     }
+    override suspend fun getAllActivities(): List<Activity> {
+        val activityList = mutableListOf<Activity>()
+        val categoriesSnapshot = firestore.collection("category").get().await()
+
+        // Iterer over alle kategoriene
+        for (categoryDoc in categoriesSnapshot.documents) {
+            val categoryName = categoryDoc.id  // Få kategoriens navn
+            val activitiesSnapshot = firestore.collection("category")
+                .document(categoryDoc.id)
+                .collection("activities")
+                .get()
+                .await()
+
+            // Legg til aktivitetene fra denne kategorien til listen, inkludert kategoriinformasjonen
+            val activities = activitiesSnapshot.documents.mapNotNull { document ->
+                val activity = document.toObject(Activity::class.java)
+                activity?.copy(id = document.id, category = categoryName) // Kopier aktiviteten og legg til kategorinavnet
+            }
+            activityList.addAll(activities)
+        }
+
+        return activityList
+    }
+
+
+    // Hent alle kategorier og deres aktiviteter
+    override suspend fun getActivitiesGroupedByCategory(): Map<String, List<Activity>> {
+        val categoriesSnapshot = firestore.collection("category").get().await()
+        val activitiesByCategory = mutableMapOf<String, List<Activity>>()
+
+        // Iterer over hver kategori, og hent aktiviteter
+        for (categoryDoc in categoriesSnapshot.documents) {
+            val categoryName = categoryDoc.id
+            val activitiesSnapshot = firestore.collection("category")
+                .document(categoryName)
+                .collection("activities")
+                .get()
+                .await()
+
+            val activities = activitiesSnapshot.toObjects(Activity::class.java)
+            activitiesByCategory[categoryName] = activities
+        }
+
+        return activitiesByCategory
+    }
 }

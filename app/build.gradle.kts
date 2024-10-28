@@ -67,6 +67,9 @@ dependencies {
     implementation(libs.play.services.location)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.firebase.storage.ktx)
+    implementation(libs.androidx.foundation.android)
+    implementation(libs.androidx.foundation.android)
+    implementation(libs.places)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -99,5 +102,10 @@ dependencies {
 
     // coil
     implementation ("io.coil-kt:coil-compose:2.4.0")
+
+    // google maps
+    implementation ("com.google.android.gms:play-services-maps:18.0.0")
+    implementation ("com.google.maps.android:maps-compose:2.0.0")
+
 
 }

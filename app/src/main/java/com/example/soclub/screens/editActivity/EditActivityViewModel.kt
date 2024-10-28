@@ -6,6 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import android.util.Log
+import androidx.compose.ui.res.stringResource
 import com.example.soclub.R
 import com.example.soclub.models.createActivity
 import com.example.soclub.service.ActivityService
@@ -45,6 +47,7 @@ class EditActivityViewModel @Inject constructor(
 
 
     fun loadActivity(category: String, activityId: String) {
+
         viewModelScope.launch {
             try {
                 val activity = activityService.getActivityById(category, activityId)

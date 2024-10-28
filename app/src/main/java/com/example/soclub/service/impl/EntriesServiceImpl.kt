@@ -5,13 +5,11 @@ import com.example.soclub.service.EntriesService
 import com.google.firebase.firestore.FirebaseFirestore
 import javax.inject.Inject
 import com.google.firebase.firestore.ListenerRegistration
-
-
+import com.google.firebase.Timestamp
 
 class EntriesServiceImpl @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : EntriesService {
-
 
     private var activeListenerRegistration: ListenerRegistration? = null
     private var notActiveListenerRegistration: ListenerRegistration? = null
@@ -20,9 +18,8 @@ class EntriesServiceImpl @Inject constructor(
         userId: String,
         onUpdate: (List<Activity>) -> Unit
     ) {
-
         activeListenerRegistration?.remove()
-       activeListenerRegistration = firestore.collection("registrations")
+        activeListenerRegistration = firestore.collection("registrations")
             .whereEqualTo("userId", userId)
             .whereEqualTo("status", "aktiv")
             .addSnapshotListener { snapshot, error ->
@@ -35,12 +32,10 @@ class EntriesServiceImpl @Inject constructor(
                 for (document in snapshot.documents) {
                     val activityId = document.getString("activityId") ?: continue
 
-                    // Iterer gjennom kategorier for å finne riktig aktivitet
                     firestore.collection("category").get().addOnSuccessListener { categories ->
                         for (categoryDoc in categories.documents) {
                             val category = categoryDoc.id
 
-                            // Hent aktiviteten
                             firestore.collection("category")
                                 .document(category)
                                 .collection("activities")
@@ -48,10 +43,13 @@ class EntriesServiceImpl @Inject constructor(
                                 .get()
                                 .addOnSuccessListener { activitySnapshot ->
                                     if (activitySnapshot.exists()) {
-                                        val activity = activitySnapshot.toObject(Activity::class.java)
+                                        val activity = activitySnapshot.toObject(Activity::class.java)?.copy(
+                                            category = category,
+                                            id = activityId
+                                        )
                                         if (activity != null) {
                                             activityList.add(activity)
-                                            onUpdate(activityList) // Oppdater UI for hver ny aktivitet
+                                            onUpdate(activityList)
                                         }
                                     }
                                 }
@@ -61,17 +59,14 @@ class EntriesServiceImpl @Inject constructor(
             }
     }
 
-
-
     override suspend fun getNotActiveActivitiesForUser(
         userId: String,
         onUpdate: (List<Activity>) -> Unit
     ) {
-
         notActiveListenerRegistration?.remove()
         notActiveListenerRegistration = firestore.collection("registrations")
             .whereEqualTo("userId", userId)
-            .whereEqualTo("status", "notAktiv") // Endret status til "notAktiv"
+            .whereEqualTo("status", "notAktiv")
             .addSnapshotListener { snapshot, error ->
                 if (error != null || snapshot == null) {
                     return@addSnapshotListener
@@ -82,12 +77,10 @@ class EntriesServiceImpl @Inject constructor(
                 for (document in snapshot.documents) {
                     val activityId = document.getString("activityId") ?: continue
 
-                    // Iterer gjennom kategorier for å finne riktig aktivitet
                     firestore.collection("category").get().addOnSuccessListener { categories ->
                         for (categoryDoc in categories.documents) {
                             val category = categoryDoc.id
 
-                            // Hent aktiviteten
                             firestore.collection("category")
                                 .document(category)
                                 .collection("activities")
@@ -95,10 +88,60 @@ class EntriesServiceImpl @Inject constructor(
                                 .get()
                                 .addOnSuccessListener { activitySnapshot ->
                                     if (activitySnapshot.exists()) {
-                                        val activity = activitySnapshot.toObject(Activity::class.java)
+                                        val activity = activitySnapshot.toObject(Activity::class.java)?.copy(
+                                            category = category,
+                                            id = activityId
+                                        )
                                         if (activity != null) {
                                             activityList.add(activity)
-                                            onUpdate(activityList) // Oppdater UI for hver ny aktivitet
+                                            onUpdate(activityList)
+                                        }
+                                    }
+                                }
+                        }
+                    }
+                }
+            }
+    }
+
+    override suspend fun getExpiredActivitiesForUser(
+        userId: String,
+        onUpdate: (List<Activity>) -> Unit
+    ) {
+        val currentTime = Timestamp.now()
+
+        firestore.collection("registrations")
+            .whereEqualTo("userId", userId)
+            .whereEqualTo("status", "aktiv") // Vi tar kun med aktiviteter brukeren har deltatt i
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    return@addSnapshotListener
+                }
+
+                val expiredActivities = mutableListOf<Activity>()
+
+                for (document in snapshot.documents) {
+                    val activityId = document.getString("activityId") ?: continue
+
+                    firestore.collection("category").get().addOnSuccessListener { categories ->
+                        for (categoryDoc in categories.documents) {
+                            val category = categoryDoc.id
+
+                            firestore.collection("category")
+                                .document(category)
+                                .collection("activities")
+                                .document(activityId)
+                                .get()
+                                .addOnSuccessListener { activitySnapshot ->
+                                    if (activitySnapshot.exists()) {
+                                        val activity = activitySnapshot.toObject(Activity::class.java)?.copy(
+                                            category = category,
+                                            id = activityId
+                                        )
+                                        // Sjekk om aktiviteten har utløpt
+                                        if (activity != null && activity.date?.seconds ?: 0 < currentTime.seconds) {
+                                            expiredActivities.add(activity)
+                                            onUpdate(expiredActivities)
                                         }
                                     }
                                 }
@@ -108,12 +151,3 @@ class EntriesServiceImpl @Inject constructor(
             }
     }
 }
-
-
-
-
-
-
-
-
-
