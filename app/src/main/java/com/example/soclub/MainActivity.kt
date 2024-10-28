@@ -27,7 +27,7 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
 import com.example.soclub.components.navigation.AppNavigation
 //import com.example.soclub.models.sendAllCategoriesAndActivitiesToFirestore
-import com.example.soclub.models.deleteAllActivitiesFromCategories
+//import com.example.soclub.models.deleteAllActivitiesFromCategories
 import com.example.soclub.service.ActivityService
 import com.example.soclub.ui.theme.SoclubTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -53,7 +53,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        deleteAllActivitiesFromCategories()
+        //deleteAllActivitiesFromCategories()
         //sendAllCategoriesAndActivitiesToFirestore()
 
         // Initialize the permission launcher
