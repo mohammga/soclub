@@ -42,7 +42,6 @@ import com.example.soclub.R
 fun SigninScreen(navController: NavController, viewModel: SigninViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState
     val context = LocalContext.current
-    var errorMessage by remember { mutableStateOf("") }
 
     LazyColumn(
         modifier = Modifier
@@ -59,21 +58,19 @@ fun SigninScreen(navController: NavController, viewModel: SigninViewModel = hilt
         }
 
         item {
-            EmailField(value = uiState.email, viewModel::onEmailChange)
+            EmailField(
+                value = uiState.email,
+                onNewValue = viewModel::onEmailChange,
+                error = uiState.emailError?.let { stringResource(id = it) }
+            )
         }
 
         item {
-            PasswordField(value = uiState.password, viewModel::onPasswordChange)
-        }
-
-        if (uiState.errorMessage != 0) {
-            item {
-                Text(
-                    text = stringResource(id = uiState.errorMessage),
-                    color = Color.Red
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
+            PasswordField(
+                value = uiState.password,
+                onNewValue = viewModel::onPasswordChange,
+                error = uiState.passwordError?.let { stringResource(id = it) }
+            )
         }
 
         item {
@@ -93,7 +90,7 @@ fun SigninScreen(navController: NavController, viewModel: SigninViewModel = hilt
 }
 
 @Composable
-fun EmailField(value: String, onNewValue: (String) -> Unit) {
+fun EmailField(value: String, onNewValue: (String) -> Unit, error: String?) {
     OutlinedTextField(
         singleLine = true,
         modifier = Modifier
@@ -102,6 +99,12 @@ fun EmailField(value: String, onNewValue: (String) -> Unit) {
         value = value,
         onValueChange = { onNewValue(it) },
         placeholder = { Text(stringResource(id = R.string.email)) },
+        isError = error != null,
+        supportingText = {
+            if (error != null) {
+                Text(text = error, color = MaterialTheme.colorScheme.error)
+            }
+        }
     )
 }
 
@@ -109,7 +112,7 @@ fun EmailField(value: String, onNewValue: (String) -> Unit) {
 fun PasswordField(
     value: String,
     onNewValue: (String) -> Unit,
-    modifier: Modifier = Modifier
+    error: String?
 ) {
     var isVisible by remember { mutableStateOf(true) }
     var isVisibleToggled by remember { mutableStateOf(false) }
@@ -123,10 +126,10 @@ fun PasswordField(
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         value = value,
-        onValueChange ={
+        onValueChange = {
             onNewValue(it)
             if (!isVisibleToggled) isVisible = it == ""
-        }               ,
+        },
         placeholder = { Text(stringResource(id = R.string.password)) },
         trailingIcon = {
             IconButton(onClick = {
@@ -137,10 +140,15 @@ fun PasswordField(
             }
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        visualTransformation = visualTransformation
+        visualTransformation = visualTransformation,
+        isError = error != null,
+        supportingText = {
+            if (error != null) {
+                Text(text = error, color = MaterialTheme.colorScheme.error)
+            }
+        }
     )
 }
-
 @Composable
 private fun SignInButton(navController: NavController, viewModel: SigninViewModel, context: Context) {
     Button(

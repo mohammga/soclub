@@ -14,7 +14,8 @@ import javax.inject.Inject
 
 data class ResetPasswordUiState(
     val email: String = "",
-    @StringRes val errorMessage: Int = 0
+    @StringRes val emailError: Int? = null,
+    @StringRes val statusMessage: Int? = null
 )
 
 @HiltViewModel
@@ -26,31 +27,34 @@ class ResetPasswordViewModel @Inject constructor(private val accountService: Acc
     private val email get() = uiState.value.email
 
     fun onEmailChange(newValue: String) {
-        uiState.value = uiState.value.copy(email = newValue)
+        uiState.value = uiState.value.copy(email = newValue, emailError = null)
     }
 
     fun onForgotPasswordClick() {
+        var emailError: Int? = null
+
         if (email.isBlank()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_email_required)
-            return
+            emailError = R.string.error_email_required
+        } else if (!email.isValidEmail()) {
+            emailError = R.string.error_invalid_email
         }
 
-        if (!email.isValidEmail()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_email)
+        if (emailError != null) {
+            uiState.value = uiState.value.copy(emailError = emailError)
             return
         }
 
         viewModelScope.launch {
             try {
                 accountService.sendPasswordResetEmail(email) { error ->
-                    if (error == null) {
-                        uiState.value = uiState.value.copy(errorMessage = R.string.password_reset_email_sent)
+                    uiState.value = if (error == null) {
+                        uiState.value.copy(statusMessage = R.string.password_reset_email_sent)
                     } else {
-                        uiState.value = uiState.value.copy(errorMessage = R.string.error_could_not_send_reset_email)
+                        uiState.value.copy(statusMessage = R.string.error_could_not_send_reset_email)
                     }
                 }
             } catch (e: Exception) {
-                uiState.value = uiState.value.copy(errorMessage = R.string.error_could_not_send_reset_email)
+                uiState.value = uiState.value.copy(statusMessage = R.string.error_could_not_send_reset_email)
             }
         }
     }

@@ -49,15 +49,19 @@ fun ResetPasswordScreen(navController: NavController, viewModel: ResetPasswordVi
         }
 
         item {
-            EmailField(value = uiState.email, viewModel::onEmailChange)
+            EmailField(
+                value = uiState.email,
+                onNewValue = viewModel::onEmailChange,
+                error = uiState.emailError?.let { stringResource(id = it) }
+            )
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        if (uiState.errorMessage != 0) {
+        uiState.statusMessage?.let { messageId ->
             item {
                 Text(
-                    text = stringResource(id = uiState.errorMessage),
-                    color = Color.Red
+                    text = stringResource(id = messageId),
+                    color = if (messageId == R.string.password_reset_email_sent) Color.Green else Color.Red
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -74,9 +78,8 @@ fun ResetPasswordScreen(navController: NavController, viewModel: ResetPasswordVi
     }
 }
 
-
 @Composable
-fun EmailField(value: String, onNewValue: (String) -> Unit) {
+fun EmailField(value: String, onNewValue: (String) -> Unit, error: String?) {
     OutlinedTextField(
         singleLine = true,
         modifier = Modifier
@@ -85,6 +88,12 @@ fun EmailField(value: String, onNewValue: (String) -> Unit) {
         value = value,
         onValueChange = { onNewValue(it) },
         placeholder = { Text(stringResource(id = R.string.email)) },
+        isError = error != null,
+        supportingText = {
+            if (error != null) {
+                Text(text = error, color = MaterialTheme.colorScheme.error)
+            }
+        }
     )
 }
 

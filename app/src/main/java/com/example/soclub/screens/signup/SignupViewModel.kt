@@ -27,9 +27,11 @@ data class RegistrationNewUserState(
     val name: String = "",
     val password: String = "",
     val age: String = "",
-    @StringRes val errorMessage: Int = 0
+    @StringRes val emailError: Int? = null,
+    @StringRes val nameError: Int? = null,
+    @StringRes val passwordError: Int? = null,
+    @StringRes val ageError: Int? = null
 )
-
 
 @HiltViewModel
 class SignupViewModel @Inject constructor(private val accountService: AccountService) : ViewModel() {
@@ -37,102 +39,95 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
     var uiState = mutableStateOf(RegistrationNewUserState())
         private set
 
-    private val email get() = uiState.value.email
-    private val name get() = uiState.value.name
-    private val password get() = uiState.value.password
-    private val age get() = uiState.value.age
-
     fun onEmailChange(newValue: String) {
-        uiState.value = uiState.value.copy(email = newValue)
+        uiState.value = uiState.value.copy(email = newValue, emailError = null)
     }
 
     fun onNameChange(newValue: String) {
-        uiState.value = uiState.value.copy(name = newValue)
+        uiState.value = uiState.value.copy(name = newValue, nameError = null)
     }
 
     fun onPasswordChange(newValue: String) {
-        uiState.value = uiState.value.copy(password = newValue)
+        uiState.value = uiState.value.copy(password = newValue, passwordError = null)
     }
 
     fun onAgeChange(newValue: String) {
-        uiState.value = uiState.value.copy(age = newValue)
+        uiState.value = uiState.value.copy(age = newValue, ageError = null)
     }
 
     fun onSignUpClick(navController: NavController) {
-        if (name.isBlank()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_name_required)
-            return
+        var hasError = false
+        var nameError: Int? = null
+        var ageError: Int? = null
+        var emailError: Int? = null
+        var passwordError: Int? = null
+
+        if (uiState.value.name.isBlank()) {
+            nameError = R.string.error_name_required
+            hasError = true
+        } else if (!uiState.value.name.isValidName()) {
+            nameError = R.string.error_invalid_name
+            hasError = true
         }
 
-        if (age.isBlank()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_age_required)
-            return
+        if (uiState.value.age.isBlank()) {
+            ageError = R.string.error_age_required
+            hasError = true
+        } else if (!uiState.value.age.isAgeNumeric()) {
+            ageError = R.string.error_invalid_age
+            hasError = true
+        } else if (!uiState.value.age.isAgeValid()) {
+            ageError = R.string.error_age_minimum
+            hasError = true
         }
 
-        if (email.isBlank()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_email_required)
-            return
+        if (uiState.value.email.isBlank()) {
+            emailError = R.string.error_email_required
+            hasError = true
+        } else if (!uiState.value.email.isValidEmail()) {
+            emailError = R.string.error_invalid_email
+            hasError = true
         }
 
-        if (password.isBlank()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_required)
-            return
+        if (uiState.value.password.isBlank()) {
+            passwordError = R.string.error_password_required
+            hasError = true
+        } else if (!uiState.value.password.isPasswordLongEnough()) {
+            passwordError = R.string.error_password_too_short
+            hasError = true
+        } else if (!uiState.value.password.containsUpperCase()) {
+            passwordError = R.string.error_password_missing_uppercase
+            hasError = true
+        } else if (!uiState.value.password.containsLowerCase()) {
+            passwordError = R.string.error_password_missing_lowercase
+            hasError = true
+        } else if (!uiState.value.password.containsDigit()) {
+            passwordError = R.string.error_password_missing_digit
+            hasError = true
+        } else if (!uiState.value.password.containsNoWhitespace()) {
+            passwordError = R.string.error_password_contains_whitespace
+            hasError = true
         }
 
-        if (!name.isValidName()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_name)
-            return
-        }
+        uiState.value = uiState.value.copy(
+            nameError = nameError,
+            ageError = ageError,
+            emailError = emailError,
+            passwordError = passwordError
+        )
 
-        if (!age.isAgeNumeric()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_age)
-            return
-        }
-
-        if (!age.isAgeValid()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_age_minimum)
-            return
-        }
-
-        if (!email.isValidEmail()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_email)
-            return
-        }
-
-        if (!password.isPasswordLongEnough()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_too_short)
-            return
-        }
-
-        if (!password.containsUpperCase()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_missing_uppercase)
-            return
-        }
-
-        if (!password.containsLowerCase()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_missing_lowercase)
-            return
-        }
-
-        if (!password.containsDigit()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_missing_digit)
-            return
-        }
-
-        if (!password.containsNoWhitespace()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_contains_whitespace)
-            return
-        }
+        if (hasError) return
 
         viewModelScope.launch {
             try {
-                val convertedAge = age.toIntOrNull() ?: 0 // Sett til 0 hvis ikke konvertering er mulig
-                accountService.createEmailAccount(email, password, name, convertedAge) { error ->
-                    if (error == null)
+                val convertedAge = uiState.value.age.toIntOrNull() ?: 0
+                accountService.createEmailAccount(uiState.value.email, uiState.value.password, uiState.value.name, convertedAge) { error ->
+                    if (error == null) {
                         navController.navigate(AppScreens.HOME.name)
+                    }
                 }
             } catch (e: Exception) {
-                uiState.value = uiState.value.copy(errorMessage = R.string.error_account_creation)
+                uiState.value = uiState.value.copy(emailError = R.string.error_account_creation)
             }
         }
     }

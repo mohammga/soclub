@@ -42,7 +42,8 @@ fun ChangePasswordScreen(navController: NavController, viewModel: ChangePassword
                     PasswordField(
                         label = stringResource(id = R.string.old_password_label),
                         value = uiState.oldPassword,
-                        onNewValue = viewModel::onOldPasswordChange
+                        onNewValue = viewModel::onOldPasswordChange,
+                        error = uiState.oldPasswordError?.let { stringResource(id = it) }
                     )
                 }
 
@@ -50,7 +51,8 @@ fun ChangePasswordScreen(navController: NavController, viewModel: ChangePassword
                     PasswordField(
                         label = stringResource(id = R.string.new_password_label),
                         value = uiState.newPassword,
-                        onNewValue = viewModel::onNewPasswordChange
+                        onNewValue = viewModel::onNewPasswordChange,
+                        error = uiState.newPasswordError?.let { stringResource(id = it) }
                     )
                 }
 
@@ -58,19 +60,22 @@ fun ChangePasswordScreen(navController: NavController, viewModel: ChangePassword
                     PasswordField(
                         label = stringResource(id = R.string.confirm_new_password_label),
                         value = uiState.confirmPassword,
-                        onNewValue = viewModel::onConfirmPasswordChange
+                        onNewValue = viewModel::onConfirmPasswordChange,
+                        error = uiState.confirmPasswordError?.let { stringResource(id = it) }
                     )
+                }
+
+                uiState.generalError?.let { errorId ->
+                    item {
+                        Text(
+                            text = stringResource(id = errorId),
+                            color = Color.Red
+                        )
+                    }
                 }
 
                 item {
                     Spacer(modifier = Modifier.height(32.dp))
-
-                    if (uiState.errorMessage != 0) {
-                        Text(
-                            text = stringResource(id = uiState.errorMessage),
-                            color = Color.Red
-                        )
-                    }
 
                     ChangePasswordButton(navController, viewModel, snackbarHostState, coroutineScope)
                 }
@@ -84,7 +89,7 @@ fun PasswordField(
     label: String,
     value: String,
     onNewValue: (String) -> Unit,
-    modifier: Modifier = Modifier
+    error: String? = null
 ) {
     var isVisible by remember { mutableStateOf(true) }
     var isVisibleToggled by remember { mutableStateOf(false) }
@@ -112,7 +117,13 @@ fun PasswordField(
             }
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        visualTransformation = visualTransformation
+        visualTransformation = visualTransformation,
+        isError = error != null,
+        supportingText = {
+            if (error != null) {
+                Text(text = error, color = MaterialTheme.colorScheme.error)
+            }
+        }
     )
 }
 
@@ -129,7 +140,7 @@ private fun ChangePasswordButton(
         onClick = {
             viewModel.onChangePasswordClick()
             coroutineScope.launch {
-                if (viewModel.uiState.value.errorMessage == 0) {
+                if (viewModel.uiState.value.generalError == null) {
                     snackbarHostState.showSnackbar(
                         message = successMessageText,
                         duration = SnackbarDuration.Long
@@ -143,12 +154,4 @@ private fun ChangePasswordButton(
     ) {
         Text(text = stringResource(id = R.string.update_password_button))
     }
-}
-
-
-
-@Preview(showBackground = true)
-@Composable
-fun ChangePasswordScreenPreview() {
-    ChangePasswordScreen(rememberNavController())
 }

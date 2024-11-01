@@ -71,7 +71,8 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                     ProfileTextField(
                         label = stringResource(id = R.string.profile_name_label),
                         value = uiState.firstname,
-                        onValueChange = { viewModel.onNameChange(it) }
+                        onValueChange = { viewModel.onNameChange(it) },
+                        error = uiState.firstnameError?.let { stringResource(id = it) }
                     )
                 }
 
@@ -79,24 +80,18 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                     ProfileTextField(
                         label = stringResource(id = R.string.profile_lastname_label),
                         value = uiState.lastname,
-                        onValueChange = { viewModel.onLastnameChange(it) }
+                        onValueChange = { viewModel.onLastnameChange(it) },
+                        error = uiState.lastnameError?.let { stringResource(id = it) }
                     )
                 }
 
                 item {
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    if (uiState.errorMessage != 0) {
-                        Text(
-                            text = stringResource(id = uiState.errorMessage),
-                            color = Color.Red
-                        )
-                    }
-
                     SaveButton(
                         onClick = {
                             viewModel.onSaveProfileClick(navController)
-                            if (uiState.errorMessage == 0) {
+                            if (uiState.firstnameError == null && uiState.lastnameError == null) {
                                 coroutineScope.launch {
                                     snackbarHostState.showSnackbar(
                                         message = "Personlig info er endret"
@@ -111,6 +106,45 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
         }
     )
 }
+
+@Composable
+fun ProfileTextField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    error: String? = null
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        placeholder = { Text(label) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        singleLine = true,
+        isError = error != null,
+        supportingText = {
+            if (error != null) {
+                Text(text = error, color = MaterialTheme.colorScheme.error)
+            }
+        }
+    )
+}
+
+@Composable
+fun SaveButton(onClick: () -> Unit, enabled: Boolean) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+        enabled = enabled
+    ) {
+        Text(text = stringResource(id = R.string.save_changes_button), color = Color.White)
+    }
+}
+
 
 @Composable
 fun ImageUploadSection(
@@ -251,20 +285,6 @@ fun ProfileTextField(
             .padding(vertical = 8.dp),
         singleLine = true
     )
-}
-
-@Composable
-fun SaveButton(onClick: () -> Unit, enabled: Boolean) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
-        enabled = enabled
-    ) {
-        Text(text = stringResource(id = R.string.save_changes_button), color = Color.White)
-    }
 }
 
 @Preview(showBackground = true)

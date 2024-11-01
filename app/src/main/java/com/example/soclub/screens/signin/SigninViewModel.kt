@@ -23,7 +23,8 @@ import javax.inject.Inject
 data class SigninUiState(
     val email: String = "",
     val password: String = "",
-    @StringRes val errorMessage: Int = 0
+    @StringRes val emailError: Int? = null,
+    @StringRes val passwordError: Int? = null
 )
 
 @HiltViewModel
@@ -36,55 +37,52 @@ class SigninViewModel @Inject constructor(private val accountService: AccountSer
     private val password get() = uiState.value.password
 
     fun onEmailChange(newValue: String) {
-        uiState.value = uiState.value.copy(email = newValue)
+        uiState.value = uiState.value.copy(email = newValue, emailError = null)
     }
 
     fun onPasswordChange(newValue: String) {
-        uiState.value = uiState.value.copy(password = newValue)
+        uiState.value = uiState.value.copy(password = newValue, passwordError = null)
     }
 
     fun onLoginClick(context: Context, navController: NavController) {
+        var hasError = false
+        var emailError: Int? = null
+        var passwordError: Int? = null
 
         if (email.isBlank()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_email_required)
-            return
+            emailError = R.string.error_email_required
+            hasError = true
+        } else if (!email.isValidEmail()) {
+            emailError = R.string.error_invalid_email
+            hasError = true
         }
 
         if (password.isBlank()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_required)
-            return
+            passwordError = R.string.error_password_required
+            hasError = true
+        } else if (!password.isPasswordLongEnough()) {
+            passwordError = R.string.error_password_too_short
+            hasError = true
+        } else if (!password.containsUpperCase()) {
+            passwordError = R.string.error_password_missing_uppercase
+            hasError = true
+        } else if (!password.containsLowerCase()) {
+            passwordError = R.string.error_password_missing_lowercase
+            hasError = true
+        } else if (!password.containsDigit()) {
+            passwordError = R.string.error_password_missing_digit
+            hasError = true
+        } else if (!password.containsNoWhitespace()) {
+            passwordError = R.string.error_password_contains_whitespace
+            hasError = true
         }
 
-        if (!email.isValidEmail()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_email)
-            return
-        }
+        uiState.value = uiState.value.copy(
+            emailError = emailError,
+            passwordError = passwordError
+        )
 
-        if (!password.isPasswordLongEnough()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_too_short)
-            return
-        }
-
-        if (!password.containsUpperCase()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_missing_uppercase)
-            return
-        }
-
-        if (!password.containsLowerCase()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_missing_lowercase)
-            return
-        }
-
-        if (!password.containsDigit()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_missing_digit)
-            return
-        }
-
-        if (!password.containsNoWhitespace()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_contains_whitespace)
-            return
-        }
-
+        if (hasError) return
 
         viewModelScope.launch {
             try {
@@ -94,11 +92,11 @@ class SigninViewModel @Inject constructor(private val accountService: AccountSer
                             popUpTo(AppScreens.SIGNIN.name) { inclusive = true }
                         }
                     } else {
-                        uiState.value = uiState.value.copy(errorMessage = R.string.error_could_not_log_in)
+                        uiState.value = uiState.value.copy(emailError = R.string.error_could_not_log_in)
                     }
                 }
             } catch (e: Exception) {
-                uiState.value = uiState.value.copy(errorMessage = R.string.error_could_not_log_in)
+                uiState.value = uiState.value.copy(emailError = R.string.error_could_not_log_in)
             }
         }
     }
