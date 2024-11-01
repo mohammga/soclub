@@ -7,12 +7,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,7 +25,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -98,9 +94,11 @@ fun EmailField(value: String, onNewValue: (String) -> Unit, error: String?) {
             .padding(vertical = 8.dp),
         value = value,
         onValueChange = { onNewValue(it) },
-        placeholder = { Text(stringResource(id = R.string.email)) },
+        label = { Text(stringResource(id = R.string.email_label)) },
+        placeholder = { Text(stringResource(id = R.string.email_label)) },
         isError = error != null,
         supportingText = {
+            Text(text = stringResource(id = R.string.email_supporting_text))
             if (error != null) {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
@@ -130,7 +128,8 @@ fun PasswordField(
             onNewValue(it)
             if (!isVisibleToggled) isVisible = it == ""
         },
-        placeholder = { Text(stringResource(id = R.string.password)) },
+        label = { Text(stringResource(id = R.string.password_label)) },
+        placeholder = { Text(stringResource(id = R.string.password_label)) },
         trailingIcon = {
             IconButton(onClick = {
                 isVisible = !isVisible
@@ -143,12 +142,14 @@ fun PasswordField(
         visualTransformation = visualTransformation,
         isError = error != null,
         supportingText = {
+            Text(text = stringResource(id = R.string.password_supporting_text))
             if (error != null) {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         }
     )
 }
+
 @Composable
 private fun SignInButton(navController: NavController, viewModel: SigninViewModel, context: Context) {
     Button(
@@ -189,10 +190,4 @@ fun ResetPasswordText(navController: NavController) {
             }
         )
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SigninScreenPreview() {
-    SigninScreen(rememberNavController())
 }

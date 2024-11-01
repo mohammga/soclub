@@ -7,8 +7,6 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,14 +16,12 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -36,7 +32,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Popup
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -129,19 +124,18 @@ fun NewActivityScreen(navController: NavController, viewModel: NewActivityViewMo
     }
 }
 
-
 @Composable
 fun TitleField(value: String, onNewValue: (String) -> Unit, error: String?) {
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
+        label = { Text(stringResource(id = R.string.title_label)) },
         placeholder = { Text(stringResource(id = R.string.placeholder_title)) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         singleLine = true,
         isError = error != null,
         supportingText = {
+            Text(stringResource(id = R.string.title_supporting_text))
             if (error != null) {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
@@ -154,13 +148,13 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
+        label = { Text(stringResource(id = R.string.description_label)) },
         placeholder = { Text(stringResource(id = R.string.placeholder_description)) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         maxLines = 5,
         isError = error != null,
         supportingText = {
+            Text(stringResource(id = R.string.description_supporting_text))
             if (error != null) {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
@@ -173,7 +167,6 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?
 fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?) {
     var expanded by remember { mutableStateOf(false) }
     val categories = listOf("Festivaler", "Klatring", "Mat", "Reise", "Trening")
-
     var selectedText by remember { mutableStateOf(value) }
 
     ExposedDropdownMenuBox(
@@ -183,31 +176,22 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?) {
         OutlinedTextField(
             value = selectedText,
             onValueChange = { onNewValue(it) },
+            label = { Text(stringResource(id = R.string.category_label)) },
             placeholder = { Text(stringResource(id = R.string.placeholder_category)) },
-            modifier = Modifier
-                .menuAnchor()
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
+            modifier = Modifier.menuAnchor().fillMaxWidth().padding(vertical = 8.dp),
             readOnly = true,
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(
-                    expanded = expanded
-                )
-            },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             singleLine = true,
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
             isError = error != null,
             supportingText = {
+                Text(stringResource(id = R.string.category_supporting_text))
                 if (error != null) {
                     Text(text = error, color = MaterialTheme.colorScheme.error)
                 }
             }
         )
-
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
+        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             categories.forEach { category ->
                 DropdownMenuItem(
                     text = { Text(text = category) },
@@ -223,47 +207,32 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?) {
 }
 
 @Composable
-fun LocationField(
-    value: String,
-    onNewValue: (String) -> Unit,
-    suggestions: List<String>,
-    onSuggestionClick: (String) -> Unit,
-    error: String?
-) {
+fun LocationField(value: String, onNewValue: (String) -> Unit, suggestions: List<String>, onSuggestionClick: (String) -> Unit, error: String?) {
     var expanded by remember { mutableStateOf(false) }
-    var currentInput by remember { mutableStateOf(value) }
-
     Column(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
-            value = currentInput,
+            value = value,
             onValueChange = {
-                currentInput = it
                 onNewValue(it)
                 expanded = it.isNotEmpty() && suggestions.isNotEmpty()
             },
+            label = { Text(stringResource(id = R.string.location_label)) },
             placeholder = { Text("Sted") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             isError = error != null,
             supportingText = {
+                Text(stringResource(id = R.string.location_supporting_text))
                 if (error != null) {
                     Text(text = error, color = MaterialTheme.colorScheme.error)
                 }
             }
         )
-
         if (expanded) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 200.dp)
-            ) {
+            LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp)) {
                 items(suggestions) { suggestion ->
                     DropdownMenuItem(
                         text = { Text(text = suggestion) },
                         onClick = {
-                            currentInput = suggestion
                             onSuggestionClick(suggestion)
                             expanded = false
                         }
@@ -275,52 +244,36 @@ fun LocationField(
 }
 
 @Composable
-fun AddressField(
-    value: String,
-    onNewValue: (String) -> Unit,
-    suggestions: List<String>,
-    onSuggestionClick: (String) -> Unit,
-    isEnabled: Boolean,
-    error: String?
-) {
+fun AddressField(value: String, onNewValue: (String) -> Unit, suggestions: List<String>, onSuggestionClick: (String) -> Unit, isEnabled: Boolean, error: String?) {
     var expanded by remember { mutableStateOf(false) }
-    var currentInput by remember { mutableStateOf(value) }
-
     Column(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
-            value = currentInput,
+            value = value,
             onValueChange = {
                 if (isEnabled) {
-                    currentInput = it
                     onNewValue(it)
                     expanded = it.isNotEmpty() && suggestions.isNotEmpty()
                 }
             },
+            label = { Text(stringResource(id = R.string.address_label)) },
             placeholder = { Text("Adresse") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             singleLine = true,
             enabled = isEnabled,
             isError = error != null,
             supportingText = {
+                Text(stringResource(id = R.string.address_supporting_text))
                 if (error != null) {
                     Text(text = error, color = MaterialTheme.colorScheme.error)
                 }
             }
         )
-
         if (expanded) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 200.dp)
-            ) {
+            LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp)) {
                 items(suggestions) { suggestion ->
                     DropdownMenuItem(
                         text = { Text(text = suggestion) },
                         onClick = {
-                            currentInput = suggestion
                             onSuggestionClick(suggestion)
                             expanded = false
                         }
@@ -333,116 +286,70 @@ fun AddressField(
 
 @Composable
 fun PostalCodeField(value: String, error: String?) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = {},
-            placeholder = { Text("Postnummer") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            singleLine = true,
-            readOnly = true,
-            isError = error != null,
-            supportingText = {
-                if (error != null) {
-                    Text(text = error, color = MaterialTheme.colorScheme.error)
-                }
+    OutlinedTextField(
+        value = value,
+        onValueChange = {},
+        label = { Text(stringResource(id = R.string.postal_code_label)) },
+        placeholder = { Text("Postnummer") },
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        singleLine = true,
+        readOnly = true,
+        isError = error != null,
+        supportingText = {
+            Text(stringResource(id = R.string.postal_code_supporting_text))
+            if (error != null) {
+                Text(text = error, color = MaterialTheme.colorScheme.error)
             }
-        )
-    }
+        }
+    )
 }
 
 @Composable
 fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
     val context = LocalContext.current
-    val calendar = Calendar.getInstance()
+    val datePickerDialog = DatePickerDialog(context, { _, year, month, dayOfMonth ->
+        val newDate = Calendar.getInstance().apply { set(year, month, dayOfMonth) }
+        onNewValue(Timestamp(Date(newDate.timeInMillis)))
+    }, Calendar.getInstance().get(Calendar.YEAR), Calendar.getInstance().get(Calendar.MONTH), Calendar.getInstance().get(Calendar.DAY_OF_MONTH))
 
-    val datePickerDialog = DatePickerDialog(
-        context,
-        { _, year, month, dayOfMonth ->
-            val newDate = Calendar.getInstance()
-            newDate.set(year, month, dayOfMonth)
-            val timestamp = newDate.timeInMillis
-            onNewValue(Timestamp(Date(timestamp)))
-        },
-        calendar.get(Calendar.YEAR),
-        calendar.get(Calendar.MONTH),
-        calendar.get(Calendar.DAY_OF_MONTH)
-    )
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { datePickerDialog.show() } // Sikrer at klikk på hele boksen åpner dialogen
-                .padding(vertical = 8.dp)
-        ) {
-            OutlinedTextField(
-                value = if (value != 0L) {
-                    SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
-                } else {
-                    "Velg dato"
-                },
-                onValueChange = { /* Ikke i bruk, dialogen setter verdien direkte */ },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { datePickerDialog.show() }, // Ekstra sikkerhet for å sikre klikkrespons
-                isError = error != null,
-                readOnly = true,
-                supportingText = {
-                    if (error != null) {
-                        Text(text = error, color = MaterialTheme.colorScheme.error)
-                    }
-                }
-            )
-            Spacer(modifier = Modifier.matchParentSize().clickable { datePickerDialog.show() }) // Utvider klikkområdet
+    OutlinedTextField(
+        value = if (value != 0L) SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value)) else "Velg dato",
+        onValueChange = {},
+        label = { Text(stringResource(id = R.string.date_label)) },
+        modifier = Modifier.fillMaxWidth().clickable { datePickerDialog.show() }.padding(vertical = 8.dp),
+        readOnly = true,
+        isError = error != null,
+        supportingText = {
+            Text(stringResource(id = R.string.date_supporting_text))
+            if (error != null) {
+                Text(text = error, color = MaterialTheme.colorScheme.error)
+            }
         }
-    }
+    )
 }
 
-
-@SuppressLint("DefaultLocale")
 @Composable
 fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) {
     val context = LocalContext.current
-    val calendar = Calendar.getInstance()
+    val timePickerDialog = TimePickerDialog(context, { _, hour, minute ->
+        onNewValue(String.format("%02d:%02d", hour, minute))
+    }, Calendar.getInstance().get(Calendar.HOUR_OF_DAY), Calendar.getInstance().get(Calendar.MINUTE), true)
 
-    val timePickerDialog = TimePickerDialog(
-        context,
-        { _, hourOfDay, minute ->
-            val newTime = String.format("%02d:%02d", hourOfDay, minute)
-            onNewValue(newTime)
-        },
-        calendar.get(Calendar.HOUR_OF_DAY),
-        calendar.get(Calendar.MINUTE),
-        true
-    )
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { timePickerDialog.show() }
-                .padding(vertical = 8.dp)
-        ) {
-            OutlinedTextField(
-                value = value.ifEmpty { "Velg starttidspunkt" },
-                onValueChange = { },
-                modifier = Modifier.fillMaxWidth(),
-                isError = error != null,
-                readOnly = true,
-                supportingText = {
-                    if (error != null) {
-                        Text(text = error, color = MaterialTheme.colorScheme.error)
-                    }
-                }
-            )
-            // Spacer for å utvide klikkområdet
-            Spacer(modifier = Modifier.matchParentSize().clickable { timePickerDialog.show() })
+    OutlinedTextField(
+        value = if (value.isNotEmpty()) value else "Velg starttidspunkt",
+        onValueChange = {},
+        label = { Text(stringResource(id = R.string.start_time_label)) },
+        modifier = Modifier.fillMaxWidth().clickable { timePickerDialog.show() }.padding(vertical = 8.dp),
+        readOnly = true,
+        isError = error != null,
+        supportingText = {
+            Text(stringResource(id = R.string.start_time_supporting_text))
+            if (error != null) {
+                Text(text = error, color = MaterialTheme.colorScheme.error)
+            }
         }
-    }
+    )
 }
 
 @Composable
@@ -450,14 +357,14 @@ fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: Str
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
+        label = { Text(stringResource(id = R.string.max_participants_label)) },
         placeholder = { Text(stringResource(id = R.string.placeholder_max_participants)) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         singleLine = true,
         isError = error != null,
         supportingText = {
+            Text(stringResource(id = R.string.max_participants_supporting_text))
             if (error != null) {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
@@ -470,20 +377,21 @@ fun AgeLimitField(value: String, onNewValue: (String) -> Unit, error: String?) {
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
+        label = { Text(stringResource(id = R.string.age_limit_label)) },
         placeholder = { Text(stringResource(id = R.string.placeholder_age_limit)) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         singleLine = true,
         isError = error != null,
         supportingText = {
+            Text(stringResource(id = R.string.age_limit_supporting_text))
             if (error != null) {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         }
     )
 }
+
 
 @Composable
 fun ImageUploadSection(onImageSelected: (String) -> Unit) {

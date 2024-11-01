@@ -10,19 +10,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.soclub.R
 
 @Composable
@@ -92,6 +88,7 @@ fun NameField(value: String, onNewValue: (String) -> Unit, error: String?) {
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
+        label = { Text(stringResource(id = R.string.name_label)) },
         placeholder = { Text(stringResource(id = R.string.placeholder_name)) },
         modifier = Modifier
             .fillMaxWidth()
@@ -99,6 +96,7 @@ fun NameField(value: String, onNewValue: (String) -> Unit, error: String?) {
         singleLine = true,
         isError = error != null,
         supportingText = {
+            Text(text = stringResource(id = R.string.name_supporting_text))
             if (error != null) {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
@@ -111,6 +109,7 @@ fun AgeField(value: String, onNewValue: (String) -> Unit, error: String?) {
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
+        label = { Text(stringResource(id = R.string.age_label)) },
         placeholder = { Text(stringResource(id = R.string.placeholder_age)) },
         modifier = Modifier
             .fillMaxWidth()
@@ -119,6 +118,7 @@ fun AgeField(value: String, onNewValue: (String) -> Unit, error: String?) {
         singleLine = true,
         isError = error != null,
         supportingText = {
+            Text(text = stringResource(id = R.string.age_supporting_text))
             if (error != null) {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
@@ -135,9 +135,11 @@ fun EmailField(value: String, onNewValue: (String) -> Unit, error: String?) {
             .padding(vertical = 8.dp),
         value = value,
         onValueChange = { onNewValue(it) },
+        label = { Text(stringResource(id = R.string.email_label)) },
         placeholder = { Text(stringResource(id = R.string.placeholder_email)) },
         isError = error != null,
         supportingText = {
+            Text(text = stringResource(id = R.string.email_supporting_text))
             if (error != null) {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
@@ -163,6 +165,7 @@ fun PasswordField(value: String, onNewValue: (String) -> Unit, error: String?) {
             onNewValue(it)
             if (!isVisibleToggled) isVisible = it == ""
         },
+        label = { Text(stringResource(id = R.string.password_label)) },
         placeholder = { Text(stringResource(id = R.string.placeholder_password)) },
         trailingIcon = {
             IconButton(onClick = {
@@ -176,6 +179,7 @@ fun PasswordField(value: String, onNewValue: (String) -> Unit, error: String?) {
         visualTransformation = visualTransformation,
         isError = error != null,
         supportingText = {
+            Text(text = stringResource(id = R.string.password_supporting_text))
             if (error != null) {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
@@ -209,11 +213,4 @@ fun SignInButton(navController: NavController) {
     ) {
         Text(text = stringResource(id = R.string.sign_in))
     }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun SignupScreenPreview() {
-    SignupScreen(rememberNavController())
 }
