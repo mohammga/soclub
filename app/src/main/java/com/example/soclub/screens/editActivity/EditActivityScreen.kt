@@ -1,5 +1,9 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.example.soclub.screens.editActivity
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -8,8 +12,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,9 +24,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.soclub.R
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
+import com.google.firebase.Timestamp
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
 fun EditActivityScreen(
@@ -34,9 +36,8 @@ fun EditActivityScreen(
     activityId: String
 ) {
     val uiState by viewModel.uiState
-    var errorMessage by remember { mutableStateOf("") }
 
-    // Load the activity when the screen is displayed
+
     LaunchedEffect(Unit) {
         viewModel.loadActivity(category, activityId)
     }
@@ -48,40 +49,40 @@ fun EditActivityScreen(
                 .padding(16.dp),
         ) {
             item { TitleField(value = uiState.title, onNewValue = viewModel::onTitleChange) }
-
             item { DescriptionField(value = uiState.description, onNewValue = viewModel::onDescriptionChange) }
-
             item { ImageUploadSection(onImageSelected = viewModel::onImageSelected, imageUrl = uiState.imageUrl) }
-
             item { CategoryField(value = uiState.category, onNewValue = viewModel::onCategoryChange) }
-
             item { LocationField(value = uiState.location, onNewValue = viewModel::onLocationChange) }
-
             item { AddressField(value = uiState.address, onNewValue = viewModel::onAddressChange) }
-
             item { PostalCodeField(value = uiState.postalCode, onNewValue = viewModel::onPostalCodeChange) }
-
-            item { DateField(value = uiState.date, onNewValue = viewModel::onDateChange) }
-
+            item { DateField(value = uiState.date?.toDate()?.time ?: 0L, onNewValue = viewModel::onDateChange) }
+            item { StartTimeField(value = uiState.startTime, onNewValue = viewModel::onStartTimeChange) }
             item { MaxParticipantsField(value = uiState.maxParticipants, onNewValue = viewModel::onMaxParticipantsChange) }
-
             item { AgeLimitField(value = uiState.ageLimit, onNewValue = viewModel::onAgeLimitChange) }
-
-            item { Spacer(modifier = Modifier.height(5.dp)) }
-
-            if (errorMessage.isNotEmpty()) {
-                item {
-                    Text(
-                        text = errorMessage,
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(top = 10.dp)
-                    )
-                }
-            }
-
-            item { SaveChangesButton(navController, viewModel, category, activityId) }
+            item { SaveChangesButton(navController, viewModel, category, activityId)}
+            item {DeleteButton(navController, viewModel, category, activityId)}
         }
+    }
+}
+
+@Composable
+fun SaveChangesButton(navController: NavController, viewModel: EditActivityViewModel, category: String, activityId: String) {
+    Button(
+        onClick = { viewModel.onSaveClick(navController, category, activityId) },
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(text = "Lagre endringer")
+    }
+}
+
+@Composable
+fun DeleteButton(navController: NavController, viewModel: EditActivityViewModel, category: String, activityId: String) {
+    Button(
+        onClick = { viewModel.onDeleteClick(navController, category, activityId) },
+        modifier = Modifier.fillMaxWidth(1f),
+        colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.error)
+    ) {
+        Text(text = "Slett")
     }
 }
 
@@ -111,14 +112,12 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryField(value: String, onNewValue: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     val categories = listOf("Festivaler", "Forslag", "Klatring", "Mat", "Reise", "Trening")
 
-    // Initialize the selected category text based on the current category value
-    var selectedText by remember(value) { mutableStateOf(value) }
+    var selectedText by remember { mutableStateOf(value) }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -148,17 +147,15 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit) {
                 DropdownMenuItem(
                     text = { Text(text = category) },
                     onClick = {
-                        selectedText = category  // Update the selected text when a new category is selected
-                        onNewValue(category)  // Pass the new value to the parent function
-                        expanded = false  // Close the dropdown
+                        selectedText = category
+                        onNewValue(category)
+                        expanded = false
                     }
                 )
             }
         }
     }
 }
-
-
 
 @Composable
 fun LocationField(value: String, onNewValue: (String) -> Unit) {
@@ -200,71 +197,73 @@ fun PostalCodeField(value: String, onNewValue: (String) -> Unit) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DateField(value: String, onNewValue: (String) -> Unit) {
-    var showDialog by remember { mutableStateOf(false) }
+fun DateField(value: Long, onNewValue: (Timestamp) -> Unit) {
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
 
-    // Use a DateTimeFormatter that matches the format of the stored date string
-    val dateFormatter = DateTimeFormatter.ofPattern("EEEE.dd.MM.yyyy", Locale("no"))
-
-    // Handle invalid input
-    val selectedDate = remember(value) {
-        try {
-            if (value.isNotBlank()) {
-                LocalDate.parse(value, dateFormatter)
-            } else {
-                LocalDate.now()
-            }
-        } catch (e: Exception) {
-            LocalDate.now() // Fallback in case of parsing failure
-        }
-    }
-
-    val formattedDate = selectedDate.format(dateFormatter)
-
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = selectedDate.toEpochDay() * 24 * 60 * 60 * 1000
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            val newDate = Calendar.getInstance()
+            newDate.set(year, month, dayOfMonth)
+            val timestamp = newDate.timeInMillis
+            onNewValue(Timestamp(Date(timestamp)))
+        },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
     )
 
-    if (showDialog) {
-        DatePickerDialog(
-            onDismissRequest = { showDialog = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    val selectedMillis = datePickerState.selectedDateMillis
-                    val newDate = selectedMillis?.let { millis ->
-                        LocalDate.ofEpochDay(millis / (24 * 60 * 60 * 1000))
-                    }
-                    newDate?.let {
-                        onNewValue(it.format(DateTimeFormatter.ISO_DATE)) // Return in ISO_DATE format
-                    }
-                    showDialog = false
-                }) {
-                    Text("OK")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        ) {
-            DatePicker(state = datePickerState)
-        }
-    }
-
-    // Display the current selected date
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .clickable { showDialog = true }
+            .clickable { datePickerDialog.show() }
             .border(1.dp, MaterialTheme.colorScheme.primary)
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
+        val formattedDate = if (value != 0L) {
+            SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
+        } else {
+            "Velg dato"
+        }
         Text(text = formattedDate)
+    }
+}
+
+@Composable
+fun StartTimeField(value: String, onNewValue: (String) -> Unit) {
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+
+    val timePickerDialog = TimePickerDialog(
+        context,
+        { _, hourOfDay, minute ->
+            val newTime = String.format("%02d:%02d", hourOfDay, minute)
+            onNewValue(newTime)
+        },
+        calendar.get(Calendar.HOUR_OF_DAY),
+        calendar.get(Calendar.MINUTE),
+        true
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .clickable { timePickerDialog.show() }
+            .border(1.dp, MaterialTheme.colorScheme.primary)
+            .padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        val formattedTime = if (value.isNotEmpty()) {
+            value
+        } else {
+            "Velg starttidspunkt"
+        }
+        Text(text = formattedTime)
     }
 }
 
@@ -298,14 +297,12 @@ fun AgeLimitField(value: String, onNewValue: (String) -> Unit) {
 
 @Composable
 fun ImageUploadSection(onImageSelected: (String) -> Unit, imageUrl: String) {
-    val context = LocalContext.current
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
-            // Update the selected image URL
             onImageSelected(uri.toString())
             selectedImageUri = uri
         }
@@ -315,11 +312,10 @@ fun ImageUploadSection(onImageSelected: (String) -> Unit, imageUrl: String) {
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // If there's a selected image URI or an existing image URL, show the image
         if (selectedImageUri != null || imageUrl.isNotBlank()) {
             Spacer(modifier = Modifier.height(16.dp))
             AsyncImage(
-                model = selectedImageUri ?: imageUrl,  // Show the new image if selected, otherwise show the current image
+                model = selectedImageUri ?: imageUrl,  // Viser enten valgt eller eksisterende bilde
                 contentDescription = stringResource(id = R.string.selected_image),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -332,7 +328,6 @@ fun ImageUploadSection(onImageSelected: (String) -> Unit, imageUrl: String) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Button to launch gallery and select a new image
         Button(
             onClick = { galleryLauncher.launch("image/*") },
             modifier = Modifier.fillMaxWidth()
@@ -342,13 +337,3 @@ fun ImageUploadSection(onImageSelected: (String) -> Unit, imageUrl: String) {
     }
 }
 
-
-@Composable
-fun SaveChangesButton(navController: NavController, viewModel: EditActivityViewModel, category: String, activityId: String) {
-    Button(
-        onClick = { viewModel.onSaveClick(navController, category, activityId) },
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(text = "Lagre endringer")
-    }
-}

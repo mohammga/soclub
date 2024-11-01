@@ -3,6 +3,7 @@ package com.example.soclub.screens.profile
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
@@ -34,32 +35,31 @@ import com.example.soclub.models.UserInfo
 fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel = hiltViewModel()) {
     val userInfo = viewModel.userInfo
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Pass the user's image URL or show placeholder if empty
-        ProfileImage(imageUrl = userInfo?.imageUrl)
+        item {
+            ProfileImage(imageUrl = userInfo?.imageUrl)
+            Spacer(modifier = Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
+            ProfileName(name = userInfo?.name ?: "Laster...")
+            Spacer(modifier = Modifier.height(8.dp))
 
-        // Display user's name or a loading state
-        ProfileName(name = userInfo?.name ?: "Laster...")
+            EditProfileButton(navController)
+            Spacer(modifier = Modifier.height(24.dp))
+        }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        item {
+            AccountInfoSection(navController, userInfo)
+            Spacer(modifier = Modifier.height(24.dp))
+        }
 
-        EditProfileButton(navController)
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Display account information
-        AccountInfoSection(navController, userInfo)
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        LogoutButton(navController, viewModel)
+        item {
+            LogoutButton(navController, viewModel)
+        }
     }
 }
 

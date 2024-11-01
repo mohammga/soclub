@@ -2,6 +2,7 @@ package com.example.soclub.screens.changePassword
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -31,27 +32,53 @@ fun ChangePasswordScreen(navController: NavController, viewModel: ChangePassword
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         content = {
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                PasswordField(label = stringResource(id = R.string.old_password_label), value = uiState.oldPassword, viewModel::onOldPasswordChange)
-
-                PasswordField(label = stringResource(id = R.string.new_password_label), value = uiState.newPassword, viewModel::onNewPasswordChange)
-
-                PasswordField(label = stringResource(id = R.string.confirm_new_password_label), value = uiState.confirmPassword, viewModel::onConfirmPasswordChange)
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                if (uiState.errorMessage != 0) {
-                    Text(
-                        text = stringResource(id = uiState.errorMessage),
-                        color = Color.Red
+                item {
+                    PasswordField(
+                        label = stringResource(id = R.string.old_password_label),
+                        value = uiState.oldPassword,
+                        onNewValue = viewModel::onOldPasswordChange,
+                        error = uiState.oldPasswordError?.let { stringResource(id = it) }
                     )
                 }
 
-                ChangePasswordButton(navController, viewModel, snackbarHostState, coroutineScope)
+                item {
+                    PasswordField(
+                        label = stringResource(id = R.string.new_password_label),
+                        value = uiState.newPassword,
+                        onNewValue = viewModel::onNewPasswordChange,
+                        error = uiState.newPasswordError?.let { stringResource(id = it) }
+                    )
+                }
+
+                item {
+                    PasswordField(
+                        label = stringResource(id = R.string.confirm_new_password_label),
+                        value = uiState.confirmPassword,
+                        onNewValue = viewModel::onConfirmPasswordChange,
+                        error = uiState.confirmPasswordError?.let { stringResource(id = it) }
+                    )
+                }
+
+                uiState.generalError?.let { errorId ->
+                    item {
+                        Text(
+                            text = stringResource(id = errorId),
+                            color = Color.Red
+                        )
+                    }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    ChangePasswordButton(navController, viewModel, snackbarHostState, coroutineScope)
+                }
             }
         }
     )
@@ -62,7 +89,7 @@ fun PasswordField(
     label: String,
     value: String,
     onNewValue: (String) -> Unit,
-    modifier: Modifier = Modifier
+    error: String? = null
 ) {
     var isVisible by remember { mutableStateOf(true) }
     var isVisibleToggled by remember { mutableStateOf(false) }
@@ -90,7 +117,13 @@ fun PasswordField(
             }
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        visualTransformation = visualTransformation
+        visualTransformation = visualTransformation,
+        isError = error != null,
+        supportingText = {
+            if (error != null) {
+                Text(text = error, color = MaterialTheme.colorScheme.error)
+            }
+        }
     )
 }
 
@@ -101,23 +134,13 @@ private fun ChangePasswordButton(
     snackbarHostState: SnackbarHostState,
     coroutineScope: CoroutineScope
 ) {
-    // Hent ressurser for meldinger før coroutineScope
-    val errorMessageText = viewModel.uiState.value.errorMessage.takeIf { it != 0 }
-        ?.let { stringResource(id = it) }
     val successMessageText = stringResource(id = R.string.password_change)
 
     Button(
         onClick = {
             viewModel.onChangePasswordClick()
-
             coroutineScope.launch {
-                // Hvis det er feil, vis en feilmelding, ellers vis en suksessmelding
-                if (errorMessageText != null) {
-                    snackbarHostState.showSnackbar(
-                        message = errorMessageText,
-                        duration = SnackbarDuration.Long
-                    )
-                } else {
+                if (viewModel.uiState.value.generalError == null) {
                     snackbarHostState.showSnackbar(
                         message = successMessageText,
                         duration = SnackbarDuration.Long
@@ -131,10 +154,4 @@ private fun ChangePasswordButton(
     ) {
         Text(text = stringResource(id = R.string.update_password_button))
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ChangePasswordScreenPreview() {
-    ChangePasswordScreen(rememberNavController())
 }

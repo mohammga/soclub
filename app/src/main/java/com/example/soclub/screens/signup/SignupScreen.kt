@@ -1,6 +1,7 @@
 package com.example.soclub.screens.signup
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -27,51 +28,67 @@ import com.example.soclub.R
 @Composable
 fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState
-    val context = LocalContext.current
-    var errorMessage by remember { mutableStateOf("") }
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
     ) {
-
-        Text(
-            text = stringResource(id = R.string.join_us),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        NameField(value = uiState.name, viewModel::onNameChange)
-
-        AgeField(value = uiState.age, viewModel::onAgeChange)
-
-        EmailField(value = uiState.email, viewModel::onEmailChange)
-
-        PasswordField(value = uiState.password, viewModel::onPasswordChange)
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-
-        if (uiState.errorMessage != 0) {
+        item {
             Text(
-                text = stringResource(id = uiState.errorMessage),
-                color = Color.Red
+                text = stringResource(id = R.string.join_us),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+
+        item {
+            NameField(
+                value = uiState.name,
+                onNewValue = viewModel::onNameChange,
+                error = uiState.nameError?.let { stringResource(id = it) }
             )
         }
 
-        SignUpButton(navController, viewModel)
+        item {
+            AgeField(
+                value = uiState.age,
+                onNewValue = viewModel::onAgeChange,
+                error = uiState.ageError?.let { stringResource(id = it) }
+            )
+        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        item {
+            EmailField(
+                value = uiState.email,
+                onNewValue = viewModel::onEmailChange,
+                error = uiState.emailError?.let { stringResource(id = it) }
+            )
+        }
 
-        SignInButton(navController)
+        item {
+            PasswordField(
+                value = uiState.password,
+                onNewValue = viewModel::onPasswordChange,
+                error = uiState.passwordError?.let { stringResource(id = it) }
+            )
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+
+        item {
+            SignUpButton(navController, viewModel)
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        item {
+            SignInButton(navController)
+        }
     }
 }
 
 @Composable
-fun NameField(value: String, onNewValue: (String) -> Unit) {
+fun NameField(value: String, onNewValue: (String) -> Unit, error: String?) {
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
@@ -79,26 +96,38 @@ fun NameField(value: String, onNewValue: (String) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        singleLine = true
+        singleLine = true,
+        isError = error != null,
+        supportingText = {
+            if (error != null) {
+                Text(text = error, color = MaterialTheme.colorScheme.error)
+            }
+        }
     )
 }
 
 @Composable
-fun AgeField(value: String, onNewValue: (String) -> Unit) {
+fun AgeField(value: String, onNewValue: (String) -> Unit, error: String?) {
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
-        placeholder = { Text(stringResource(id = R.string.placeholder_age)) }, // Ensure you have this string defined
+        placeholder = { Text(stringResource(id = R.string.placeholder_age)) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), // Set keyboard type to Number
-        singleLine = true
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        singleLine = true,
+        isError = error != null,
+        supportingText = {
+            if (error != null) {
+                Text(text = error, color = MaterialTheme.colorScheme.error)
+            }
+        }
     )
 }
 
 @Composable
-fun EmailField(value: String, onNewValue: (String) -> Unit) {
+fun EmailField(value: String, onNewValue: (String) -> Unit, error: String?) {
     OutlinedTextField(
         singleLine = true,
         modifier = Modifier
@@ -107,15 +136,17 @@ fun EmailField(value: String, onNewValue: (String) -> Unit) {
         value = value,
         onValueChange = { onNewValue(it) },
         placeholder = { Text(stringResource(id = R.string.placeholder_email)) },
+        isError = error != null,
+        supportingText = {
+            if (error != null) {
+                Text(text = error, color = MaterialTheme.colorScheme.error)
+            }
+        }
     )
 }
 
 @Composable
-fun PasswordField(
-    value: String,
-    onNewValue: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
+fun PasswordField(value: String, onNewValue: (String) -> Unit, error: String?) {
     var isVisible by remember { mutableStateOf(true) }
     var isVisibleToggled by remember { mutableStateOf(false) }
 
@@ -128,7 +159,7 @@ fun PasswordField(
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         value = value,
-        onValueChange ={
+        onValueChange = {
             onNewValue(it)
             if (!isVisibleToggled) isVisible = it == ""
         },
@@ -142,9 +173,16 @@ fun PasswordField(
             }
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        visualTransformation = visualTransformation
+        visualTransformation = visualTransformation,
+        isError = error != null,
+        supportingText = {
+            if (error != null) {
+                Text(text = error, color = MaterialTheme.colorScheme.error)
+            }
+        }
     )
 }
+
 
 @Composable
 private fun SignUpButton(navController: NavController, viewModel: SignupViewModel) {

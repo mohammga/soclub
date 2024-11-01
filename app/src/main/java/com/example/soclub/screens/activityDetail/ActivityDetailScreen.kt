@@ -47,6 +47,7 @@ import androidx.compose.runtime.mutableStateOf
 import com.google.android.gms.location.LocationServices
 import androidx.core.app.ActivityCompat
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.icu.text.SimpleDateFormat
 import com.google.firebase.Timestamp
@@ -63,7 +64,7 @@ fun openGoogleMaps(context: Context, gmmIntentUri: String) {
 }
 
 
-
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ActivityDetailScreen(
     navController: NavController,
@@ -89,10 +90,9 @@ fun ActivityDetailScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        content = { paddingValues ->
+        content = {
             LazyColumn(
                 modifier = Modifier
-                    .padding(paddingValues)
                     .fillMaxSize(),
                 horizontalAlignment = Alignment.Start
             ) {

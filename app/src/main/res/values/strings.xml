@@ -154,7 +154,7 @@
     <string name="placeholder_location">Poststed</string>
     <string name="placeholder_max_participants">Maks Antall Deltakere</string>
     <string name="placeholder_age_limit">Aldersgrense</string>
-    <string name="placeholder_category">Kategori</string>
+    <string name="placeholder_category">Velg kategori</string>
     <string name="cancel">Avbryt</string>
     <string name="error_age_limit_exceeded">Aldersgrensen kan ikke være over 100</string>
 
@@ -186,6 +186,15 @@
     <string name="change_image">Endre bilde</string>
 
     <string name="error_image_required">Bilde er påkrevd</string>
+
+
+    <string name="error_date_required">Dato er påkrevd</string>
+    <string name="error_start_time_required">Start tid er påkrevd</string>
+    <string name="error_age_limit_required">maks alder er påkrevd</string>
+    <string name="error_all_fields_required">Du må fylle alle feltene</string>
+
+
+
 
     <!-- Button text -->
     <string name="publish_activity">Publiser</string>

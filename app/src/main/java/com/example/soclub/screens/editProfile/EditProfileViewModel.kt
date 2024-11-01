@@ -22,8 +22,9 @@ data class EditProfileState(
     val firstname: String = "",
     val lastname: String = "",
     val imageUrl: String = "",
-    @StringRes val errorMessage: Int = 0,
-    val isDirty: Boolean = false // Ny variabel for å spore endringer
+    @StringRes val firstnameError: Int? = null,
+    @StringRes val lastnameError: Int? = null,
+    val isDirty: Boolean = false
 )
 
 @HiltViewModel
@@ -38,13 +39,10 @@ class EditProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val userInfo: UserInfo = accountService.getUserInfo()
-
                 val nameParts = userInfo.name.split(" ")
-
                 val firstname = nameParts.firstOrNull() ?: ""
                 val lastname = nameParts.drop(1).joinToString(" ")
-
-                val imageUrl = userInfo.imageUrl ?: "" // Assuming `UserInfo` has `imageUrl`
+                val imageUrl = userInfo.imageUrl ?: ""
 
                 uiState.value = uiState.value.copy(
                     firstname = firstname,
@@ -52,83 +50,79 @@ class EditProfileViewModel @Inject constructor(
                     imageUrl = imageUrl,
                 )
             } catch (e: Exception) {
-                uiState.value = uiState.value.copy(errorMessage = R.string.error_profile_info)
+                uiState.value = uiState.value.copy(firstnameError = R.string.error_profile_info)
             }
         }
     }
 
     fun onNameChange(newValue: String) {
         val isNameDirty = newValue != uiState.value.firstname
-        uiState.value = uiState.value.copy(firstname = newValue, isDirty = isNameDirty)
+        uiState.value = uiState.value.copy(firstname = newValue, isDirty = isNameDirty, firstnameError = null)
     }
 
     fun onLastnameChange(newValue: String) {
         val isLastnameDirty = newValue != uiState.value.lastname
-        uiState.value = uiState.value.copy(lastname = newValue, isDirty = isLastnameDirty)
+        uiState.value = uiState.value.copy(lastname = newValue, isDirty = isLastnameDirty, lastnameError = null)
     }
 
     fun onImageSelected(imagePath: String) {
         uiState.value = uiState.value.copy(imageUrl = imagePath)
     }
 
+    fun onSaveProfileClick(navController: NavController) {
+        var hasError = false
+        var firstnameError: Int? = null
+        var lastnameError: Int? = null
+
+        if (uiState.value.firstname.isBlank()) {
+            firstnameError = R.string.error_first_name_required
+            hasError = true
+        } else if (!uiState.value.firstname.isValidName()) {
+            firstnameError = R.string.error_invalid_firstname
+            hasError = true
+        }
+
+        if (uiState.value.lastname.isBlank()) {
+            lastnameError = R.string.error_last_name_required
+            hasError = true
+        } else if (!uiState.value.lastname.isValidName()) {
+            lastnameError = R.string.error_invalid_lastname
+            hasError = true
+        }
+
+        uiState.value = uiState.value.copy(
+            firstnameError = firstnameError,
+            lastnameError = lastnameError
+        )
+
+        if (hasError) return
+
+        val fullName = "${uiState.value.firstname} ${uiState.value.lastname}"
+        uploadImageToFirebase(
+            Uri.parse(uiState.value.imageUrl),
+            onSuccess = { imageUrl ->
+                updateUserInfoAndNavigate(navController, fullName, imageUrl)
+            },
+            onError = { error ->
+                Log.e("EditProfileViewModel", "Error uploading image: ${error.message}")
+                uiState.value = uiState.value.copy(firstnameError = R.string.error_profile_creation)
+            }
+        )
+    }
+
     private fun uploadImageToFirebase(imageUri: Uri, onSuccess: (String) -> Unit, onError: (Exception) -> Unit) {
         val storageRef = FirebaseStorage.getInstance().reference.child("User/${imageUri.lastPathSegment}")
         storageRef.putFile(imageUri)
             .addOnSuccessListener {
-                Log.d("NewActivityViewModel", "Image uploaded successfully")
+                Log.d("EditProfileViewModel", "Image uploaded successfully")
                 storageRef.downloadUrl.addOnSuccessListener { uri ->
-                    Log.d("NewActivityViewModel", "Image URL fetched: $uri")
                     onSuccess(uri.toString())
                 }
             }
-            .addOnFailureListener { exception ->
-                Log.e("NewActivityViewModel", "Error uploading image: ${exception.message}")
-                onError(exception)
-            }
+            .addOnFailureListener(onError)
     }
 
-
-    fun onSaveProfileClick(navController: NavController) {
-        // Sjekk om fornavnet er tomt
-        if (uiState.value.firstname.isBlank()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_first_name_required)
-            return
-        }
-
-        // Sjekk om fornavnet inneholder kun gyldige tegn
-        if (!uiState.value.firstname.isValidName()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_firstname)
-            return
-        }
-
-        // Sjekk om etternavnet er tomt
-        if (uiState.value.lastname.isBlank()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_last_name_required)
-            return
-        }
-
-        // Sjekk om etternavnet inneholder kun gyldige tegn
-        if (!uiState.value.lastname.isValidName()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_invalid_lastname)
-            return
-        }
-
-        // Hvis alt er gyldig, kombiner fornavn og etternavn til fullt navn
-        val fullName = "${uiState.value.firstname} ${uiState.value.lastname}"
-
-
-        uploadImageToFirebase(
-            Uri.parse(uiState.value.imageUrl),
-            onSuccess = { imageUrl ->
-                UpdateUserInfoAndNavigate(navController, fullName, imageUrl)
-            },
-            onError = { error ->
-                Log.e("NewActivityViewModel", "Error uploading image: ${error.message}")
-            }
-        )
-
-    }
-    private fun UpdateUserInfoAndNavigate(navController: NavController, fullName: String, imageUrl: String) {
+    private fun updateUserInfoAndNavigate(navController: NavController, fullName: String, imageUrl: String) {
         viewModelScope.launch {
             try {
                 accountService.updateProfile(name = fullName, imageUrl = imageUrl) { error ->
@@ -140,19 +134,13 @@ class EditProfileViewModel @Inject constructor(
                             }
                         }
                     } else {
-                        uiState.value = uiState.value.copy(errorMessage = R.string.error_profile_creation)
+                        uiState.value = uiState.value.copy(firstnameError = R.string.error_profile_creation)
                     }
                 }
             } catch (e: Exception) {
-                uiState.value = uiState.value.copy(errorMessage = R.string.error_profile_creation)
+                uiState.value = uiState.value.copy(firstnameError = R.string.error_profile_creation)
             }
         }
     }
-
-
-
-
-
-
 }
 

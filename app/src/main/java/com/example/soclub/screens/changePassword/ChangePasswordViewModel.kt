@@ -15,13 +15,16 @@ import com.example.soclub.service.AccountService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import com.example.soclub.common.ext.isValidPassword
+
 
 data class ChangePasswordState(
     val oldPassword: String = "",
     val newPassword: String = "",
     val confirmPassword: String = "",
-    @StringRes val errorMessage: Int = 0
+    @StringRes val oldPasswordError: Int? = null,
+    @StringRes val newPasswordError: Int? = null,
+    @StringRes val confirmPasswordError: Int? = null,
+    @StringRes val generalError: Int? = null
 )
 
 @HiltViewModel
@@ -37,75 +40,75 @@ class ChangePasswordViewModel @Inject constructor(
     private val confirmPassword get() = uiState.value.confirmPassword
 
     fun onOldPasswordChange(newValue: String) {
-        uiState.value = uiState.value.copy(oldPassword = newValue)
+        uiState.value = uiState.value.copy(oldPassword = newValue, oldPasswordError = null)
     }
 
     fun onNewPasswordChange(newValue: String) {
-        uiState.value = uiState.value.copy(newPassword = newValue)
+        uiState.value = uiState.value.copy(newPassword = newValue, newPasswordError = null)
     }
 
     fun onConfirmPasswordChange(newValue: String) {
-        uiState.value = uiState.value.copy(confirmPassword = newValue)
+        uiState.value = uiState.value.copy(confirmPassword = newValue, confirmPasswordError = null)
     }
 
     fun onChangePasswordClick() {
+        var hasError = false
+        var oldPasswordError: Int? = null
+        var newPasswordError: Int? = null
+        var confirmPasswordError: Int? = null
+
         if (oldPassword.isBlank()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_old_password_required)
-            return
+            oldPasswordError = R.string.error_old_password_required
+            hasError = true
         }
 
         if (newPassword.isBlank()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_new_password_required)
-            return
+            newPasswordError = R.string.error_new_password_required
+            hasError = true
+        } else if (!newPassword.isPasswordLongEnough()) {
+            newPasswordError = R.string.error_password_too_short
+            hasError = true
+        } else if (!newPassword.containsUpperCase()) {
+            newPasswordError = R.string.error_password_missing_uppercase
+            hasError = true
+        } else if (!newPassword.containsLowerCase()) {
+            newPasswordError = R.string.error_password_missing_lowercase
+            hasError = true
+        } else if (!newPassword.containsDigit()) {
+            newPasswordError = R.string.error_password_missing_digit
+            hasError = true
+        } else if (!newPassword.containsNoWhitespace()) {
+            newPasswordError = R.string.error_password_contains_whitespace
+            hasError = true
         }
 
         if (confirmPassword.isBlank()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_confirm_password_required)
-            return
+            confirmPasswordError = R.string.error_confirm_password_required
+            hasError = true
+        } else if (newPassword != confirmPassword) {
+            confirmPasswordError = R.string.password_mismatch_error
+            hasError = true
         }
 
-        if (!newPassword.isPasswordLongEnough()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_too_short)
-            return
-        }
+        uiState.value = uiState.value.copy(
+            oldPasswordError = oldPasswordError,
+            newPasswordError = newPasswordError,
+            confirmPasswordError = confirmPasswordError
+        )
 
-        if (!newPassword.containsUpperCase()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_missing_uppercase)
-            return
-        }
-
-        if (!newPassword.containsLowerCase()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_missing_lowercase)
-            return
-        }
-
-        if (!newPassword.containsDigit()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_missing_digit)
-            return
-        }
-
-        if (!newPassword.containsNoWhitespace()) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.error_password_contains_whitespace)
-            return
-        }
-
-        if (newPassword != confirmPassword) {
-            uiState.value = uiState.value.copy(errorMessage = R.string.password_mismatch_error)
-            return
-        }
+        if (hasError) return
 
         viewModelScope.launch {
             try {
                 accountService.changePassword(oldPassword, newPassword) { error ->
                     if (error == null) {
-                        // Tømmer inputfeltene etter vellykket endring
-                        uiState.value = ChangePasswordState() // Tilbakestill til tomme verdier
+                        uiState.value = ChangePasswordState() // Reset state after success
                     } else {
-                        uiState.value = uiState.value.copy(errorMessage = R.string.error_could_not_change_password)
+                        uiState.value = uiState.value.copy(generalError = R.string.error_could_not_change_password)
                     }
                 }
             } catch (e: Exception) {
-                uiState.value = uiState.value.copy(errorMessage = R.string.error_could_not_change_password)
+                uiState.value = uiState.value.copy(generalError = R.string.error_could_not_change_password)
             }
         }
     }
