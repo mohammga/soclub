@@ -13,11 +13,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.soclub.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -43,7 +41,8 @@ fun ChangePasswordScreen(navController: NavController, viewModel: ChangePassword
                         label = stringResource(id = R.string.old_password_label),
                         value = uiState.oldPassword,
                         onNewValue = viewModel::onOldPasswordChange,
-                        error = uiState.oldPasswordError?.let { stringResource(id = it) }
+                        error = uiState.oldPasswordError?.let { stringResource(id = it) },
+                        supportingText = stringResource(id = R.string.old_password_supporting_text)
                     )
                 }
 
@@ -52,7 +51,8 @@ fun ChangePasswordScreen(navController: NavController, viewModel: ChangePassword
                         label = stringResource(id = R.string.new_password_label),
                         value = uiState.newPassword,
                         onNewValue = viewModel::onNewPasswordChange,
-                        error = uiState.newPasswordError?.let { stringResource(id = it) }
+                        error = uiState.newPasswordError?.let { stringResource(id = it) },
+                        supportingText = stringResource(id = R.string.new_password_supporting_text)
                     )
                 }
 
@@ -61,7 +61,8 @@ fun ChangePasswordScreen(navController: NavController, viewModel: ChangePassword
                         label = stringResource(id = R.string.confirm_new_password_label),
                         value = uiState.confirmPassword,
                         onNewValue = viewModel::onConfirmPasswordChange,
-                        error = uiState.confirmPasswordError?.let { stringResource(id = it) }
+                        error = uiState.confirmPasswordError?.let { stringResource(id = it) },
+                        supportingText = stringResource(id = R.string.confirm_new_password_supporting_text)
                     )
                 }
 
@@ -89,7 +90,8 @@ fun PasswordField(
     label: String,
     value: String,
     onNewValue: (String) -> Unit,
-    error: String? = null
+    error: String? = null,
+    supportingText: String? = null
 ) {
     var isVisible by remember { mutableStateOf(true) }
     var isVisibleToggled by remember { mutableStateOf(false) }
@@ -107,6 +109,7 @@ fun PasswordField(
             onNewValue(it)
             if (!isVisibleToggled) isVisible = it == ""
         },
+        label = { Text(label) },
         placeholder = { Text(label) },
         trailingIcon = {
             IconButton(onClick = {
@@ -120,6 +123,7 @@ fun PasswordField(
         visualTransformation = visualTransformation,
         isError = error != null,
         supportingText = {
+            supportingText?.let { Text(text = it) }
             if (error != null) {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }

@@ -5,12 +5,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,10 +19,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.example.soclub.R
 
@@ -81,15 +74,17 @@ fun ResetPasswordScreen(navController: NavController, viewModel: ResetPasswordVi
 @Composable
 fun EmailField(value: String, onNewValue: (String) -> Unit, error: String?) {
     OutlinedTextField(
-        singleLine = true,
+        value = value,
+        onValueChange = { onNewValue(it) },
+        label = { Text(stringResource(id = R.string.email_label)) },
+        placeholder = { Text(stringResource(id = R.string.email_placeholder)) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        value = value,
-        onValueChange = { onNewValue(it) },
-        placeholder = { Text(stringResource(id = R.string.email)) },
+        singleLine = true,
         isError = error != null,
         supportingText = {
+            Text(text = stringResource(id = R.string.email_supporting_text))
             if (error != null) {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
@@ -116,10 +111,4 @@ fun ResetPasswordInfo() {
     ) {
         Text(text = stringResource(id = R.string.reset_password_info))
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ResetPasswordScreenPreview() {
-    ResetPasswordScreen(rememberNavController())
 }

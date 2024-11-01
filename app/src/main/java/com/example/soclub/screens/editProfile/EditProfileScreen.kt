@@ -2,7 +2,6 @@ package com.example.soclub.screens.editProfile
 
 import android.annotation.SuppressLint
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -21,17 +20,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.example.soclub.R
 import kotlinx.coroutines.launch
@@ -69,10 +65,11 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
 
                 item {
                     ProfileTextField(
-                        label = stringResource(id = R.string.profile_name_label),
+                        label = stringResource(id = R.string.profile_firstname_label),
                         value = uiState.firstname,
                         onValueChange = { viewModel.onNameChange(it) },
-                        error = uiState.firstnameError?.let { stringResource(id = it) }
+                        error = uiState.firstnameError?.let { stringResource(id = it) },
+                        supportingText = stringResource(id = R.string.profile_firstname_supporting_text)
                     )
                 }
 
@@ -81,7 +78,8 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                         label = stringResource(id = R.string.profile_lastname_label),
                         value = uiState.lastname,
                         onValueChange = { viewModel.onLastnameChange(it) },
-                        error = uiState.lastnameError?.let { stringResource(id = it) }
+                        error = uiState.lastnameError?.let { stringResource(id = it) },
+                        supportingText = stringResource(id = R.string.profile_lastname_supporting_text)
                     )
                 }
 
@@ -112,39 +110,26 @@ fun ProfileTextField(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
-    error: String? = null
+    error: String? = null,
+    supportingText: String? = null
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        placeholder = { Text(label) },
+        label = { Text(label) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         singleLine = true,
         isError = error != null,
         supportingText = {
+            supportingText?.let { Text(text = it) }
             if (error != null) {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         }
     )
 }
-
-@Composable
-fun SaveButton(onClick: () -> Unit, enabled: Boolean) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
-        enabled = enabled
-    ) {
-        Text(text = stringResource(id = R.string.save_changes_button), color = Color.White)
-    }
-}
-
 
 @Composable
 fun ImageUploadSection(
@@ -169,7 +154,6 @@ fun ImageUploadSection(
         ) {
             when {
                 selectedImageUri != null -> {
-                    // Show the selected image from the gallery
                     AsyncImage(
                         model = selectedImageUri,
                         contentDescription = stringResource(id = R.string.selected_image),
@@ -182,7 +166,6 @@ fun ImageUploadSection(
                 }
 
                 !imageUrl.isNullOrEmpty() -> {
-                    // Show the current profile image if available
                     AsyncImage(
                         model = imageUrl,
                         contentDescription = stringResource(id = R.string.profile_picture_description),
@@ -194,7 +177,6 @@ fun ImageUploadSection(
                     )
                 }
                 else -> {
-                    // Show placeholder image if no image is selected or no profile image exists
                     Image(
                         painter = painterResource(id = R.drawable.user),
                         contentDescription = stringResource(id = R.string.profile_picture_description),
@@ -216,9 +198,7 @@ fun ImageUploadSection(
             fontSize = 16.sp
         )
 
-        // Display either the option to remove or upload a new image based on the selection
         if (selectedImageUri != null) {
-            // Option to remove the selected image
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -242,7 +222,6 @@ fun ImageUploadSection(
                 )
             }
         } else {
-            // Option to upload a new image
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -269,26 +248,16 @@ fun ImageUploadSection(
     }
 }
 
-
 @Composable
-fun ProfileTextField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        placeholder = { Text(label) },
+fun SaveButton(onClick: () -> Unit, enabled: Boolean) {
+    Button(
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        singleLine = true
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun EditProfileScreenPreview() {
-    EditProfileScreen(rememberNavController())
+            .height(48.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+        enabled = enabled
+    ) {
+        Text(text = stringResource(id = R.string.save_changes_button), color = Color.White)
+    }
 }
