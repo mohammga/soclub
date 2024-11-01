@@ -11,6 +11,7 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.*
 import androidx.compose.material3.*
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Delete
@@ -42,7 +43,6 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-
     LaunchedEffect(Unit) {
         viewModel.loadUserProfile()
     }
@@ -50,67 +50,72 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         content = {
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Spacer(modifier = Modifier.height(16.dp))
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                ImageUploadSection(
-                    viewModel::onImageSelected,
-                    imageUrl = uiState.imageUrl
-                )
+                    ImageUploadSection(
+                        viewModel::onImageSelected,
+                        imageUrl = uiState.imageUrl
+                    )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
 
-                ProfileTextField(
-                    label = stringResource(id = R.string.profile_name_label),
-                    value = uiState.firstname,
-                    onValueChange = { viewModel.onNameChange(it) }
-                )
-
-                ProfileTextField(
-                    label = stringResource(id = R.string.profile_lastname_label),
-                    value = uiState.lastname,
-                    onValueChange = { viewModel.onLastnameChange(it) }
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                if (uiState.errorMessage != 0) {
-                    Text(
-                        text = stringResource(id = uiState.errorMessage),
-                        color = Color.Red
+                item {
+                    ProfileTextField(
+                        label = stringResource(id = R.string.profile_name_label),
+                        value = uiState.firstname,
+                        onValueChange = { viewModel.onNameChange(it) }
                     )
                 }
 
-                SaveButton(
-                    onClick = {
-                        viewModel.onSaveProfileClick(navController)
-                        // Vis snackbar bare hvis det ikke er noen feilmelding
-                        if (uiState.errorMessage == 0) {
-                            coroutineScope.launch {
-                                // Henter strengen fra strings.xml og viser snackbar
-                                snackbarHostState.showSnackbar(
-                                    message = "Personlig info er endret"
-                                )
-                            }
-                        }
-                    },
-                    enabled = uiState.isDirty
-                )
+                item {
+                    ProfileTextField(
+                        label = stringResource(id = R.string.profile_lastname_label),
+                        value = uiState.lastname,
+                        onValueChange = { viewModel.onLastnameChange(it) }
+                    )
+                }
 
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    if (uiState.errorMessage != 0) {
+                        Text(
+                            text = stringResource(id = uiState.errorMessage),
+                            color = Color.Red
+                        )
+                    }
+
+                    SaveButton(
+                        onClick = {
+                            viewModel.onSaveProfileClick(navController)
+                            if (uiState.errorMessage == 0) {
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "Personlig info er endret"
+                                    )
+                                }
+                            }
+                        },
+                        enabled = uiState.isDirty
+                    )
+                }
             }
         }
     )
 }
 
-
 @Composable
 fun ImageUploadSection(
     onImageSelected: (String) -> Unit,
-    imageUrl: String? // Add the user's current profile image URL
+    imageUrl: String?
 ) {
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 

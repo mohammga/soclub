@@ -1,6 +1,7 @@
 package com.example.soclub.screens.start
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,20 +17,25 @@ import com.example.soclub.R
 
 @Composable
 fun StartScreen(navController: NavController) {
-    Column(
+    LazyColumn(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         modifier = Modifier
             .fillMaxSize()
             .padding(32.dp)
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
+        item {
+            Spacer(modifier = Modifier.height(16.dp))
+        }
 
-        WelcomeMessage()
+        item {
+            WelcomeMessage()
+            Spacer(modifier = Modifier.height(16.dp))
+        }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        ContinueWithEmailButton(navController)
+        item {
+            ContinueWithEmailButton(navController)
+        }
     }
 }
 

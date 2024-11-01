@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
@@ -43,44 +44,51 @@ fun SigninScreen(navController: NavController, viewModel: SigninViewModel = hilt
     val context = LocalContext.current
     var errorMessage by remember { mutableStateOf("") }
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-
+            .padding(16.dp)
     ) {
-
-        Text(
-            text = stringResource(id = R.string.welcome_back),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-
-        EmailField(value = uiState.email, viewModel::onEmailChange)
-        PasswordField(value = uiState.password, viewModel::onPasswordChange)
-
-        if (uiState.errorMessage != 0) {
+        item {
             Text(
-                text = stringResource(id = uiState.errorMessage),
-                color = Color.Red
+                text = stringResource(id = R.string.welcome_back),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
             )
+            Spacer(modifier = Modifier.height(32.dp))
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        item {
+            EmailField(value = uiState.email, viewModel::onEmailChange)
+        }
 
-        ResetPasswordText(navController)
+        item {
+            PasswordField(value = uiState.password, viewModel::onPasswordChange)
+        }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        if (uiState.errorMessage != 0) {
+            item {
+                Text(
+                    text = stringResource(id = uiState.errorMessage),
+                    color = Color.Red
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
 
-        SignInButton(navController, viewModel, context)
+        item {
+            ResetPasswordText(navController)
+            Spacer(modifier = Modifier.height(32.dp))
+        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        item {
+            SignInButton(navController, viewModel, context)
+            Spacer(modifier = Modifier.height(16.dp))
+        }
 
-        SignUpButton(navController)
-
+        item {
+            SignUpButton(navController)
+        }
     }
 }
 

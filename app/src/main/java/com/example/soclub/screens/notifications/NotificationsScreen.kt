@@ -16,7 +16,6 @@ data class Notification(val timeAgo: String, val message: String)
 
 @Composable
 fun NotificationsScreen(navController: NavController) {
-    // Sample notifications data
     val notifications = listOf(
         Notification("2 minutter siden", "Du har fått en ny melding fra Cathrine."),
         Notification("20 minutter siden", "Cathrine har meldt seg på arrangementet."),

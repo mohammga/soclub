@@ -1,6 +1,7 @@
 package com.example.soclub.screens.signup
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -30,43 +31,55 @@ fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hilt
     val context = LocalContext.current
     var errorMessage by remember { mutableStateOf("") }
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
     ) {
-
-        Text(
-            text = stringResource(id = R.string.join_us),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        NameField(value = uiState.name, viewModel::onNameChange)
-
-        AgeField(value = uiState.age, viewModel::onAgeChange)
-
-        EmailField(value = uiState.email, viewModel::onEmailChange)
-
-        PasswordField(value = uiState.password, viewModel::onPasswordChange)
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-
-        if (uiState.errorMessage != 0) {
+        item {
             Text(
-                text = stringResource(id = uiState.errorMessage),
-                color = Color.Red
+                text = stringResource(id = R.string.join_us),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
             )
+            Spacer(modifier = Modifier.height(32.dp))
         }
 
-        SignUpButton(navController, viewModel)
+        item {
+            NameField(value = uiState.name, viewModel::onNameChange)
+        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        item {
+            AgeField(value = uiState.age, viewModel::onAgeChange)
+        }
 
-        SignInButton(navController)
+        item {
+            EmailField(value = uiState.email, viewModel::onEmailChange)
+        }
+
+        item {
+            PasswordField(value = uiState.password, viewModel::onPasswordChange)
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+
+        if (uiState.errorMessage != 0) {
+            item {
+                Text(
+                    text = stringResource(id = uiState.errorMessage),
+                    color = Color.Red
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+
+        item {
+            SignUpButton(navController, viewModel)
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        item {
+            SignInButton(navController)
+        }
     }
 }
 
@@ -88,11 +101,11 @@ fun AgeField(value: String, onNewValue: (String) -> Unit) {
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
-        placeholder = { Text(stringResource(id = R.string.placeholder_age)) }, // Ensure you have this string defined
+        placeholder = { Text(stringResource(id = R.string.placeholder_age)) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), // Set keyboard type to Number
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         singleLine = true
     )
 }
