@@ -35,6 +35,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.example.soclub.R
 
+
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hiltViewModel()) {
@@ -45,9 +46,13 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
     var isSelectingArea by remember { mutableStateOf(true) }
     val selectedCities by viewModel.selectedCities.observeAsState(mutableListOf())
     val cities by viewModel.getCities().observeAsState(emptyList())
+    val userCity by viewModel.userCity.observeAsState(null)
+
+    LaunchedEffect(Unit) {
+        viewModel.fetchUserLocation()  // Hent GPS-plassering ved start
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Top bar and categories shown as usual
         if (categories.isNotEmpty()) {
             CategoryTabs(categories = categories, pagerState = pagerState)
         }
@@ -59,7 +64,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
+            val selectedCategory = categories.getOrNull(pagerState.currentPage) ?: ""
             CategoryTitle(selectedCategory)
 
             if (selectedCategory != "Nærme Aktiviteter") {
@@ -78,104 +83,55 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        val selectedCategory = if (categories.isNotEmpty() && pagerState.currentPage < categories.size) {
+            categories[pagerState.currentPage]
+        } else {
+            ""
+        }
+
         // Display activities in selected category with loading
-        CategoryActivitiesPager(
-            categories = categories,
-            pagerState = pagerState,
-            viewModel = viewModel,
-            navController = navController
-        )
+        if (selectedCategory == "Nærme Aktiviteter") {
+            userCity?.let { city ->
+                NearActivities(viewModel = viewModel, city = city, navController = navController)
+            } ?: run {
+                Text(
+                    text = "Henter nærmeste aktiviteter...",
+                    modifier = Modifier.padding(16.dp),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        } else {
+            CategoryActivitiesPager(
+                categories = categories,
+                pagerState = pagerState,
+                viewModel = viewModel,
+                navController = navController
+            )
+        }
     }
 
     // BottomSheet for filtering
     if (showBottomSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showBottomSheet = false }
-        ) {
-            if (isSelectingArea) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = "Filtrer etter", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    FilterListItem(
-                        title = "Område",
-                        onClick = { isSelectingArea = false },
-                        backgroundColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
-            } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .padding(16.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { isSelectingArea = true }
-                            .padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Tilbake",
-                            modifier = Modifier.padding(end = 16.dp)
-                        )
-                        Text(text = "Tilbake", fontSize = 16.sp, fontWeight = FontWeight.Medium)
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(text = "Velg By", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(300.dp)
-                    ) {
-                        items(cities) { city ->
-                            CitySelectionItem(
-                                city = city,
-                                isSelected = selectedCities.contains(city),
-                                onCitySelected = { isSelected ->
-                                    viewModel.updateSelectedCities(city, isSelected)
-                                }
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Button(
-                        onClick = {
-                            viewModel.fetchAndGroupActivitiesByCities(selectedCities)
-                            showBottomSheet = false
-                        },
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
-                    ) {
-                        Text(text = "Søk")
-                    }
-
-                    if (selectedCities.isNotEmpty()) {
-                        Button(
-                            onClick = {
-                                viewModel.resetFilter()
-                                showBottomSheet = false
-                            },
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
-                        ) {
-                            Text("Nullstill filtrering")
-                        }
-                    }
-                }
+        FilterBottomSheet(
+            showBottomSheet = showBottomSheet,
+            isSelectingArea = isSelectingArea,
+            selectedCities = selectedCities,
+            cities = cities,
+            onDismissRequest = { showBottomSheet = false },
+            onSelectArea = { isSelectingArea = it },
+            onCitySelected = { city, isSelected -> viewModel.updateSelectedCities(city, isSelected) },
+            onSearch = {
+                viewModel.fetchAndGroupActivitiesByCities(selectedCities)
+                showBottomSheet = false
+            },
+            onResetFilter = {
+                viewModel.resetFilter()
+                showBottomSheet = false
             }
-        }
+        )
     }
 }
-
 
 
 
@@ -388,3 +344,136 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
         )
     }
 }
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FilterBottomSheet(
+    showBottomSheet: Boolean,
+    isSelectingArea: Boolean,
+    selectedCities: List<String>,
+    cities: List<String>,
+    onDismissRequest: () -> Unit,
+    onSelectArea: (Boolean) -> Unit,
+    onCitySelected: (String, Boolean) -> Unit,
+    onSearch: () -> Unit,
+    onResetFilter: () -> Unit
+) {
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { onDismissRequest() }
+        ) {
+            if (isSelectingArea) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(text = "Filtrer etter", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    FilterListItem(
+                        title = "Område",
+                        onClick = { onSelectArea(false) },
+                        backgroundColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelectArea(true) }
+                            .padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Tilbake",
+                            modifier = Modifier.padding(end = 16.dp)
+                        )
+                        Text(text = "Tilbake", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(text = "Velg By", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(300.dp)
+                    ) {
+                        items(cities) { city ->
+                            CitySelectionItem(
+                                city = city,
+                                isSelected = selectedCities.contains(city),
+                                onCitySelected = { isSelected ->
+                                    onCitySelected(city, isSelected)
+                                }
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = { onSearch() },
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
+                    ) {
+                        Text(text = "Søk")
+                    }
+
+                    if (selectedCities.isNotEmpty()) {
+                        Button(
+                            onClick = { onResetFilter() },
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                        ) {
+                            Text("Nullstill filtrering")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun NearActivities(viewModel: HomeViewModel, city: String, navController: NavHostController) {
+    val activities by viewModel.activities.observeAsState(emptyList())
+    val isLoading by viewModel.isLoading.observeAsState(false)
+
+    LaunchedEffect(city) {
+        viewModel.getActivities("Nærme Aktiviteter")
+    }
+
+    if (isLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator() // Viser loading-indikator til alt er klart
+        }
+    } else {
+        if (activities.isNotEmpty()) {
+            ActivityList(
+                activities = activities,
+                selectedCategory = "Nærme Aktiviteter",
+                navController = navController
+            )
+        } else {
+            Text(
+                text = "Ingen aktiviteter tilgjengelig for Nærme Aktiviteter.",
+                modifier = Modifier.padding(16.dp),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
