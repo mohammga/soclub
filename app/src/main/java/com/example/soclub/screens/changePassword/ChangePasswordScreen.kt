@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun ChangePasswordScreen(navController: NavController, viewModel: ChangePasswordViewModel = hiltViewModel()) {
+fun ChangePasswordScreen(viewModel: ChangePasswordViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -78,7 +78,7 @@ fun ChangePasswordScreen(navController: NavController, viewModel: ChangePassword
                 item {
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    ChangePasswordButton(navController, viewModel, snackbarHostState, coroutineScope)
+                    ChangePasswordButton(viewModel, snackbarHostState, coroutineScope)
                 }
             }
         }
@@ -134,7 +134,6 @@ fun PasswordField(
 
 @Composable
 private fun ChangePasswordButton(
-    navController: NavController,
     viewModel: ChangePasswordViewModel,
     snackbarHostState: SnackbarHostState,
     coroutineScope: CoroutineScope

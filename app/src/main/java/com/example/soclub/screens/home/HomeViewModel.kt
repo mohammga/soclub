@@ -79,32 +79,10 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun getActivities(category: String) {
-        _isLoading.value = true
-        viewModelScope.launch {
-            try {
-                val activities = if (category == "Nærme Aktiviteter") {
-                    val cityToFilter = _userCity.value ?: "Fredrikstad"
-                    Log.d("HomeViewModel", "Filtrerer aktiviteter for by: $cityToFilter")
-                    activityService.getAllActivities().filter { activity ->
-                        activity.location.contains(cityToFilter, ignoreCase = true)
-                    }
-                } else {
-                    activityService.getActivities(category)
-                }
-                _activities.postValue(activities)
-            } catch (e: Exception) {
-                _activities.postValue(emptyList())
-            } finally {
-                _isLoading.postValue(false)
-            }
-        }
-    }
-
     fun getCities() = liveData(Dispatchers.IO) {
         try {
             val activities = activityService.getAllActivities()
-            val cities = activities.mapNotNull { activity ->
+            val cities = activities.map { activity ->
                 val fullLocation = activity.location ?: "Ukjent"
                 fullLocation.substringAfterLast(" ")
             }.distinct()
@@ -154,7 +132,7 @@ class HomeViewModel @Inject constructor(
         fetchAndGroupActivitiesByCities(emptyList())
     }
 
-    fun getCityFromLocation(location: Location?): String? {
+    private fun getCityFromLocation(location: Location?): String? {
         location?.let {
             val geocoder = Geocoder(getApplication<Application>().applicationContext, Locale.getDefault())
             val addresses = geocoder.getFromLocation(it.latitude, it.longitude, 1)
@@ -167,9 +145,44 @@ class HomeViewModel @Inject constructor(
         return null
     }
 
-    fun resetActivities() {
-        _activities.postValue(emptyList())
+
+    @SuppressLint("MissingPermission")
+    fun getNearestActivities() {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                val userLocation = fusedLocationClient.lastLocation.await() ?: return@launch
+
+                // Hent alle aktiviteter og filtrer de som er i nærheten
+                val activities = activityService.getAllActivities().mapNotNull { activity ->
+                    val location = Geocoder(getApplication<Application>().applicationContext, Locale.getDefault())
+                        .getFromLocationName(activity.location, 1)
+                        ?.firstOrNull()
+                        ?.let {
+                            Location("").apply {
+                                latitude = it.latitude
+                                longitude = it.longitude
+                            }
+                        }
+                    location?.let {
+                        val distance = userLocation.distanceTo(location) // Avstand i meter
+                        activity to distance
+                    }
+                }
+
+                // Sorter aktiviteter etter avstand og ta kun de 5 nærmeste
+                val nearestActivities = activities.sortedBy { it.second }.take(10).map { it.first }
+
+                _activities.postValue(nearestActivities)
+            } catch (e: Exception) {
+                _activities.postValue(emptyList())
+                Log.e("HomeViewModel", "Feil ved henting av nærmeste aktiviteter: ${e.message}")
+            } finally {
+                _isLoading.postValue(false)
+            }
+        }
     }
+
 
 
 

@@ -99,7 +99,7 @@ fun EmailField(value: String, onNewValue: (String) -> Unit, error: String?) {
         supportingText = {
             if (error == null) {
                 Text(text = stringResource(id = R.string.email_supporting_text))
-            } else if (error != null) {
+            } else {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         }
@@ -144,7 +144,7 @@ fun PasswordField(
         supportingText = {
             if (error == null) {
                 Text(text = stringResource(id = R.string.password_supporting_text))
-            } else if (error != null) {
+            } else {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         }

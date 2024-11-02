@@ -11,7 +11,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.soclub.components.navigation.navBars.BottomNavBar
 import com.example.soclub.components.navigation.navBars.HomeTopBar
@@ -31,32 +30,32 @@ import com.example.soclub.screens.resetPassword.ResetPasswordScreen
 import com.example.soclub.screens.signin.SigninScreen
 import com.example.soclub.screens.start.StartScreen
 import com.example.soclub.screens.signup.SignupScreen
-import com.example.soclub.service.ActivityService
 import com.example.soclub.service.impl.AccountServiceImpl
 import com.example.soclub.service.module.FirebaseModule
 
 @Composable
-fun AppNavigation(navController: NavHostController, activityService: ActivityService) {
-    val navController = rememberNavController()
+fun AppNavigation(navController: NavHostController) {
     val currentScreen = getCurrentScreen(navController)
 
-    // Define profile-related screens to be treated as the "Profile" screen
+    // Definer profil- og detaljerelaterte skjermer
     val profileScreens = setOf(
         AppScreens.PROFILE.name,
         AppScreens.EDIT_PROFILE.name,
         AppScreens.CHANGE_PASSWORD.name,
         AppScreens.EDIT_PERMISSION.name,
         AppScreens.ADS.name,
-        AppScreens.ENTRIES.name,
         "editActivity"
     )
-    val adjustedCurrentScreen = if (currentScreen in profileScreens) AppScreens.PROFILE.name else currentScreen
 
-    // Inject FirebaseAuth and FirebaseFirestore using FirebaseModule
+    // Tolk `ActivityDetailScreen` som `HOME`
+    val adjustedCurrentScreen = when {
+        currentScreen.startsWith("detail") -> AppScreens.HOME.name
+        currentScreen in profileScreens || currentScreen.startsWith("editActivity") -> AppScreens.PROFILE.name
+        else -> currentScreen
+    }
+
     val auth = remember { FirebaseModule.auth() }
     val firestore = remember { FirebaseModule.firestore() }
-
-    // Pass both auth and firestore to AccountServiceImpl
     val accountService = remember { AccountServiceImpl(auth, firestore) }
 
     Scaffold(
@@ -104,7 +103,7 @@ fun AppNavigation(navController: NavHostController, activityService: ActivitySer
                 currentScreen.startsWith("editActivity") -> {
                     TopBar(navController, title = "Endre aktivitet", showBackButton = true)
                 }
-                else -> { /* Handle other screens */ }
+                else -> { /* Håndter andre skjermer */ }
             }
         },
         bottomBar = {
@@ -118,7 +117,7 @@ fun AppNavigation(navController: NavHostController, activityService: ActivitySer
             if (currentScreen !in screensWithoutBottomBar) {
                 BottomNavBar(
                     navController = navController,
-                    currentScreen = if (adjustedCurrentScreen.startsWith("detail")) AppScreens.HOME.name else adjustedCurrentScreen
+                    currentScreen = adjustedCurrentScreen
                 )
             }
         },
@@ -132,7 +131,7 @@ fun AppNavigation(navController: NavHostController, activityService: ActivitySer
             composable(AppScreens.START.name) { StartScreen(navController) }
             composable(AppScreens.SIGNUP.name) { SignupScreen(navController) }
             composable(AppScreens.SIGNIN.name) { SigninScreen(navController) }
-            composable(AppScreens.RESET_PASSWORD.name) { ResetPasswordScreen(navController) }
+            composable(AppScreens.RESET_PASSWORD.name) { ResetPasswordScreen() }
             composable(AppScreens.HOME.name) { HomeScreen(navController) }
             composable(
                 route = "detail/{category}/{activityId}",
@@ -151,7 +150,7 @@ fun AppNavigation(navController: NavHostController, activityService: ActivitySer
             }
             composable(AppScreens.ENTRIES.name) { EntriesScreen(navController) }
             composable(AppScreens.PROFILE.name) { ProfileScreen(navController) }
-            composable(AppScreens.CHANGE_PASSWORD.name) { ChangePasswordScreen(navController) }
+            composable(AppScreens.CHANGE_PASSWORD.name) { ChangePasswordScreen() }
             composable(AppScreens.EDIT_PROFILE.name) { EditProfileScreen(navController) }
             composable(AppScreens.EDIT_PERMISSION.name) { EditPermissionScreen(navController) }
             composable(AppScreens.NOTIFICATIONS.name) { NotificationsScreen(navController) }
@@ -178,3 +177,4 @@ fun AppNavigation(navController: NavHostController, activityService: ActivitySer
         }
     }
 }
+
