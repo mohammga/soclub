@@ -21,7 +21,7 @@ import javax.inject.Inject
 data class EditProfileState(
     val firstname: String = "",
     val lastname: String = "",
-    val imageUrl: String = "",
+    val imageUri: Uri? = null,
     @StringRes val firstnameError: Int? = null,
     @StringRes val lastnameError: Int? = null,
     val isDirty: Boolean = false
@@ -42,18 +42,19 @@ class EditProfileViewModel @Inject constructor(
                 val nameParts = userInfo.name.split(" ")
                 val firstname = nameParts.firstOrNull() ?: ""
                 val lastname = nameParts.drop(1).joinToString(" ")
-                val imageUrl = userInfo.imageUrl ?: ""
+                val imageUri = userInfo.imageUrl?.let { Uri.parse(it) } // Convert imageUrl to Uri
 
                 uiState.value = uiState.value.copy(
                     firstname = firstname,
                     lastname = lastname,
-                    imageUrl = imageUrl,
+                    imageUri = imageUri
                 )
             } catch (e: Exception) {
                 uiState.value = uiState.value.copy(firstnameError = R.string.error_profile_info)
             }
         }
     }
+
 
     fun onNameChange(newValue: String) {
         val isNameDirty = newValue != uiState.value.firstname
@@ -65,8 +66,8 @@ class EditProfileViewModel @Inject constructor(
         uiState.value = uiState.value.copy(lastname = newValue, isDirty = isLastnameDirty, lastnameError = null)
     }
 
-    fun onImageSelected(imagePath: String) {
-        uiState.value = uiState.value.copy(imageUrl = imagePath)
+    fun onImageSelected(uri: Uri?) {
+        uiState.value = uiState.value.copy(imageUri = uri, isDirty = true)
     }
 
     fun onSaveProfileClick(navController: NavController) {
@@ -98,17 +99,25 @@ class EditProfileViewModel @Inject constructor(
         if (hasError) return
 
         val fullName = "${uiState.value.firstname} ${uiState.value.lastname}"
-        uploadImageToFirebase(
-            Uri.parse(uiState.value.imageUrl),
-            onSuccess = { imageUrl ->
-                updateUserInfoAndNavigate(navController, fullName, imageUrl)
-            },
-            onError = { error ->
-                Log.e("EditProfileViewModel", "Error uploading image: ${error.message}")
-                uiState.value = uiState.value.copy(firstnameError = R.string.error_profile_creation)
-            }
-        )
+
+        // Check if imageUri is null before calling Uri.parse
+        val imageUri = uiState.value.imageUri
+        if (imageUri != null) {
+            uploadImageToFirebase(
+                imageUri,
+                onSuccess = { imageUrl ->
+                    updateUserInfoAndNavigate(navController, fullName, imageUrl)
+                },
+                onError = { error ->
+                    Log.e("EditProfileViewModel", "Error uploading image: ${error.message}")
+                    uiState.value = uiState.value.copy(firstnameError = R.string.error_profile_creation)
+                }
+            )
+        } else {
+            updateUserInfoAndNavigate(navController, fullName, "") // No image URL if imageUri is null
+        }
     }
+
 
     private fun uploadImageToFirebase(imageUri: Uri, onSuccess: (String) -> Unit, onError: (Exception) -> Unit) {
         val storageRef = FirebaseStorage.getInstance().reference.child("User/${imageUri.lastPathSegment}")

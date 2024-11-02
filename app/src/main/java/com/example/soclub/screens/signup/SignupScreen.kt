@@ -96,8 +96,9 @@ fun NameField(value: String, onNewValue: (String) -> Unit, error: String?) {
         singleLine = true,
         isError = error != null,
         supportingText = {
-            Text(text = stringResource(id = R.string.name_supporting_text))
-            if (error != null) {
+            if (error == null) {
+                Text(text = stringResource(id = R.string.name_supporting_text))
+            } else {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         }
@@ -118,8 +119,9 @@ fun AgeField(value: String, onNewValue: (String) -> Unit, error: String?) {
         singleLine = true,
         isError = error != null,
         supportingText = {
-            Text(text = stringResource(id = R.string.age_supporting_text))
-            if (error != null) {
+            if (error == null) {
+                Text(text = stringResource(id = R.string.age_supporting_text))
+            } else {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         }
@@ -139,8 +141,9 @@ fun EmailField(value: String, onNewValue: (String) -> Unit, error: String?) {
         placeholder = { Text(stringResource(id = R.string.placeholder_email)) },
         isError = error != null,
         supportingText = {
-            Text(text = stringResource(id = R.string.email_supporting_text))
-            if (error != null) {
+            if (error == null) {
+                Text(text = stringResource(id = R.string.email_supporting_text))
+            } else {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         }
@@ -179,14 +182,14 @@ fun PasswordField(value: String, onNewValue: (String) -> Unit, error: String?) {
         visualTransformation = visualTransformation,
         isError = error != null,
         supportingText = {
-            Text(text = stringResource(id = R.string.password_supporting_text))
-            if (error != null) {
+            if (error == null) {
+                Text(text = stringResource(id = R.string.password_supporting_text))
+            } else {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         }
     )
 }
-
 
 @Composable
 private fun SignUpButton(navController: NavController, viewModel: SignupViewModel) {
@@ -199,7 +202,6 @@ private fun SignUpButton(navController: NavController, viewModel: SignupViewMode
         Text(text = stringResource(id = R.string.register))
     }
 }
-
 
 @Composable
 fun SignInButton(navController: NavController) {

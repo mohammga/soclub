@@ -49,8 +49,10 @@ data class NewActivityState(
     val maxParticipantsError: String? = null,
     val ageLimitError: String? = null,
     val dateError: String? = null,
-    val startTimeError: String? = null
+    val startTimeError: String? = null,
+    val selectedImageUri: Uri? = null
 )
+
 
 @HiltViewModel
 class NewActivityViewModel @Inject constructor(
@@ -109,8 +111,8 @@ class NewActivityViewModel @Inject constructor(
         uiState.value = uiState.value.copy(description = newValue, descriptionError = null)
     }
 
-    fun onImageSelected(imagePath: String) {
-        uiState.value = uiState.value.copy(imageUrl = imagePath)
+    fun onImageSelected(uri: Uri?) {
+        uiState.value = uiState.value.copy(selectedImageUri = uri, imageUrl = uri?.toString() ?: "")
     }
 
     fun onCategoryChange(newValue: String) {

@@ -33,7 +33,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import com.example.soclub.R
 
-
 @Composable
 fun SigninScreen(navController: NavController, viewModel: SigninViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState
@@ -98,8 +97,9 @@ fun EmailField(value: String, onNewValue: (String) -> Unit, error: String?) {
         placeholder = { Text(stringResource(id = R.string.email_label)) },
         isError = error != null,
         supportingText = {
-            Text(text = stringResource(id = R.string.email_supporting_text))
-            if (error != null) {
+            if (error == null) {
+                Text(text = stringResource(id = R.string.email_supporting_text))
+            } else if (error != null) {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         }
@@ -142,8 +142,9 @@ fun PasswordField(
         visualTransformation = visualTransformation,
         isError = error != null,
         supportingText = {
-            Text(text = stringResource(id = R.string.password_supporting_text))
-            if (error != null) {
+            if (error == null) {
+                Text(text = stringResource(id = R.string.password_supporting_text))
+            } else if (error != null) {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         }

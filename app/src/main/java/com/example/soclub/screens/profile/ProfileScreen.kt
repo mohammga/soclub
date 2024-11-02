@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.*
@@ -169,18 +168,22 @@ fun ProfileInfoRow(label: String, value: String = "", onClick: (() -> Unit)? = n
             Text(text = label, style = MaterialTheme.typography.bodyLarge)
         }
         if (value.isNotEmpty()) {
-            ClickableText(
+            Text(
                 text = AnnotatedString(value),
                 style = TextStyle(
                     color = MaterialTheme.colorScheme.secondary,
                 ),
-                onClick = { onClick?.invoke() }
+                modifier = Modifier.clickable { onClick?.invoke() }
             )
         } else {
-            Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null
+            )
         }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable

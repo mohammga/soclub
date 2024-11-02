@@ -123,8 +123,9 @@ fun PasswordField(
         visualTransformation = visualTransformation,
         isError = error != null,
         supportingText = {
-            supportingText?.let { Text(text = it) }
-            if (error != null) {
+            if (error == null) {
+                supportingText?.let { Text(text = it) }
+            } else {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         }

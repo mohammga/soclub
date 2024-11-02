@@ -15,13 +15,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import com.example.soclub.R
-
 
 @Composable
 fun ResetPasswordScreen(navController: NavController, viewModel: ResetPasswordViewModel = hiltViewModel()) {
@@ -84,8 +80,9 @@ fun EmailField(value: String, onNewValue: (String) -> Unit, error: String?) {
         singleLine = true,
         isError = error != null,
         supportingText = {
-            Text(text = stringResource(id = R.string.email_supporting_text))
-            if (error != null) {
+            if (error == null) {
+                Text(text = stringResource(id = R.string.email_supporting_text))
+            } else {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         }
