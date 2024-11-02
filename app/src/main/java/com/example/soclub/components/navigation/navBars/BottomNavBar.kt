@@ -36,6 +36,16 @@ val shortcuts = listOf(
 
 @Composable
 fun BottomNavBar(navController: NavController, currentScreen: String) {
+    val profileScreens = setOf(
+        AppScreens.PROFILE.name,
+        AppScreens.EDIT_PROFILE.name,
+        AppScreens.CHANGE_PASSWORD.name,
+        AppScreens.EDIT_PERMISSION.name,
+        AppScreens.ADS.name,
+        AppScreens.ENTRIES.name,
+        "editActivity"
+    )
+
     NavigationBar {
         shortcuts.forEach { shortcut ->
             NavigationBarItem(
@@ -54,20 +64,27 @@ fun BottomNavBar(navController: NavController, currentScreen: String) {
                         fontSize = 10.sp,
                     )
                 },
-                selected = currentScreen == shortcut.route.name, // Bruk currentScreen for å avgjøre aktivt ikon
+                selected = currentScreen == shortcut.route.name, // Highlight selected icon
                 onClick = {
-                    navController.navigate(shortcut.route.name) {
-                        // Fjern historikk for å unngå dubletter
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
+                    if (shortcut.route == AppScreens.PROFILE && currentScreen in profileScreens) {
+                        // If already on a profile-related screen, pop back to the main profile screen
+                        navController.navigate(AppScreens.PROFILE.name) {
+                            popUpTo(AppScreens.PROFILE.name) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    } else {
+                        // For other cases, navigate normally
+                        navController.navigate(shortcut.route.name) {
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 }
             )
         }
     }
 }
-
 
 @Composable
 fun getCurrentScreen(navController: NavController): String {

@@ -56,9 +56,11 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                     Spacer(modifier = Modifier.height(16.dp))
 
                     ImageUploadSection(
-                        viewModel::onImageSelected,
-                        imageUrl = uiState.imageUrl
+                        imageUri = uiState.imageUri,
+                        onImageSelected = viewModel::onImageSelected
                     )
+
+
 
                     Spacer(modifier = Modifier.height(16.dp))
                 }
@@ -92,7 +94,7 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                             if (uiState.firstnameError == null && uiState.lastnameError == null) {
                                 coroutineScope.launch {
                                     snackbarHostState.showSnackbar(
-                                        message = "Personlig info er endret"
+                                        message = "Personlig info endret"
                                     )
                                 }
                             }
@@ -123,8 +125,9 @@ fun ProfileTextField(
         singleLine = true,
         isError = error != null,
         supportingText = {
-            supportingText?.let { Text(text = it) }
-            if (error != null) {
+            if (error == null) {
+                supportingText?.let { Text(text = it) }
+            } else {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         }
@@ -133,60 +136,47 @@ fun ProfileTextField(
 
 @Composable
 fun ImageUploadSection(
-    onImageSelected: (String) -> Unit,
-    imageUrl: String?
+    imageUri: Uri?,
+    onImageSelected: (Uri?) -> Unit,
+    error: String? = null
 ) {
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
-            onImageSelected(uri.toString())
-            selectedImageUri = uri
+            onImageSelected(uri)
         }
     }
 
-    Column {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .height(300.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .clickable { galleryLauncher.launch("image/*") }
+                .padding(vertical = 8.dp)
         ) {
-            when {
-                selectedImageUri != null -> {
-                    AsyncImage(
-                        model = selectedImageUri,
-                        contentDescription = stringResource(id = R.string.selected_image),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(300.dp)
-                            .clip(RoundedCornerShape(16.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-
-                !imageUrl.isNullOrEmpty() -> {
-                    AsyncImage(
-                        model = imageUrl,
-                        contentDescription = stringResource(id = R.string.profile_picture_description),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(300.dp)
-                            .clip(RoundedCornerShape(16.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-                else -> {
-                    Image(
-                        painter = painterResource(id = R.drawable.user),
-                        contentDescription = stringResource(id = R.string.profile_picture_description),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(300.dp)
-                            .clip(RoundedCornerShape(16.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                }
+            if (imageUri != null) {
+                AsyncImage(
+                    model = imageUri,
+                    contentDescription = stringResource(id = R.string.selected_image),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp)
+                        .clip(RoundedCornerShape(16.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = R.drawable.user),
+                    contentDescription = stringResource(id = R.string.profile_picture_description),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(300.dp)
+                        .clip(RoundedCornerShape(16.dp)),
+                    contentScale = ContentScale.Crop
+                )
             }
         }
 
@@ -195,55 +185,61 @@ fun ImageUploadSection(
         Text(
             text = stringResource(id = R.string.change_profile_picture),
             fontWeight = FontWeight.Bold,
-            fontSize = 16.sp
+            fontSize = 16.sp,
+            modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
         )
 
-        if (selectedImageUri != null) {
+        if (imageUri != null) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { selectedImageUri = null },
+                    .clickable { onImageSelected(null) },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ClickableText(
-                    text = AnnotatedString(stringResource(id = R.string.remove_image)),
+                Text(
+                    text = stringResource(id = R.string.remove_image),
                     style = MaterialTheme.typography.bodyLarge.copy(
                         color = Color.Gray,
                         fontSize = 14.sp
                     ),
-                    onClick = { selectedImageUri = null }
+                    modifier = Modifier.clickable { onImageSelected(null) }
                 )
 
                 Icon(
                     imageVector = Icons.Filled.Delete,
                     contentDescription = stringResource(id = R.string.remove_image),
-                    tint = Color.Gray
+                    tint = Color.Gray,
+                    modifier = Modifier.clickable { onImageSelected(null) }
                 )
             }
         } else {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { galleryLauncher.launch("image/*") },
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ClickableText(
-                    text = AnnotatedString(stringResource(id = R.string.upload_new_picture)),
+                Text(
+                    text = stringResource(id = R.string.upload_new_picture),
                     style = MaterialTheme.typography.bodyLarge.copy(
                         color = Color.Gray,
                         fontSize = 14.sp
                     ),
-                    onClick = { galleryLauncher.launch("image/*") }
+                    modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
                 )
 
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = stringResource(id = R.string.upload_new_picture),
-                    tint = Color.Gray
+                    tint = Color.Gray,
+                    modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
                 )
             }
+        }
+
+        error?.let {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = it, color = MaterialTheme.colorScheme.error)
         }
     }
 }

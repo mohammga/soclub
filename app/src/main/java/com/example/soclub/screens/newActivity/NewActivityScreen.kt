@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -27,7 +26,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -57,7 +55,12 @@ fun NewActivityScreen(navController: NavController, viewModel: NewActivityViewMo
                 .fillMaxSize()
                 .padding(16.dp),
         ) {
-            item { ImageUploadSection(viewModel::onImageSelected) }
+            item {
+                ImageUploadSection(
+                    selectedImageUri = uiState.selectedImageUri,
+                    onImageSelected = viewModel::onImageSelected
+                )
+            }
 
             item { TitleField(value = uiState.title, onNewValue = viewModel::onTitleChange, error = uiState.titleError) }
 
@@ -135,8 +138,9 @@ fun TitleField(value: String, onNewValue: (String) -> Unit, error: String?) {
         singleLine = true,
         isError = error != null,
         supportingText = {
-            Text(stringResource(id = R.string.title_supporting_text))
-            if (error != null) {
+            if (error == null) {
+                Text(stringResource(id = R.string.title_supporting_text))
+            } else {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         }
@@ -154,8 +158,9 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?
         maxLines = 5,
         isError = error != null,
         supportingText = {
-            Text(stringResource(id = R.string.description_supporting_text))
-            if (error != null) {
+            if (error == null) {
+                Text(stringResource(id = R.string.description_supporting_text))
+            } else {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         }
@@ -185,8 +190,9 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?) {
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
             isError = error != null,
             supportingText = {
-                Text(stringResource(id = R.string.category_supporting_text))
-                if (error != null) {
+                if (error == null) {
+                    Text(stringResource(id = R.string.category_supporting_text))
+                } else {
                     Text(text = error, color = MaterialTheme.colorScheme.error)
                 }
             }
@@ -221,8 +227,9 @@ fun LocationField(value: String, onNewValue: (String) -> Unit, suggestions: List
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             isError = error != null,
             supportingText = {
-                Text(stringResource(id = R.string.location_supporting_text))
-                if (error != null) {
+                if (error == null) {
+                    Text(stringResource(id = R.string.location_supporting_text))
+                } else {
                     Text(text = error, color = MaterialTheme.colorScheme.error)
                 }
             }
@@ -262,8 +269,9 @@ fun AddressField(value: String, onNewValue: (String) -> Unit, suggestions: List<
             enabled = isEnabled,
             isError = error != null,
             supportingText = {
-                Text(stringResource(id = R.string.address_supporting_text))
-                if (error != null) {
+                if (error == null) {
+                    Text(stringResource(id = R.string.address_supporting_text))
+                } else {
                     Text(text = error, color = MaterialTheme.colorScheme.error)
                 }
             }
@@ -297,8 +305,9 @@ fun PostalCodeField(value: String, error: String?) {
         readOnly = true,
         isError = error != null,
         supportingText = {
-            Text(stringResource(id = R.string.postal_code_supporting_text))
-            if (error != null) {
+            if (error == null) {
+                Text(stringResource(id = R.string.postal_code_supporting_text))
+            } else {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         }
@@ -321,14 +330,16 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
         readOnly = true,
         isError = error != null,
         supportingText = {
-            Text(stringResource(id = R.string.date_supporting_text))
-            if (error != null) {
+            if (error == null) {
+                Text(stringResource(id = R.string.date_supporting_text))
+            } else {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         }
     )
 }
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) {
     val context = LocalContext.current
@@ -344,8 +355,9 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
         readOnly = true,
         isError = error != null,
         supportingText = {
-            Text(stringResource(id = R.string.start_time_supporting_text))
-            if (error != null) {
+            if (error == null) {
+                Text(stringResource(id = R.string.start_time_supporting_text))
+            } else {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         }
@@ -364,8 +376,9 @@ fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: Str
         singleLine = true,
         isError = error != null,
         supportingText = {
-            Text(stringResource(id = R.string.max_participants_supporting_text))
-            if (error != null) {
+            if (error == null) {
+                Text(stringResource(id = R.string.max_participants_supporting_text))
+            } else {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         }
@@ -384,35 +397,39 @@ fun AgeLimitField(value: String, onNewValue: (String) -> Unit, error: String?) {
         singleLine = true,
         isError = error != null,
         supportingText = {
-            Text(stringResource(id = R.string.age_limit_supporting_text))
-            if (error != null) {
+            if (error == null) {
+                Text(stringResource(id = R.string.age_limit_supporting_text))
+            } else {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         }
     )
 }
 
-
 @Composable
-fun ImageUploadSection(onImageSelected: (String) -> Unit) {
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-
+fun ImageUploadSection(
+    selectedImageUri: Uri?,
+    onImageSelected: (Uri?) -> Unit,
+    error: String? = null
+) {
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
-            onImageSelected(uri.toString())
-            selectedImageUri = uri
+            onImageSelected(uri)
         }
     }
 
-    Column {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .height(300.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .clickable { galleryLauncher.launch("image/*") }
+                .padding(vertical = 8.dp)
         ) {
             if (selectedImageUri != null) {
-                // Vise det valgte bildet
                 AsyncImage(
                     model = selectedImageUri,
                     contentDescription = stringResource(id = R.string.selected_image),
@@ -423,7 +440,6 @@ fun ImageUploadSection(onImageSelected: (String) -> Unit) {
                     contentScale = ContentScale.Crop
                 )
             } else {
-                // Vise plassholderbildet
                 Image(
                     painter = painterResource(id = R.drawable.placeholder),
                     contentDescription = stringResource(id = R.string.change_ad_picture),
@@ -436,68 +452,68 @@ fun ImageUploadSection(onImageSelected: (String) -> Unit) {
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         Text(
             text = stringResource(id = R.string.change_ad_picture),
             fontWeight = FontWeight.Bold,
-            fontSize = 16.sp
+            fontSize = 16.sp,
+            modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
         )
 
-        // Endre innholdet i raden basert på om et bilde er valgt eller ikke
         if (selectedImageUri != null) {
-            // Vise alternativet for å fjerne bilde
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { /* Ingen handling, bildesletting håndteres av knappen over */ },
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ClickableText(
-                    text = AnnotatedString(stringResource(id = R.string.remove_image)), // Oppdatere teksten til "Fjern bilde"
+                Text(
+                    text = stringResource(id = R.string.remove_image),
                     style = MaterialTheme.typography.bodyLarge.copy(
                         color = Color.Gray,
                         fontSize = 14.sp
                     ),
-                    onClick = {
-                        selectedImageUri = null // Fjern bildet
-                    }
+                    modifier = Modifier.clickable { onImageSelected(null) }
                 )
 
                 Icon(
                     imageVector = Icons.Filled.Delete,
                     contentDescription = stringResource(id = R.string.remove_image),
-                    tint = Color.Gray
+                    tint = Color.Gray,
+                    modifier = Modifier.clickable { onImageSelected(null) }
                 )
             }
         } else {
-            // Vise alternativet for å laste opp nytt bilde
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { galleryLauncher.launch("image/*") },
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                ClickableText(
-                    text = AnnotatedString(stringResource(id = R.string.upload_new_picture)),
+                Text(
+                    text = stringResource(id = R.string.upload_new_picture),
                     style = MaterialTheme.typography.bodyLarge.copy(
                         color = Color.Gray,
                         fontSize = 14.sp
                     ),
-                    onClick = { galleryLauncher.launch("image/*") },
+                    modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
                 )
 
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = stringResource(id = R.string.upload_new_picture),
-                    tint = Color.Gray
+                    tint = Color.Gray,
+                    modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
                 )
             }
         }
+
+        error?.let {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = it, color = MaterialTheme.colorScheme.error)
+        }
     }
 }
+
 @Composable
 fun PublishButton(navController: NavController, viewModel: NewActivityViewModel) {
     Button(

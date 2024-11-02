@@ -249,7 +249,7 @@
     <string name="name_supporting_text">Skriv inn ditt fulle navn.</string>
     <string name="age_label">Alder</string>
     <string name="age_supporting_text">Skriv inn din alder.</string>
-    <string name="email_label">E-post</string>
+    <string name="email_label">E-postadresse</string>
     <string name="password_label">Passord</string>
 
 //reset
