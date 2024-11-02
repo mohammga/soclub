@@ -42,7 +42,6 @@ fun BottomNavBar(navController: NavController, currentScreen: String) {
         AppScreens.CHANGE_PASSWORD.name,
         AppScreens.EDIT_PERMISSION.name,
         AppScreens.ADS.name,
-        AppScreens.ENTRIES.name,
         "editActivity"
     )
 

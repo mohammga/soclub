@@ -36,8 +36,7 @@ import com.example.soclub.service.impl.AccountServiceImpl
 import com.example.soclub.service.module.FirebaseModule
 
 @Composable
-fun AppNavigation(navController: NavHostController, activityService: ActivityService) {
-    val navController = rememberNavController()
+fun AppNavigation(navController: NavHostController) {
     val currentScreen = getCurrentScreen(navController)
 
     // Define profile-related screens to be treated as the "Profile" screen
@@ -47,7 +46,6 @@ fun AppNavigation(navController: NavHostController, activityService: ActivitySer
         AppScreens.CHANGE_PASSWORD.name,
         AppScreens.EDIT_PERMISSION.name,
         AppScreens.ADS.name,
-        AppScreens.ENTRIES.name,
         "editActivity"
     )
     val adjustedCurrentScreen = if (currentScreen in profileScreens) AppScreens.PROFILE.name else currentScreen
@@ -132,7 +130,7 @@ fun AppNavigation(navController: NavHostController, activityService: ActivitySer
             composable(AppScreens.START.name) { StartScreen(navController) }
             composable(AppScreens.SIGNUP.name) { SignupScreen(navController) }
             composable(AppScreens.SIGNIN.name) { SigninScreen(navController) }
-            composable(AppScreens.RESET_PASSWORD.name) { ResetPasswordScreen(navController) }
+            composable(AppScreens.RESET_PASSWORD.name) { ResetPasswordScreen() }
             composable(AppScreens.HOME.name) { HomeScreen(navController) }
             composable(
                 route = "detail/{category}/{activityId}",
@@ -151,7 +149,7 @@ fun AppNavigation(navController: NavHostController, activityService: ActivitySer
             }
             composable(AppScreens.ENTRIES.name) { EntriesScreen(navController) }
             composable(AppScreens.PROFILE.name) { ProfileScreen(navController) }
-            composable(AppScreens.CHANGE_PASSWORD.name) { ChangePasswordScreen(navController) }
+            composable(AppScreens.CHANGE_PASSWORD.name) { ChangePasswordScreen() }
             composable(AppScreens.EDIT_PROFILE.name) { EditProfileScreen(navController) }
             composable(AppScreens.EDIT_PERMISSION.name) { EditPermissionScreen(navController) }
             composable(AppScreens.NOTIFICATIONS.name) { NotificationsScreen(navController) }

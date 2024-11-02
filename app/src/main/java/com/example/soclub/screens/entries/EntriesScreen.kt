@@ -24,7 +24,7 @@ import java.util.Locale
 
 @Composable
 fun EntriesScreen(navController: NavHostController) {
-    val (selectedTab, setSelectedTab) = remember { mutableStateOf(0) }
+    val (selectedTab, setSelectedTab) = remember { mutableIntStateOf(0) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Tabs(selectedTab = selectedTab, setSelectedTab = setSelectedTab)
@@ -91,7 +91,7 @@ fun ActiveEntriesList(navController: NavHostController, viewModel: EntriesScreen
                     onCancelClick = { viewModel.cancelRegistration(activity.id) },
                     onClick = {
                         activity.category?.let { category ->
-                            activity.id?.let { id ->
+                            activity.id.let { id ->
                                 navController.navigate("detail/$category/$id")
                             }
                         }
@@ -130,7 +130,7 @@ fun CancelledEntriesList(navController: NavHostController, viewModel: EntriesScr
                     date = activity.date,
                     onClick = {
                         activity.category?.let { category ->
-                            activity.id?.let { id ->
+                            activity.id.let { id ->
                                 navController.navigate("detail/$category/$id")
                             }
                         }
@@ -211,7 +211,7 @@ fun EventImage(imageUrl: String?) {
 
 @Composable
 fun DateDisplay(date: Timestamp?) {
-    val formattedDate = date?.let {
+    val formattedDate = date?.let { it ->
         val sdf = SimpleDateFormat("EEEE, d. MMMM yyyy, HH:mm", Locale("no", "NO"))
         val dateStr = sdf.format(it.toDate())
         dateStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }

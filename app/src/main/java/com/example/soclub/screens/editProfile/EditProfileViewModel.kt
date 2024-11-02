@@ -42,7 +42,7 @@ class EditProfileViewModel @Inject constructor(
                 val nameParts = userInfo.name.split(" ")
                 val firstname = nameParts.firstOrNull() ?: ""
                 val lastname = nameParts.drop(1).joinToString(" ")
-                val imageUri = userInfo.imageUrl?.let { Uri.parse(it) } // Convert imageUrl to Uri
+                val imageUri = userInfo.imageUrl.let { Uri.parse(it) } // Convert imageUrl to Uri
 
                 uiState.value = uiState.value.copy(
                     firstname = firstname,
