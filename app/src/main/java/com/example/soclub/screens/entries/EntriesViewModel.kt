@@ -7,6 +7,7 @@ import com.example.soclub.service.EntriesService
 import com.example.soclub.service.AccountService
 import com.example.soclub.service.ActivityDetaillService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -31,9 +32,6 @@ class EntriesScreenViewModel @Inject constructor(
     private val _isLoadingInactive = MutableStateFlow(false)
     val isLoadingInactive: StateFlow<Boolean> = _isLoadingInactive
 
-    private val _expiredActivities = MutableStateFlow<List<Activity>>(emptyList())
-    val expiredActivities: StateFlow<List<Activity>> = _expiredActivities
-    // I EntriesScreenViewModel
 
     private val _isLoadingExpired = MutableStateFlow(false)
     val isLoadingExpired: StateFlow<Boolean> = _isLoadingExpired
@@ -42,7 +40,6 @@ class EntriesScreenViewModel @Inject constructor(
     init {
         listenForActivityUpdates()
         listenForNotActiveActivityUpdates()
-        listenForExpiredActivityUpdates()
     }
 
     private fun listenForActivityUpdates() {
@@ -51,12 +48,15 @@ class EntriesScreenViewModel @Inject constructor(
             viewModelScope.launch {
                 _isLoadingActive.value = true
                 entriesService.getActiveActivitiesForUser(userId) { activities ->
-                    _activeActivities.value = activities // Disse aktivitetene inkluderer nå kategori og ID
+                    // Sorter aktiviteter etter 'createdAt' for å sikre nyeste øverst
+                    _activeActivities.value = activities.sortedByDescending { it.createdAt }
                     _isLoadingActive.value = false
                 }
             }
         }
     }
+
+
 
     private fun listenForNotActiveActivityUpdates() {
         val userId = accountService.currentUserId
@@ -64,7 +64,8 @@ class EntriesScreenViewModel @Inject constructor(
             viewModelScope.launch {
                 _isLoadingInactive.value = true
                 entriesService.getNotActiveActivitiesForUser(userId) { activities ->
-                    _notActiveActivities.value = activities
+                    // Sorter aktiviteter etter 'createdAt' for å sikre nyeste øverst
+                    _notActiveActivities.value = activities.sortedByDescending { it.createdAt }
                     _isLoadingInactive.value = false
                 }
             }
@@ -75,21 +76,16 @@ class EntriesScreenViewModel @Inject constructor(
         viewModelScope.launch {
             val userId = accountService.currentUserId
             activityDetaillService.updateRegistrationStatus(userId, activityId, "notAktiv")
+
+            // Midlertidig fjern den kansellerte aktiviteten fra listen lokalt
+            _activeActivities.value = _activeActivities.value.filter { it.id != activityId }
+
+            // La SnapshotListener håndtere oppdateringen etterpå
         }
     }
 
-    private fun listenForExpiredActivityUpdates() {
-        val userId = accountService.currentUserId
-        if (userId.isNotEmpty()) {
-            viewModelScope.launch {
-                _isLoadingExpired.value = true  // Setter loading til true før lasting
-                entriesService.getExpiredActivitiesForUser(userId) { activities ->
-                    _expiredActivities.value = activities
-                    _isLoadingExpired.value = false  // Setter loading til false etter lasting
-                }
-            }
-        }
-    }
+
+
 }
 
 

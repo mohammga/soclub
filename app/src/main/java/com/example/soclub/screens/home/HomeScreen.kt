@@ -43,56 +43,25 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
     var showBottomSheet by remember { mutableStateOf(false) }
     var isSelectingArea by remember { mutableStateOf(true) }
-    val selectedCities = remember { mutableStateListOf<String>() }
+    val selectedCities by viewModel.selectedCities.observeAsState(mutableListOf())
     val cities by viewModel.getCities().observeAsState(emptyList())
-    val filteredActivities by viewModel.filteredActivities.observeAsState(emptyList()) // Bruk filtrerte aktiviteter
-
-
-    // GPS-relaterte variabler
-    val location by viewModel.getCurrentLocation().observeAsState(null)
-    var userCity by remember { mutableStateOf<String?>(null) }
-
-    // Når vi har GPS-posisjonen, bruk geokoding for å hente byen
-    LaunchedEffect(location) {
-        location?.let {
-            userCity = viewModel.getCityFromLocation(it)
-        }
-    }
-
-    // Når brukerens by er hentet, oppdater aktivitetene for "Forslag" kategorien
-    val activities by viewModel.getActivities("Nærme Aktiviteter").observeAsState(emptyList())
-
-    LaunchedEffect(pagerState.currentPage) {
-        val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
-        if (selectedCategory == "Nærme Aktiviteter") {
-            // Nullstill aktivitetene før vi henter nye for "Forslag"
-            viewModel.resetActivities()  // Implementer denne i viewModel for å tømme aktiviteter
-            viewModel.getActivities("Nærme Aktiviteter")
-        } else {
-            viewModel.fetchAndFilterActivitiesByCities(selectedCities, selectedCategory)
-        }
-    }
-
-
 
     Column(modifier = Modifier.fillMaxSize()) {
+        // Top bar and categories shown as usual
         if (categories.isNotEmpty()) {
             CategoryTabs(categories = categories, pagerState = pagerState)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
-
         Row(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
             CategoryTitle(selectedCategory)
 
-            // Vis filterikonet kun hvis kategorien ikke er "Forslag"
             if (selectedCategory != "Nærme Aktiviteter") {
                 Icon(
                     imageVector = Icons.Default.FilterList,
@@ -109,31 +78,16 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Hvis vi har filtrerte aktiviteter, vis disse, ellers vis aktiviteter for den valgte kategorien
-        if (filteredActivities.isNotEmpty()) {
-            ActivityList(activities = filteredActivities, selectedCategory = selectedCategory, navController = navController)
-        } else if (selectedCities.isNotEmpty() && filteredActivities.isEmpty()) {
-            Text(
-                text = "Det er ingen aktiviteter i ${selectedCities.joinToString(", ")} for denne kategorien.",
-                modifier = Modifier.padding(16.dp),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
-        } else {
-            // Hvis "Forslag" er valgt, vis aktiviteter basert på brukerens by
-            if (selectedCategory == "Nærme Aktiviteter" && activities.isNotEmpty()) {
-                ActivityList(activities = activities, selectedCategory = selectedCategory, navController = navController)
-            } else {
-                CategoryActivitiesPager(
-                    categories = categories,
-                    pagerState = pagerState,
-                    viewModel = viewModel,
-                    navController = navController
-                )
-            }
-        }
+        // Display activities in selected category with loading
+        CategoryActivitiesPager(
+            categories = categories,
+            pagerState = pagerState,
+            viewModel = viewModel,
+            navController = navController
+        )
     }
 
+    // BottomSheet for filtering
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false }
@@ -151,9 +105,10 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                     )
                 }
             } else {
-                Column(modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(16.dp)
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(16.dp)
                 ) {
                     Row(
                         modifier = Modifier
@@ -178,18 +133,14 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(300.dp)  // Begrens høyden
+                            .height(300.dp)
                     ) {
                         items(cities) { city ->
                             CitySelectionItem(
                                 city = city,
-                                isSelected = selectedCities.contains(city), // Behold valgte byer
+                                isSelected = selectedCities.contains(city),
                                 onCitySelected = { isSelected ->
-                                    if (isSelected) {
-                                        selectedCities.add(city)
-                                    } else {
-                                        selectedCities.remove(city)
-                                    }
+                                    viewModel.updateSelectedCities(city, isSelected)
                                 }
                             )
                             Spacer(modifier = Modifier.height(8.dp))
@@ -200,24 +151,19 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
                     Button(
                         onClick = {
-                            // Filtrer aktiviteter basert på valgte byer kun for den valgte kategorien
-                            val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
-                            viewModel.fetchAndFilterActivitiesByCities(selectedCities, selectedCategory)
-                            showBottomSheet = false // Skjul BottomSheet
+                            viewModel.fetchAndGroupActivitiesByCities(selectedCities)
+                            showBottomSheet = false
                         },
                         modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
                     ) {
                         Text(text = "Søk")
                     }
 
-                    if (filteredActivities.isNotEmpty()) {
+                    if (selectedCities.isNotEmpty()) {
                         Button(
                             onClick = {
-                                val selectedCategory = categories.getOrElse(pagerState.currentPage) { "" }
-                                selectedCities.clear() // Tøm listen over valgte byer
-                                viewModel.resetFilter() // Nullstill filtreringen
-                                viewModel.fetchAndFilterActivitiesByCities(emptyList(), selectedCategory) // Gjenopprett aktivitetene for valgt kategori
-                                showBottomSheet = false // Skjul BottomSheet
+                                viewModel.resetFilter()
+                                showBottomSheet = false
                             },
                             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
                         ) {
@@ -232,6 +178,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
 
 
+
 @Composable
 fun CategoryActivitiesPager(
     categories: List<String>,
@@ -239,11 +186,44 @@ fun CategoryActivitiesPager(
     viewModel: HomeViewModel,
     navController: NavHostController
 ) {
-    HorizontalPager(state = pagerState) { page ->
-        val selectedCategory = categories[page]
-        val activities by viewModel.getActivities(selectedCategory).observeAsState(emptyList())
+    val groupedActivities by viewModel.groupedActivities.observeAsState(emptyMap())
+    val isLoading by viewModel.isLoading.observeAsState(false)
 
-        ActivityList(activities = activities, selectedCategory = selectedCategory, navController = navController)
+    HorizontalPager(
+        state = pagerState,
+        modifier = Modifier.fillMaxSize(),
+        userScrollEnabled = true
+    ) { page ->
+        val selectedCategory = categories[page]
+        val activities = groupedActivities[selectedCategory] ?: emptyList()
+
+        Column(modifier = Modifier.fillMaxSize()) {
+            if (isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator() // Viser loading-indikator til alt er klart
+                }
+            } else {
+                if (activities.isNotEmpty()) {
+                    ActivityList(
+                        activities = activities,
+                        selectedCategory = selectedCategory,
+                        navController = navController
+                    )
+                } else {
+                    Text(
+                        text = "Ingen aktiviteter tilgjengelig for $selectedCategory.",
+                        modifier = Modifier.padding(16.dp),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
     }
 }
 

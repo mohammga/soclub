@@ -31,8 +31,7 @@ fun EntriesScreen(navController: NavHostController) {
 
         when (selectedTab) {
             0 -> ActiveEntriesList(navController)
-            1 -> ExpiredEntriesList(navController)
-            2 -> CancelledEntriesList(navController)
+            1 -> CancelledEntriesList(navController)
         }
     }
 }
@@ -56,51 +55,10 @@ fun Tabs(selectedTab: Int, setSelectedTab: (Int) -> Unit) {
         )
 
         Tab(
-            text = { Text("Utløpte") },
+            text = { Text("Kansellerte") },
             selected = selectedTab == 1,
             onClick = { setSelectedTab(1) }
         )
-
-        Tab(
-            text = { Text("Kansellerte") },
-            selected = selectedTab == 2,
-            onClick = { setSelectedTab(2) }
-        )
-    }
-}
-
-@Composable
-fun ExpiredEntriesList(navController: NavHostController, viewModel: EntriesScreenViewModel = hiltViewModel()) {
-    val expiredActivities by viewModel.expiredActivities.collectAsState()
-    val isLoadingExpired by viewModel.isLoadingExpired.collectAsState() // Vi legger til en loader hvis nødvendig
-
-    if (isLoadingExpired) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
-        }
-    } else if (expiredActivities.isEmpty()) {
-        Text(text = "Ingen utløpte aktiviteter funnet", modifier = Modifier.padding(16.dp))
-    } else {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(expiredActivities.size) { index ->
-                val activity = expiredActivities[index]
-                ExpiredEntryItem(
-                    imageUrl = activity.imageUrl,
-                    title = activity.title,
-                    date = activity.date,
-                    onClick = {
-                        activity.category?.let { category ->
-                            activity.id?.let { id ->
-                                navController.navigate("detail/$category/$id")
-                            }
-                        }
-                    }
-                )
-            }
-        }
     }
 }
 
@@ -110,8 +68,14 @@ fun ActiveEntriesList(navController: NavHostController, viewModel: EntriesScreen
     val isLoading by viewModel.isLoadingActive.collectAsState()
 
     if (isLoading) {
+        // Vis en lastesirkel mens dataene lastes
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
+        }
+    } else if (activeActivities.isEmpty()) {
+        // Viser en melding når det ikke er noen aktive aktiviteter
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(text = "Det er ingen aktiviteter som er aktive", modifier = Modifier.padding(16.dp))
         }
     } else {
         LazyColumn(
@@ -141,14 +105,18 @@ fun ActiveEntriesList(navController: NavHostController, viewModel: EntriesScreen
 @Composable
 fun CancelledEntriesList(navController: NavHostController, viewModel: EntriesScreenViewModel = hiltViewModel()) {
     val cancelledActivities by viewModel.notActiveActivities.collectAsState()
-    val isLoadingCancelledActivities by viewModel.isLoadingInactive.collectAsState()
+    val isLoading by viewModel.isLoadingInactive.collectAsState()
 
-    if (isLoadingCancelledActivities) {
+    if (isLoading) {
+        // Vis en lastesirkel mens dataene lastes
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
     } else if (cancelledActivities.isEmpty()) {
-        Text(text = "Ingen utgåtte aktiviteter funnet", modifier = Modifier.padding(16.dp))
+        // Viser en melding når det ikke er noen kansellerte aktiviteter
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(text = "Det er ingen aktiviteter som er kansellerte", modifier = Modifier.padding(16.dp))
+        }
     } else {
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -169,29 +137,6 @@ fun CancelledEntriesList(navController: NavHostController, viewModel: EntriesScr
                     }
                 )
             }
-        }
-    }
-}
-
-@Composable
-fun ExpiredEntryItem(
-    imageUrl: String?,
-    title: String?,
-    date: Timestamp?,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth().clickable { onClick() }.padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        EventImage(imageUrl)
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = title ?: "Ukjent tittel", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            DateDisplay(date = date)
-            Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(thickness = 1.dp)
         }
     }
 }
