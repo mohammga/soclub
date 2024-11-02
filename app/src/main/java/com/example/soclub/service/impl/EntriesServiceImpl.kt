@@ -23,18 +23,16 @@ class EntriesServiceImpl @Inject constructor(
             .whereEqualTo("status", "aktiv")
             .addSnapshotListener { snapshot, error ->
                 if (error != null || snapshot == null) {
+                    onUpdate(emptyList())
                     return@addSnapshotListener
                 }
 
                 val activityList = mutableListOf<Activity>()
-
-                for (document in snapshot.documents) {
-                    val activityId = document.getString("activityId") ?: continue
-
+                val tasks = snapshot.documents.mapNotNull { document ->
+                    val activityId = document.getString("activityId") ?: return@mapNotNull null
                     firestore.collection("category").get().addOnSuccessListener { categories ->
                         for (categoryDoc in categories.documents) {
                             val category = categoryDoc.id
-
                             firestore.collection("category")
                                 .document(category)
                                 .collection("activities")
@@ -48,12 +46,19 @@ class EntriesServiceImpl @Inject constructor(
                                         )
                                         if (activity != null) {
                                             activityList.add(activity)
-                                            onUpdate(activityList)
                                         }
+                                    }
+                                    if (activityList.size == snapshot.size()) {
+                                        onUpdate(activityList) // Oppdaterer kun når alle aktiviteter er prosessert
                                     }
                                 }
                         }
                     }
+                }
+
+                // Hvis det ikke finnes aktiviteter, sørg for å oppdatere med tom liste
+                if (tasks.isEmpty()) {
+                    onUpdate(emptyList())
                 }
             }
     }
@@ -68,18 +73,16 @@ class EntriesServiceImpl @Inject constructor(
             .whereEqualTo("status", "notAktiv")
             .addSnapshotListener { snapshot, error ->
                 if (error != null || snapshot == null) {
+                    onUpdate(emptyList())
                     return@addSnapshotListener
                 }
 
                 val activityList = mutableListOf<Activity>()
-
-                for (document in snapshot.documents) {
-                    val activityId = document.getString("activityId") ?: continue
-
+                val tasks = snapshot.documents.mapNotNull { document ->
+                    val activityId = document.getString("activityId") ?: return@mapNotNull null
                     firestore.collection("category").get().addOnSuccessListener { categories ->
                         for (categoryDoc in categories.documents) {
                             val category = categoryDoc.id
-
                             firestore.collection("category")
                                 .document(category)
                                 .collection("activities")
@@ -93,12 +96,18 @@ class EntriesServiceImpl @Inject constructor(
                                         )
                                         if (activity != null) {
                                             activityList.add(activity)
-                                            onUpdate(activityList)
                                         }
+                                    }
+                                    if (activityList.size == snapshot.size()) {
+                                        onUpdate(activityList) // Oppdaterer kun når alle aktiviteter er prosessert
                                     }
                                 }
                         }
                     }
+                }
+
+                if (tasks.isEmpty()) {
+                    onUpdate(emptyList())
                 }
             }
     }

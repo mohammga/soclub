@@ -249,15 +249,41 @@ fun ActivityDate(date: Timestamp?) {
 }
 
 
+fun splitDescriptionWithNaturalFlow(description: String, linesPerChunk: Int = 1): String {
+    val sentences = description.split(Regex("(?<=\\.)\\s+")) // Splitter teksten ved punktum etterfulgt av mellomrom
+    val result = StringBuilder()
+    var currentLines = 0
+
+    for (sentence in sentences) {
+        // Legg til setningen til resultatet
+        result.append(sentence.trim()).append(" ")
+        currentLines++
+
+        // Legg til linjeskift etter hver fjerde linje
+        if (currentLines % linesPerChunk == 0) {
+            result.append("\n\n") // Dobbelt linjeskift for ekstra mellomrom
+        }
+    }
+
+    return result.toString().trim() // Fjerner eventuelt overflødig mellomrom
+}
+
+
+
 
 
 @Composable
 fun ActivityDescription(description: String) {
+    val formattedDescription = remember(description) {
+        splitDescriptionWithNaturalFlow(description)
+    }
+
     Text(
-        text = description,
+        text = formattedDescription,
         modifier = Modifier.padding(vertical = 16.dp)
     )
 }
+
 
 
 @Composable

@@ -7,6 +7,7 @@ import com.example.soclub.service.EntriesService
 import com.example.soclub.service.AccountService
 import com.example.soclub.service.ActivityDetaillService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -47,12 +48,15 @@ class EntriesScreenViewModel @Inject constructor(
             viewModelScope.launch {
                 _isLoadingActive.value = true
                 entriesService.getActiveActivitiesForUser(userId) { activities ->
-                    _activeActivities.value = activities // Disse aktivitetene inkluderer nå kategori og ID
+                    // Sorter aktiviteter etter 'createdAt' for å sikre nyeste øverst
+                    _activeActivities.value = activities.sortedByDescending { it.createdAt }
                     _isLoadingActive.value = false
                 }
             }
         }
     }
+
+
 
     private fun listenForNotActiveActivityUpdates() {
         val userId = accountService.currentUserId
@@ -60,7 +64,8 @@ class EntriesScreenViewModel @Inject constructor(
             viewModelScope.launch {
                 _isLoadingInactive.value = true
                 entriesService.getNotActiveActivitiesForUser(userId) { activities ->
-                    _notActiveActivities.value = activities
+                    // Sorter aktiviteter etter 'createdAt' for å sikre nyeste øverst
+                    _notActiveActivities.value = activities.sortedByDescending { it.createdAt }
                     _isLoadingInactive.value = false
                 }
             }
@@ -71,8 +76,16 @@ class EntriesScreenViewModel @Inject constructor(
         viewModelScope.launch {
             val userId = accountService.currentUserId
             activityDetaillService.updateRegistrationStatus(userId, activityId, "notAktiv")
+
+            // Midlertidig fjern den kansellerte aktiviteten fra listen lokalt
+            _activeActivities.value = _activeActivities.value.filter { it.id != activityId }
+
+            // La SnapshotListener håndtere oppdateringen etterpå
         }
     }
+
+
+
 }
 
 
