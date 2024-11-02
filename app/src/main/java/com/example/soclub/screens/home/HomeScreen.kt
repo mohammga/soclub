@@ -408,4 +408,3 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
         )
     }
 }
-
