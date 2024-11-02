@@ -31,9 +31,6 @@ class EntriesScreenViewModel @Inject constructor(
     private val _isLoadingInactive = MutableStateFlow(false)
     val isLoadingInactive: StateFlow<Boolean> = _isLoadingInactive
 
-    private val _expiredActivities = MutableStateFlow<List<Activity>>(emptyList())
-    val expiredActivities: StateFlow<List<Activity>> = _expiredActivities
-    // I EntriesScreenViewModel
 
     private val _isLoadingExpired = MutableStateFlow(false)
     val isLoadingExpired: StateFlow<Boolean> = _isLoadingExpired
@@ -42,7 +39,6 @@ class EntriesScreenViewModel @Inject constructor(
     init {
         listenForActivityUpdates()
         listenForNotActiveActivityUpdates()
-        listenForExpiredActivityUpdates()
     }
 
     private fun listenForActivityUpdates() {
@@ -75,19 +71,6 @@ class EntriesScreenViewModel @Inject constructor(
         viewModelScope.launch {
             val userId = accountService.currentUserId
             activityDetaillService.updateRegistrationStatus(userId, activityId, "notAktiv")
-        }
-    }
-
-    private fun listenForExpiredActivityUpdates() {
-        val userId = accountService.currentUserId
-        if (userId.isNotEmpty()) {
-            viewModelScope.launch {
-                _isLoadingExpired.value = true  // Setter loading til true før lasting
-                entriesService.getExpiredActivitiesForUser(userId) { activities ->
-                    _expiredActivities.value = activities
-                    _isLoadingExpired.value = false  // Setter loading til false etter lasting
-                }
-            }
         }
     }
 }

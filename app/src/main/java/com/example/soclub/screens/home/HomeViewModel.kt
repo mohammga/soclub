@@ -19,6 +19,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.Locale
 import javax.inject.Inject
+import androidx.lifecycle.*
+import kotlinx.coroutines.delay
+
+import coil.ImageLoader
+import coil.request.ImageRequest
+import coil.request.SuccessResult
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -32,10 +38,22 @@ class HomeViewModel @Inject constructor(
     private val _userCity = MutableLiveData<String?>()
     val userCity: LiveData<String?> get() = _userCity
 
+    private val _isLoading = MutableLiveData(false)
+    val isLoading: LiveData<Boolean> = _isLoading
+
+    private val _activities = MutableLiveData<List<Activity>>()
+    val activities: LiveData<List<Activity>> = _activities
+
+    private val _groupedActivities = MutableLiveData<Map<String, List<Activity>>>()
+    val groupedActivities: LiveData<Map<String, List<Activity>>> get() = _groupedActivities
+
+    private val _selectedCities = MutableLiveData<List<String>>(emptyList())
+    val selectedCities: LiveData<List<String>> get() = _selectedCities
+
     init {
-        // Start med å hente brukerens plassering med en gang ViewModel opprettes
-        fetchUserLocation()
+        fetchAndGroupActivitiesByCities(emptyList()) // Hent aktiviteter uten filter ved oppstart
     }
+
 
     // Oppdater `userCity` når plasseringen hentes
     @SuppressLint("MissingPermission")
@@ -53,35 +71,52 @@ class HomeViewModel @Inject constructor(
     }
 
 
-    // Hent alle kategorier fra Firestore
-    fun getCategories() = liveData(Dispatchers.IO) {
+    // Oppdater valgte byer
+    fun updateSelectedCities(city: String, isSelected: Boolean) {
+        val currentCities = _selectedCities.value?.toMutableList() ?: mutableListOf()
+        if (isSelected) {
+            if (!currentCities.contains(city)) currentCities.add(city)
+        } else {
+            currentCities.remove(city)
+        }
+        _selectedCities.value = currentCities
+    }
+
+
+    fun getCategories(): LiveData<List<String>> = liveData {
         try {
             val categories = activityService.getCategories().toMutableList()
-
-            // Legg til den statiske kategorien "Test 22" først i listen
-            categories.add(0, "Nærme Aktiviteter")
-
+            // Sørg for at "Nærme Aktiviteter" er tilgjengelig
+            if (!categories.contains("Nærme Aktiviteter")) {
+                categories.add(0, "Nærme Aktiviteter")
+            }
             emit(categories)
         } catch (e: Exception) {
-            emit(listOf("Nærme Aktiviteter")) // Returner bare "Forslag" hvis noe går galt
+            emit(listOf("Nærme Aktiviteter"))
         }
     }
 
-    fun getActivities(category: String) = liveData(Dispatchers.IO) {
-        try {
-            val activities = if (category == "Nærme Aktiviteter") {
-                // Bruk GPS-byen eller fallback-byen (f.eks. "Fredrikstad")
-                val cityToFilter = _userCity.value ?: "Fredrikstad"
-                // Filtrer aktiviteter basert på brukerens by
-                activityService.getAllActivities().filter { activity ->
-                    activity.location.contains(cityToFilter, ignoreCase = true)
+
+    fun getActivities(category: String) {
+        _isLoading.value = true
+        viewModelScope.launch {
+            delay(3000)  // 3 sekunder forsinkelse
+            try {
+
+                val activities = if (category == "Nærme Aktiviteter") {
+                    val cityToFilter = _userCity.value ?: "Fredrikstad"
+                    activityService.getAllActivities().filter { activity ->
+                        activity.location.contains(cityToFilter, ignoreCase = true)
+                    }
+                } else {
+                    activityService.getActivities(category)
                 }
-            } else {
-                activityService.getActivities(category)
+                _activities.postValue(activities)
+            } catch (e: Exception) {
+                _activities.postValue(emptyList())
+            } finally {
+                _isLoading.postValue(false)
             }
-            emit(activities)
-        } catch (e: Exception) {
-            emit(emptyList<Activity>())
         }
     }
 
@@ -105,31 +140,45 @@ class HomeViewModel @Inject constructor(
     private val _filteredActivities = MutableLiveData<List<Activity>>()
     val filteredActivities: LiveData<List<Activity>> get() = _filteredActivities
 
-    fun fetchAndFilterActivitiesByCities(selectedCities: List<String>, selectedCategory: String) {
+    fun fetchAndGroupActivitiesByCities(selectedCities: List<String>) {
+        _selectedCities.value = selectedCities.toMutableList()
+        _isLoading.value = true
+
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                // Hent aktiviteter for den valgte kategorien
-                val activities = activityService.getActivities(selectedCategory)
+                delay(3000)
 
-                // Filtrer aktivitetene basert på de valgte byene
-                val filtered = if (selectedCities.isNotEmpty()) {
-                    activities.filter { activity ->
-                        selectedCities.contains(activity.location)
+                val allActivities = activityService.getAllActivities()
+                val filteredActivities = if (selectedCities.isNotEmpty()) {
+                    allActivities.filter { activity ->
+                        selectedCities.any { city -> activity.location.contains(city, ignoreCase = true) }
                     }
                 } else {
-                    activities // Hvis ingen byer er valgt, vis alle aktivitetene i den valgte kategorien
+                    allActivities
                 }
 
-                _filteredActivities.postValue(filtered) // Oppdater LiveData med filtrerte aktiviteter
+                val grouped = filteredActivities.groupBy { it.category ?: "Ukjent kategori" }
+                _groupedActivities.postValue(grouped)
             } catch (e: Exception) {
-                _filteredActivities.postValue(emptyList()) // Håndter feil ved å vise tom liste
+                _groupedActivities.postValue(emptyMap())
+            } finally {
+                _isLoading.postValue(false)
             }
         }
     }
 
+
+
+
+
+
+    // Nullstill filteret
     fun resetFilter() {
-        _filteredActivities.postValue(emptyList()) // Nullstill filtrerte aktiviteter
+        _selectedCities.value = mutableListOf() // Nullstill valgte byer
+        fetchAndGroupActivitiesByCities(emptyList()) // Nullstiller filtreringen
     }
+
+
 
     // Hent brukerens nåværende plassering
     @SuppressLint("MissingPermission")
@@ -162,5 +211,11 @@ class HomeViewModel @Inject constructor(
     fun resetActivities() {
         _filteredActivities.postValue(emptyList()) // Nullstill aktivitetene
     }
+
+
+
+
+
+
 }
 
