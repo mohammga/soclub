@@ -162,12 +162,5 @@ class HomeViewModel @Inject constructor(
     fun resetActivities() {
         _filteredActivities.postValue(emptyList()) // Nullstill aktivitetene
     }
-
-
-
-
-
-
 }
-
 

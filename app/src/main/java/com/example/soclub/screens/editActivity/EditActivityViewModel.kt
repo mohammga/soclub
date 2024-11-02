@@ -225,16 +225,15 @@ class EditActivityViewModel @Inject constructor(
 
 
 private fun uploadImageToFirebase(
-        imageUri: Uri,
-        onSuccess: (String) -> Unit,
-        onError: (Exception) -> Unit
-    ) {
-        val storageRef = FirebaseStorage.getInstance().reference.child("images/${imageUri.lastPathSegment}")
-        storageRef.putFile(imageUri)
-            .addOnSuccessListener {
-                storageRef.downloadUrl.addOnSuccessListener { uri -> onSuccess(uri.toString()) }
-            }
-            .addOnFailureListener { onError(it) }
-    }
-
+    imageUri: Uri,
+    onSuccess: (String) -> Unit,
+    onError: (Exception) -> Unit
+) {
+    val storageRef = FirebaseStorage.getInstance().reference.child("images/${imageUri.lastPathSegment}")
+    storageRef.putFile(imageUri)
+        .addOnSuccessListener {
+            storageRef.downloadUrl.addOnSuccessListener { uri -> onSuccess(uri.toString()) }
+        }
+        .addOnFailureListener { onError(it) }
+}
 
