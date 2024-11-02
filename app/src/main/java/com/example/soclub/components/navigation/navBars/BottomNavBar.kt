@@ -75,14 +75,14 @@ fun BottomNavBar(navController: NavController, currentScreen: String) {
                         // Hvis brukeren er på en profilscreen (inkludert editActivity), naviger til PROFILE-skjermen
                         shortcut.route == AppScreens.PROFILE && (currentScreen.startsWith("editActivity") || currentScreen in profileScreens) -> {
                             navController.navigate(AppScreens.PROFILE.name) {
-                                popUpTo(AppScreens.PROFILE.name) { inclusive = true }
+                                popUpTo(AppScreens.PROFILE.name) { inclusive = false }
                                 launchSingleTop = true
                             }
                         }
                         // Naviger til HOME-skjermen uten å duplisere
                         shortcut.route == AppScreens.HOME -> {
                             navController.navigate(AppScreens.HOME.name) {
-                                popUpTo(AppScreens.HOME.name) { inclusive = true }
+                                popUpTo(AppScreens.HOME.name) { inclusive = false }
                                 launchSingleTop = true
                             }
                         }
