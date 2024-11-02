@@ -79,32 +79,10 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun getActivities(category: String) {
-        _isLoading.value = true
-        viewModelScope.launch {
-            try {
-                val activities = if (category == "Nærme Aktiviteter") {
-                    val cityToFilter = _userCity.value ?: "Fredrikstad"
-                    Log.d("HomeViewModel", "Filtrerer aktiviteter for by: $cityToFilter")
-                    activityService.getAllActivities().filter { activity ->
-                        activity.location.contains(cityToFilter, ignoreCase = true)
-                    }
-                } else {
-                    activityService.getActivities(category)
-                }
-                _activities.postValue(activities)
-            } catch (e: Exception) {
-                _activities.postValue(emptyList())
-            } finally {
-                _isLoading.postValue(false)
-            }
-        }
-    }
-
     fun getCities() = liveData(Dispatchers.IO) {
         try {
             val activities = activityService.getAllActivities()
-            val cities = activities.mapNotNull { activity ->
+            val cities = activities.map { activity ->
                 val fullLocation = activity.location ?: "Ukjent"
                 fullLocation.substringAfterLast(" ")
             }.distinct()
@@ -154,7 +132,7 @@ class HomeViewModel @Inject constructor(
         fetchAndGroupActivitiesByCities(emptyList())
     }
 
-    fun getCityFromLocation(location: Location?): String? {
+    private fun getCityFromLocation(location: Location?): String? {
         location?.let {
             val geocoder = Geocoder(getApplication<Application>().applicationContext, Locale.getDefault())
             val addresses = geocoder.getFromLocation(it.latitude, it.longitude, 1)
@@ -167,9 +145,6 @@ class HomeViewModel @Inject constructor(
         return null
     }
 
-    fun resetActivities() {
-        _activities.postValue(emptyList())
-    }
 
     @SuppressLint("MissingPermission")
     fun getNearestActivities() {
