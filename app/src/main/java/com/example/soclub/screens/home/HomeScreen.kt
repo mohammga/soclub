@@ -36,7 +36,6 @@ import androidx.compose.ui.res.stringResource
 import com.example.soclub.R
 
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hiltViewModel()) {
     val categories by viewModel.getCategories().observeAsState(emptyList())
@@ -89,10 +88,15 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
             ""
         }
 
-        // Display activities in selected category with loading
         if (selectedCategory == "Nærme Aktiviteter") {
             userCity?.let { city ->
-                NearActivities(viewModel = viewModel, city = city, navController = navController)
+                // Kall den nye `getNearestActivities()` funksjonen
+                LaunchedEffect(city) {
+                    viewModel.getNearestActivities()
+                }
+
+                // Vis aktiviteter nærmest brukerens posisjon
+                NearActivities(viewModel = viewModel, navController = navController)
             } ?: run {
                 Text(
                     text = "Henter nærmeste aktiviteter...",
@@ -132,6 +136,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
         )
     }
 }
+
 
 
 
@@ -442,13 +447,9 @@ fun FilterBottomSheet(
 }
 
 @Composable
-fun NearActivities(viewModel: HomeViewModel, city: String, navController: NavHostController) {
+fun NearActivities(viewModel: HomeViewModel, navController: NavHostController) {
     val activities by viewModel.activities.observeAsState(emptyList())
     val isLoading by viewModel.isLoading.observeAsState(false)
-
-    LaunchedEffect(city) {
-        viewModel.getActivities("Nærme Aktiviteter")
-    }
 
     if (isLoading) {
         Box(
@@ -476,4 +477,5 @@ fun NearActivities(viewModel: HomeViewModel, city: String, navController: NavHos
         }
     }
 }
+
 
