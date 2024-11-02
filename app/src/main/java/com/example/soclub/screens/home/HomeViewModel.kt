@@ -19,12 +19,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.Locale
 import javax.inject.Inject
-import androidx.lifecycle.*
-import kotlinx.coroutines.delay
-
-import coil.ImageLoader
-import coil.request.ImageRequest
-import coil.request.SuccessResult
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -32,8 +26,6 @@ class HomeViewModel @Inject constructor(
     private val activityService: ActivityService,
     private val fusedLocationClient: FusedLocationProviderClient
 ) : AndroidViewModel(application) {
-
-
 
     private val _userCity = MutableLiveData<String?>()
     val userCity: LiveData<String?> get() = _userCity
@@ -51,42 +43,33 @@ class HomeViewModel @Inject constructor(
     val selectedCities: LiveData<List<String>> get() = _selectedCities
 
     init {
-        fetchAndGroupActivitiesByCities(emptyList()) // Hent aktiviteter uten filter ved oppstart
+        fetchAndGroupActivitiesByCities(emptyList())  // Hent aktiviteter uten filter ved oppstart
     }
 
-
-    // Oppdater `userCity` når plasseringen hentes
     @SuppressLint("MissingPermission")
-    private fun fetchUserLocation() {
+    fun fetchUserLocation() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                Log.d("HomeViewModel", "Henter brukerens posisjon...")
                 val location: Location? = fusedLocationClient.lastLocation.await()
-                location?.let {
-                    _userCity.postValue(getCityFromLocation(it))
+
+                if (location != null) {
+                    Log.d("HomeViewModel", "Posisjon hentet: ${location.latitude}, ${location.longitude}")
+                    val city = getCityFromLocation(location)
+                    _userCity.postValue(city)
+                    Log.d("HomeViewModel", "Brukerens by: $city")
+                } else {
+                    Log.w("HomeViewModel", "Posisjon er null")
                 }
             } catch (e: Exception) {
-                Log.e("LocationError", "Feil ved henting av posisjon: ${e.message}")
+                Log.e("HomeViewModel", "Feil ved henting av posisjon: ${e.message}")
             }
         }
     }
 
-
-    // Oppdater valgte byer
-    fun updateSelectedCities(city: String, isSelected: Boolean) {
-        val currentCities = _selectedCities.value?.toMutableList() ?: mutableListOf()
-        if (isSelected) {
-            if (!currentCities.contains(city)) currentCities.add(city)
-        } else {
-            currentCities.remove(city)
-        }
-        _selectedCities.value = currentCities
-    }
-
-
     fun getCategories(): LiveData<List<String>> = liveData {
         try {
             val categories = activityService.getCategories().toMutableList()
-            // Sørg for at "Nærme Aktiviteter" er tilgjengelig
             if (!categories.contains("Nærme Aktiviteter")) {
                 categories.add(0, "Nærme Aktiviteter")
             }
@@ -96,15 +79,13 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-
     fun getActivities(category: String) {
         _isLoading.value = true
         viewModelScope.launch {
-            delay(3000)  // 3 sekunder forsinkelse
             try {
-
                 val activities = if (category == "Nærme Aktiviteter") {
                     val cityToFilter = _userCity.value ?: "Fredrikstad"
+                    Log.d("HomeViewModel", "Filtrerer aktiviteter for by: $cityToFilter")
                     activityService.getAllActivities().filter { activity ->
                         activity.location.contains(cityToFilter, ignoreCase = true)
                     }
@@ -120,25 +101,28 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-
-
-    // Hent alle tilgjengelige byer fra aktivitetene
     fun getCities() = liveData(Dispatchers.IO) {
         try {
-            val activities = activityService.getAllActivities() // Hent alle aktiviteter
+            val activities = activityService.getAllActivities()
             val cities = activities.mapNotNull { activity ->
                 val fullLocation = activity.location ?: "Ukjent"
-                fullLocation.substringAfterLast(" ") // Trekk ut byen
-            }.distinct() // Fjern duplikater
+                fullLocation.substringAfterLast(" ")
+            }.distinct()
             emit(cities)
         } catch (e: Exception) {
-            emit(emptyList<String>())
+            emit(emptyList())
         }
     }
 
-    // Filtrer aktiviteter basert på valgte byer og kategori
-    private val _filteredActivities = MutableLiveData<List<Activity>>()
-    val filteredActivities: LiveData<List<Activity>> get() = _filteredActivities
+    fun updateSelectedCities(city: String, isSelected: Boolean) {
+        val currentCities = _selectedCities.value?.toMutableList() ?: mutableListOf()
+        if (isSelected) {
+            if (!currentCities.contains(city)) currentCities.add(city)
+        } else {
+            currentCities.remove(city)
+        }
+        _selectedCities.value = currentCities
+    }
 
     fun fetchAndGroupActivitiesByCities(selectedCities: List<String>) {
         _selectedCities.value = selectedCities.toMutableList()
@@ -146,8 +130,6 @@ class HomeViewModel @Inject constructor(
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                delay(3000)
-
                 val allActivities = activityService.getAllActivities()
                 val filteredActivities = if (selectedCities.isNotEmpty()) {
                     allActivities.filter { activity ->
@@ -167,51 +149,27 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-
-
-
-
-
-    // Nullstill filteret
     fun resetFilter() {
-        _selectedCities.value = mutableListOf() // Nullstill valgte byer
-        fetchAndGroupActivitiesByCities(emptyList()) // Nullstiller filtreringen
+        _selectedCities.value = mutableListOf()
+        fetchAndGroupActivitiesByCities(emptyList())
     }
 
-
-
-    // Hent brukerens nåværende plassering
-    @SuppressLint("MissingPermission")
-    fun getCurrentLocation() = liveData(Dispatchers.IO) {
-        try {
-            // Hent brukerens siste kjente plassering
-            val location: Location? = fusedLocationClient.lastLocation.await()
-
-            if (location != null) {
-                emit(location)
-            } else {
-                emit(null)
-            }
-        } catch (e: Exception) {
-            Log.e("LocationError", "Feil ved henting av posisjon: ${e.message}")
-            emit(null)
-        }
-    }
-
-    // Hent by basert på GPS-lokasjon
     fun getCityFromLocation(location: Location?): String? {
         location?.let {
             val geocoder = Geocoder(getApplication<Application>().applicationContext, Locale.getDefault())
             val addresses = geocoder.getFromLocation(it.latitude, it.longitude, 1)
-            return addresses?.firstOrNull()?.locality ?: addresses?.firstOrNull()?.subAdminArea
+            val city = addresses?.firstOrNull()?.locality ?: addresses?.firstOrNull()?.subAdminArea
+
+            Log.d("HomeViewModel", "Geokoderesultat for posisjon (${it.latitude}, ${it.longitude}): $city")
+
+            return city
         }
         return null
     }
 
     fun resetActivities() {
-        _filteredActivities.postValue(emptyList()) // Nullstill aktivitetene
+        _activities.postValue(emptyList())
     }
-
 
 
 

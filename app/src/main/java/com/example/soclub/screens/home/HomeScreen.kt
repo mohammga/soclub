@@ -35,6 +35,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.example.soclub.R
 
+
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hiltViewModel()) {
@@ -46,6 +47,10 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
     val selectedCities by viewModel.selectedCities.observeAsState(mutableListOf())
     val cities by viewModel.getCities().observeAsState(emptyList())
     val userCity by viewModel.userCity.observeAsState(null)
+
+    LaunchedEffect(Unit) {
+        viewModel.fetchUserLocation()  // Hent GPS-plassering ved start
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (categories.isNotEmpty()) {
@@ -77,12 +82,12 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+
         val selectedCategory = if (categories.isNotEmpty() && pagerState.currentPage < categories.size) {
             categories[pagerState.currentPage]
         } else {
             ""
         }
-
 
         // Display activities in selected category with loading
         if (selectedCategory == "Nærme Aktiviteter") {
@@ -127,6 +132,9 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
         )
     }
 }
+
+
+
 @Composable
 fun CategoryActivitiesPager(
     categories: List<String>,
