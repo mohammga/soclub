@@ -176,11 +176,10 @@ class HomeViewModel @Inject constructor(
         _isLoading.value = true
         viewModelScope.launch {
             try {
-                // Hent brukerens posisjon
                 val userLocation = fusedLocationClient.lastLocation.await() ?: return@launch
 
-                // Hent alle aktiviteter og kalkuler avstanden fra brukerens posisjon
-                val activitiesWithDistance = activityService.getAllActivities().mapNotNull { activity ->
+                // Hent alle aktiviteter og filtrer de som er i nærheten
+                val activities = activityService.getAllActivities().mapNotNull { activity ->
                     val location = Geocoder(getApplication<Application>().applicationContext, Locale.getDefault())
                         .getFromLocationName(activity.location, 1)
                         ?.firstOrNull()
@@ -196,10 +195,9 @@ class HomeViewModel @Inject constructor(
                     }
                 }
 
-                // Sorter aktiviteter etter avstand
-                val nearestActivities = activitiesWithDistance.sortedBy { it.second }.map { it.first }
+                // Sorter aktiviteter etter avstand og ta kun de 5 nærmeste
+                val nearestActivities = activities.sortedBy { it.second }.take(10).map { it.first }
 
-                // Oppdater aktiviteter med de nærmeste først
                 _activities.postValue(nearestActivities)
             } catch (e: Exception) {
                 _activities.postValue(emptyList())
