@@ -171,6 +171,46 @@ class HomeViewModel @Inject constructor(
         _activities.postValue(emptyList())
     }
 
+    @SuppressLint("MissingPermission")
+    fun getNearestActivities() {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                // Hent brukerens posisjon
+                val userLocation = fusedLocationClient.lastLocation.await() ?: return@launch
+
+                // Hent alle aktiviteter og kalkuler avstanden fra brukerens posisjon
+                val activitiesWithDistance = activityService.getAllActivities().mapNotNull { activity ->
+                    val location = Geocoder(getApplication<Application>().applicationContext, Locale.getDefault())
+                        .getFromLocationName(activity.location, 1)
+                        ?.firstOrNull()
+                        ?.let {
+                            Location("").apply {
+                                latitude = it.latitude
+                                longitude = it.longitude
+                            }
+                        }
+                    location?.let {
+                        val distance = userLocation.distanceTo(location) // Avstand i meter
+                        activity to distance
+                    }
+                }
+
+                // Sorter aktiviteter etter avstand
+                val nearestActivities = activitiesWithDistance.sortedBy { it.second }.map { it.first }
+
+                // Oppdater aktiviteter med de nærmeste først
+                _activities.postValue(nearestActivities)
+            } catch (e: Exception) {
+                _activities.postValue(emptyList())
+                Log.e("HomeViewModel", "Feil ved henting av nærmeste aktiviteter: ${e.message}")
+            } finally {
+                _isLoading.postValue(false)
+            }
+        }
+    }
+
+
 
 
 
