@@ -1,36 +1,60 @@
 package com.example.soclub.screens.notifications
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 
-data class Notification(val timeAgo: String, val message: String)
-
 @Composable
-fun NotificationsScreen(navController: NavController) {
-    val notifications = listOf(
-        Notification("2 minutter siden", "Du har fått en ny melding fra Cathrine."),
-        Notification("20 minutter siden", "Cathrine har meldt seg på arrangementet."),
-        Notification("1 time siden", "Vennen din skal også delta på arrangementet."),
-        Notification("I går", "Det er opprettet et nytt arrangement av vennen din.")
-    )
+fun NotificationsScreen(
+    navController: NavController,
+    viewModel: NotificationsViewModel = hiltViewModel()
+) {
+    val notifications by viewModel.notifications.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
 
-    LazyColumn(
+    LaunchedEffect(Unit) {
+        viewModel.loadNotifications()
+    }
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp) // Space between notifications
+            .padding(16.dp)
     ) {
-        items(notifications.size) { index ->
-            NotificationItem(notification = notifications[index])
+        when {
+            isLoading -> {
+
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
+            errorMessage != null -> {
+                // Viser en feilmelding hvis det oppsto en feil
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(text = errorMessage!!, color = MaterialTheme.colorScheme.error, fontSize = 16.sp)
+                }
+            }
+            else -> {
+                // Viser varslinger når de er lastet uten feil
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(notifications.size) { index ->
+                        NotificationItem(notification = notifications[index])
+                    }
+                }
+            }
         }
     }
 }
@@ -45,10 +69,4 @@ fun NotificationItem(notification: Notification) {
         Spacer(modifier = Modifier.height(4.dp))
         BasicText(text = notification.message, style = MaterialTheme.typography.bodyMedium)
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun NotificationsScreenPreview() {
-    NotificationsScreen(rememberNavController())
 }

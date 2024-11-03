@@ -17,12 +17,21 @@ class AdsViewModel @Inject constructor(
     private val accountService: AccountService
 ) : ViewModel() {
 
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage
+
     private val _activities = MutableStateFlow<List<editActivity>>(emptyList())
     val activities: StateFlow<List<editActivity>> = _activities
 
     fun fetchActivitiesByCreator() {
         val creatorId = accountService.currentUserId
         viewModelScope.launch {
+            _isLoading.value = true
+            _errorMessage.value = null
+
             try {
                 val fetchedActivities = activityService.getAllActivitiesByCreator(creatorId).map {
                     editActivity(
@@ -39,9 +48,14 @@ class AdsViewModel @Inject constructor(
                     )
                 }
                 _activities.value = fetchedActivities
+                if (fetchedActivities.isEmpty()) {
+                    _errorMessage.value = "Du har ingen annonser ennå."
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
-                _activities.value = listOf()
+                _errorMessage.value = "Det skjedde en feil. Vennligst prøv igjen senere."
+            } finally {
+                _isLoading.value = false
             }
         }
     }

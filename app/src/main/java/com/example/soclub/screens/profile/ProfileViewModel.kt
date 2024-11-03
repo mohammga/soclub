@@ -10,6 +10,7 @@ import com.example.soclub.service.AccountService
 import com.example.soclub.components.navigation.AppScreens
 import com.example.soclub.models.UserInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,16 +22,23 @@ class ProfileViewModel @Inject constructor(
     var userInfo by mutableStateOf<UserInfo?>(null)
         private set
 
+    var isLoading by mutableStateOf(true)
+        private set
+
     init {
         fetchUserInfo()
     }
 
     private fun fetchUserInfo() {
         viewModelScope.launch {
+            isLoading = true
             try {
+                delay(1000)  // Forsinkelse på 1 sekund
                 userInfo = accountService.getUserInfo()
             } catch (e: Exception) {
-                // Handle error, e.g., log it or show a message to the user
+                // Håndter feilen om nødvendig
+            } finally {
+                isLoading = false
             }
         }
     }

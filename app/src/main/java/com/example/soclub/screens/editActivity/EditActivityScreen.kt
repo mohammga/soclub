@@ -36,31 +36,50 @@ fun EditActivityScreen(
     activityId: String
 ) {
     val uiState by viewModel.uiState
-
+    val isLoading by viewModel.isLoading
+    val errorMessage by viewModel.errorMessage
 
     LaunchedEffect(Unit) {
         viewModel.loadActivity(category, activityId)
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-        ) {
-            item { TitleField(value = uiState.title, onNewValue = viewModel::onTitleChange) }
-            item { DescriptionField(value = uiState.description, onNewValue = viewModel::onDescriptionChange) }
-            item { ImageUploadSection(onImageSelected = viewModel::onImageSelected, imageUrl = uiState.imageUrl) }
-            item { CategoryField(value = uiState.category, onNewValue = viewModel::onCategoryChange) }
-            item { LocationField(value = uiState.location, onNewValue = viewModel::onLocationChange) }
-            item { AddressField(value = uiState.address, onNewValue = viewModel::onAddressChange) }
-            item { PostalCodeField(value = uiState.postalCode, onNewValue = viewModel::onPostalCodeChange) }
-            item { DateField(value = uiState.date?.toDate()?.time ?: 0L, onNewValue = viewModel::onDateChange) }
-            item { StartTimeField(value = uiState.startTime, onNewValue = viewModel::onStartTimeChange) }
-            item { MaxParticipantsField(value = uiState.maxParticipants, onNewValue = viewModel::onMaxParticipantsChange) }
-            item { AgeLimitField(value = uiState.ageLimit, onNewValue = viewModel::onAgeLimitChange) }
-            item { SaveChangesButton(navController, viewModel, category, activityId)}
-            item {DeleteButton(navController, viewModel, category, activityId)}
+    Box(modifier = Modifier.fillMaxSize()) {
+        when {
+            isLoading -> {
+                // Viser en loading-indikator mens data lastes
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
+            errorMessage != null -> {
+                // Viser en feilmelding hvis det oppsto en feil
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(text = errorMessage ?: "En ukjent feil oppsto", color = MaterialTheme.colorScheme.error)
+                }
+            }
+            else -> {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                    ) {
+                        item { TitleField(value = uiState.title, onNewValue = viewModel::onTitleChange) }
+                        item { DescriptionField(value = uiState.description, onNewValue = viewModel::onDescriptionChange) }
+                        item { ImageUploadSection(onImageSelected = viewModel::onImageSelected, imageUrl = uiState.imageUrl) }
+                        item { CategoryField(value = uiState.category, onNewValue = viewModel::onCategoryChange) }
+                        item { LocationField(value = uiState.location, onNewValue = viewModel::onLocationChange) }
+                        item { AddressField(value = uiState.address, onNewValue = viewModel::onAddressChange) }
+                        item { PostalCodeField(value = uiState.postalCode, onNewValue = viewModel::onPostalCodeChange) }
+                        item { DateField(value = uiState.date?.toDate()?.time ?: 0L, onNewValue = viewModel::onDateChange) }
+                        item { StartTimeField(value = uiState.startTime, onNewValue = viewModel::onStartTimeChange) }
+                        item { MaxParticipantsField(value = uiState.maxParticipants, onNewValue = viewModel::onMaxParticipantsChange) }
+                        item { AgeLimitField(value = uiState.ageLimit, onNewValue = viewModel::onAgeLimitChange) }
+                        item { SaveChangesButton(navController, viewModel, category, activityId) }
+                        item { DeleteButton(navController, viewModel, category, activityId) }
+                    }
+                }
+            }
         }
     }
 }
