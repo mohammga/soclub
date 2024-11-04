@@ -6,6 +6,7 @@ import com.example.soclub.models.Activity
 import com.example.soclub.service.AccountService
 import com.example.soclub.service.ActivityDetaillService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -28,9 +29,47 @@ class ActivityDetailViewModel @Inject constructor(
     private val _canRegister = MutableStateFlow(true)
     val canRegister: StateFlow<Boolean> = _canRegister
 
-
     private val _currentParticipants = MutableStateFlow(0)
     val currentParticipants: StateFlow<Int> = _currentParticipants
+
+
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage
+
+
+    fun loadActivityWithStatus(category: String, activityId: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _errorMessage.value = null
+            delay(1000)
+            try {
+                val loadedActivity = activityDetaillService.getActivityById(category, activityId)
+                _activity.value = loadedActivity
+
+                val userId = accountService.currentUserId
+                val registered = activityDetaillService.isUserRegisteredForActivity(userId, activityId)
+                _isRegistered.value = registered
+
+                val userInfo = accountService.getUserInfo()
+                if (loadedActivity != null) {
+                    _canRegister.value = userInfo.age >= loadedActivity.ageGroup
+                }
+
+                loadRegisteredParticipants(activityId)
+                activityDetaillService.listenToRegistrationUpdates(activityId) { count ->
+                    _currentParticipants.value = count
+                }
+
+            } catch (e: Exception) {
+                _errorMessage.value = "Det skjedde en feil. Vennligst prøv igjen senere."
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
 
     fun loadRegisteredParticipants(activityId: String) {
         viewModelScope.launch {

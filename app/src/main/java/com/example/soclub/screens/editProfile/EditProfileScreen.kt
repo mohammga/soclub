@@ -36,6 +36,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState
+    val isLoading by viewModel.isLoading
+    val errorMessage by viewModel.errorMessage  // Henter `errorMessage` fra ViewModel
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
@@ -46,66 +48,86 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         content = {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                item {
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    ImageUploadSection(
-                        imageUri = uiState.imageUri,
-                        onImageSelected = viewModel::onImageSelected
-                    )
-
-
-
-                    Spacer(modifier = Modifier.height(16.dp))
+            when {
+                isLoading -> {
+                    // Viser loading-indikator
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
                 }
-
-                item {
-                    ProfileTextField(
-                        label = stringResource(id = R.string.profile_firstname_label),
-                        value = uiState.firstname,
-                        onValueChange = { viewModel.onNameChange(it) },
-                        error = uiState.firstnameError?.let { stringResource(id = it) },
-                        supportingText = stringResource(id = R.string.profile_firstname_supporting_text)
-                    )
+                errorMessage != null -> {
+                    // Viser feilmelding hvis det oppsto en feil
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = errorMessage ?: "En ukjent feil oppsto",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
+                else -> {
+                    // Viser innholdet hvis det ikke er en feil og ikke laster
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
 
-                item {
-                    ProfileTextField(
-                        label = stringResource(id = R.string.profile_lastname_label),
-                        value = uiState.lastname,
-                        onValueChange = { viewModel.onLastnameChange(it) },
-                        error = uiState.lastnameError?.let { stringResource(id = it) },
-                        supportingText = stringResource(id = R.string.profile_lastname_supporting_text)
-                    )
-                }
+                            ImageUploadSection(
+                                imageUri = uiState.imageUri,
+                                onImageSelected = viewModel::onImageSelected
+                            )
 
-                item {
-                    Spacer(modifier = Modifier.height(24.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
 
-                    SaveButton(
-                        onClick = {
-                            viewModel.onSaveProfileClick(navController)
-                            if (uiState.firstnameError == null && uiState.lastnameError == null) {
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        message = "Personlig info endret"
-                                    )
-                                }
-                            }
-                        },
-                        enabled = uiState.isDirty
-                    )
+                        item {
+                            ProfileTextField(
+                                label = stringResource(id = R.string.profile_firstname_label),
+                                value = uiState.firstname,
+                                onValueChange = { viewModel.onNameChange(it) },
+                                error = uiState.firstnameError?.let { stringResource(id = it) },
+                                supportingText = stringResource(id = R.string.profile_firstname_supporting_text)
+                            )
+                        }
+
+                        item {
+                            ProfileTextField(
+                                label = stringResource(id = R.string.profile_lastname_label),
+                                value = uiState.lastname,
+                                onValueChange = { viewModel.onLastnameChange(it) },
+                                error = uiState.lastnameError?.let { stringResource(id = it) },
+                                supportingText = stringResource(id = R.string.profile_lastname_supporting_text)
+                            )
+                        }
+
+                        item {
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            SaveButton(
+                                onClick = {
+                                    viewModel.onSaveProfileClick(navController)
+                                    if (uiState.firstnameError == null && uiState.lastnameError == null) {
+                                        coroutineScope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                message = "Personlig info endret"
+                                            )
+                                        }
+                                    }
+                                },
+                                enabled = uiState.isDirty
+                            )
+                        }
+                    }
                 }
             }
         }
     )
 }
+
 
 @Composable
 fun ProfileTextField(

@@ -33,31 +33,39 @@ import com.example.soclub.models.UserInfo
 @Composable
 fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel = hiltViewModel()) {
     val userInfo = viewModel.userInfo
+    val isLoading = viewModel.isLoading
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        item {
-            ProfileImage(imageUrl = userInfo?.imageUrl)
-            Spacer(modifier = Modifier.height(8.dp))
-
-            ProfileName(name = userInfo?.name ?: "Laster...")
-            Spacer(modifier = Modifier.height(8.dp))
-
-            EditProfileButton(navController)
-            Spacer(modifier = Modifier.height(24.dp))
+    if (isLoading) {
+        // Viser loading-indikator
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
         }
+    } else {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            item {
+                ProfileImage(imageUrl = userInfo?.imageUrl)
+                Spacer(modifier = Modifier.height(8.dp))
 
-        item {
-            AccountInfoSection(navController, userInfo)
-            Spacer(modifier = Modifier.height(24.dp))
-        }
+                ProfileName(name = userInfo?.name ?: "Laster...")
+                Spacer(modifier = Modifier.height(8.dp))
 
-        item {
-            LogoutButton(navController, viewModel)
+                EditProfileButton(navController)
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+
+            item {
+                AccountInfoSection(navController, userInfo)
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+
+            item {
+                LogoutButton(navController, viewModel)
+            }
         }
     }
 }

@@ -15,6 +15,7 @@ import com.example.soclub.models.createActivity
 import com.example.soclub.service.AccountService
 import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -35,14 +36,22 @@ class EditProfileViewModel @Inject constructor(
     var uiState: MutableState<EditProfileState> = mutableStateOf(EditProfileState())
         private set
 
+    var isLoading: MutableState<Boolean> = mutableStateOf(true)
+        private set
+
+    var errorMessage: MutableState<String?> = mutableStateOf(null)
+        private set
+
     fun loadUserProfile() {
+        isLoading.value = true
+        errorMessage.value = null  // Tilbakestill feilmeldingen ved ny lasting
         viewModelScope.launch {
             try {
                 val userInfo: UserInfo = accountService.getUserInfo()
                 val nameParts = userInfo.name.split(" ")
                 val firstname = nameParts.firstOrNull() ?: ""
                 val lastname = nameParts.drop(1).joinToString(" ")
-                val imageUri = userInfo.imageUrl.let { Uri.parse(it) } // Convert imageUrl to Uri
+                val imageUri = userInfo.imageUrl.let { Uri.parse(it) }
 
                 uiState.value = uiState.value.copy(
                     firstname = firstname,
@@ -50,7 +59,11 @@ class EditProfileViewModel @Inject constructor(
                     imageUri = imageUri
                 )
             } catch (e: Exception) {
-                uiState.value = uiState.value.copy(firstnameError = R.string.error_profile_info)
+                // Sett feilmelding hvis noe går galt
+                errorMessage.value = "Kunne ikke laste profilinformasjon. Vennligst prøv igjen senere."
+            } finally {
+                delay(1000)
+                isLoading.value = false
             }
         }
     }

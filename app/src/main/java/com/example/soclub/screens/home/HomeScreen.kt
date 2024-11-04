@@ -458,7 +458,15 @@ fun NearActivities(viewModel: HomeViewModel, navController: NavHostController) {
                 .padding(top = 16.dp),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator() // Viser loading-indikator til alt er klart
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "Henter de 10 nærmeste aktivitetene...",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                CircularProgressIndicator()
+            }
         }
     } else {
         if (activities.isNotEmpty()) {
@@ -477,5 +485,6 @@ fun NearActivities(viewModel: HomeViewModel, navController: NavHostController) {
         }
     }
 }
+
 
 

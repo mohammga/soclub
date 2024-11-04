@@ -72,59 +72,74 @@ fun ActivityDetailScreen(
     activityId: String?,
     viewModel: ActivityDetailViewModel = hiltViewModel()
 ) {
-
     val activity = viewModel.activity.collectAsState().value
     val isRegistered = viewModel.isRegistered.collectAsState().value
     val canRegister = viewModel.canRegister.collectAsState().value
     val currentParticipants = viewModel.currentParticipants.collectAsState().value
+    val isLoading = viewModel.isLoading.collectAsState().value
+    val errorMessage = viewModel.errorMessage.collectAsState().value
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-
     LaunchedEffect(activityId, category) {
         if (activityId != null && category != null) {
-            viewModel.loadActivity(category, activityId)
+            viewModel.loadActivityWithStatus(category, activityId)
         }
     }
-
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         content = {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize(),
-                horizontalAlignment = Alignment.Start
-            ) {
-                item {
-                    ActivityImage(imageUrl = activity?.imageUrl ?: "")
+            when {
+                isLoading -> {
+                    // Viser en progressindikator mens data lastes
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
                 }
-
-                item {
-                    ActivityDetailsContent(
-                        activity = activity,
-                        currentParticipants = currentParticipants,
-                        isRegistered = isRegistered,
-                        canRegister = canRegister,
-                        ageGroup = activity?.ageGroup ?: 0,
-                        onRegisterClick = {
-                            if (activityId != null && category != null) {
-                                viewModel.updateRegistrationForActivity(category, activityId, true)
-                                showSnackbar(true, snackbarHostState, scope, activity, currentParticipants)
-                            }
-                        },
-                        onUnregisterClick = {
-                            if (activityId != null && category != null) {
-                                viewModel.updateRegistrationForActivity(category, activityId, false)
-                                showSnackbar(false, snackbarHostState, scope, activity, currentParticipants)
-                            }
+                errorMessage != null -> {
+                    // Viser en feilmelding hvis det oppsto en feil
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(text = errorMessage, color = Color.Red, fontSize = 16.sp)
+                    }
+                }
+                else -> {
+                    // Viser innholdet når det er lastet uten feil
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        item {
+                            ActivityImage(imageUrl = activity?.imageUrl ?: "")
                         }
-                    )
+                        item {
+                            ActivityDetailsContent(
+                                activity = activity,
+                                currentParticipants = currentParticipants,
+                                isRegistered = isRegistered,
+                                canRegister = canRegister,
+                                ageGroup = activity?.ageGroup ?: 0,
+                                onRegisterClick = {
+                                    if (activityId != null && category != null) {
+                                        viewModel.updateRegistrationForActivity(category, activityId, true)
+                                        showSnackbar(true, snackbarHostState, scope, activity, currentParticipants)
+                                    }
+                                },
+                                onUnregisterClick = {
+                                    if (activityId != null && category != null) {
+                                        viewModel.updateRegistrationForActivity(category, activityId, false)
+                                        showSnackbar(false, snackbarHostState, scope, activity, currentParticipants)
+                                    }
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }
     )
 }
+
 
 
 fun showSnackbar(isRegistering: Boolean, snackbarHostState: SnackbarHostState, scope: CoroutineScope, activity: Activity?, currentParticipants: Int) {
