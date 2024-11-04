@@ -12,10 +12,19 @@ class StorageServiceImpl @Inject constructor(
 
     override fun uploadImage(
         imageUri: Uri,
+        isActivity: Boolean, // Added parameter to determine folder
+        category: String,     // Added parameter for activity category
         onSuccess: (String) -> Unit,
         onError: (Exception) -> Unit
     ) {
-        val storageRef = firebaseStorage.reference.child("images/${imageUri.lastPathSegment}")
+        // Determine folder based on whether it's an activity or a user profile image
+        val folderPath = if (isActivity) {
+            "/$category/${imageUri.lastPathSegment}"
+        } else {
+            "User/${imageUri.lastPathSegment}"
+        }
+
+        val storageRef = firebaseStorage.reference.child(folderPath)
         storageRef.putFile(imageUri)
             .addOnSuccessListener {
                 storageRef.downloadUrl.addOnSuccessListener { uri ->

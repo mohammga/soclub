@@ -312,7 +312,9 @@ class NewActivityViewModel @Inject constructor(
 
         if (uiState.value.imageUrl.isNotBlank()) {
             storageService.uploadImage(
-                Uri.parse(uiState.value.imageUrl),
+                imageUri = Uri.parse(uiState.value.imageUrl),
+                isActivity = true,  // Set to true for activity images
+                category = uiState.value.category, // Pass the activity category
                 onSuccess = { imageUrl ->
                     createActivityAndNavigate(navController, imageUrl, combinedLocation, timestampDate, startTime, creatorId)
                 },
@@ -321,10 +323,14 @@ class NewActivityViewModel @Inject constructor(
                     Log.e("NewActivityViewModel", "Error uploading image: ${error.message}")
                 }
             )
-        } else {
+        }
+        else {
             createActivityAndNavigate(navController, "", combinedLocation, timestampDate, startTime, creatorId)
         }
     }
+
+
+
 
     private fun createActivityAndNavigate(
         navController: NavController,

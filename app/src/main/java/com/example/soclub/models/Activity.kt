@@ -14,7 +14,7 @@ data class Activity(
     val maxParticipants: Int = 0,
     val location: String = "",
     val restOfAddress: String = "",
-    val date: Timestamp? = null,  // Updated to Timestamp for Firebase
+    val date: Timestamp? = null,
     val creatorId: String = "",
     val createdAt: Timestamp = Timestamp.now(),
     val startTime: String = "",

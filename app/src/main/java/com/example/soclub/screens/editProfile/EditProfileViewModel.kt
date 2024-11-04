@@ -11,9 +11,8 @@ import androidx.navigation.NavController
 import com.example.soclub.R
 import com.example.soclub.common.ext.isValidName
 import com.example.soclub.models.UserInfo
-import com.example.soclub.models.createActivity
 import com.example.soclub.service.AccountService
-import com.google.firebase.storage.FirebaseStorage
+import com.example.soclub.service.StorageService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -30,7 +29,8 @@ data class EditProfileState(
 
 @HiltViewModel
 class EditProfileViewModel @Inject constructor(
-    private val accountService: AccountService
+    private val accountService: AccountService,
+    private val storageService: StorageService // Inject StorageService
 ) : ViewModel() {
 
     var uiState: MutableState<EditProfileState> = mutableStateOf(EditProfileState())
@@ -44,7 +44,7 @@ class EditProfileViewModel @Inject constructor(
 
     fun loadUserProfile() {
         isLoading.value = true
-        errorMessage.value = null  // Tilbakestill feilmeldingen ved ny lasting
+        errorMessage.value = null  // Reset error message on reload
         viewModelScope.launch {
             try {
                 val userInfo: UserInfo = accountService.getUserInfo()
@@ -59,7 +59,6 @@ class EditProfileViewModel @Inject constructor(
                     imageUri = imageUri
                 )
             } catch (e: Exception) {
-                // Sett feilmelding hvis noe går galt
                 errorMessage.value = "Kunne ikke laste profilinformasjon. Vennligst prøv igjen senere."
             } finally {
                 delay(1000)
@@ -67,7 +66,6 @@ class EditProfileViewModel @Inject constructor(
             }
         }
     }
-
 
     fun onNameChange(newValue: String) {
         val isNameDirty = newValue != uiState.value.firstname
@@ -112,12 +110,14 @@ class EditProfileViewModel @Inject constructor(
         if (hasError) return
 
         val fullName = "${uiState.value.firstname} ${uiState.value.lastname}"
-
-        // Check if imageUri is null before calling Uri.parse
         val imageUri = uiState.value.imageUri
+
         if (imageUri != null) {
-            uploadImageToFirebase(
-                imageUri,
+            // Use StorageService to upload the image
+            storageService.uploadImage(
+                imageUri = imageUri,
+                isActivity = false, // Set to false for user profile images
+                category = "", // Category not needed for user images
                 onSuccess = { imageUrl ->
                     updateUserInfoAndNavigate(navController, fullName, imageUrl)
                 },
@@ -131,26 +131,13 @@ class EditProfileViewModel @Inject constructor(
         }
     }
 
-
-    private fun uploadImageToFirebase(imageUri: Uri, onSuccess: (String) -> Unit, onError: (Exception) -> Unit) {
-        val storageRef = FirebaseStorage.getInstance().reference.child("User/${imageUri.lastPathSegment}")
-        storageRef.putFile(imageUri)
-            .addOnSuccessListener {
-                Log.d("EditProfileViewModel", "Image uploaded successfully")
-                storageRef.downloadUrl.addOnSuccessListener { uri ->
-                    onSuccess(uri.toString())
-                }
-            }
-            .addOnFailureListener(onError)
-    }
-
     private fun updateUserInfoAndNavigate(navController: NavController, fullName: String, imageUrl: String) {
         viewModelScope.launch {
             try {
                 accountService.updateProfile(name = fullName, imageUrl = imageUrl) { error ->
                     if (error == null) {
                         viewModelScope.launch {
-                            kotlinx.coroutines.delay(2000)
+                            delay(2000)
                             navController.navigate("profile") {
                                 popUpTo("edit_profile") { inclusive = true }
                             }
@@ -165,4 +152,3 @@ class EditProfileViewModel @Inject constructor(
         }
     }
 }
-
