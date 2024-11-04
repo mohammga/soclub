@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -356,53 +357,70 @@ fun ActivityList(activities: List<Activity>, selectedCategory: String, navContro
 
 @Composable
 fun ActivityItem(activity: Activity, onClick: () -> Unit) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
+            .height(200.dp) // Holder samme størrelse
+            .clip(RoundedCornerShape(16.dp))
             .clickable { onClick() }
     ) {
-        // Check if the imageUrl is null or empty, then show a placeholder
-        if (activity.imageUrl.isEmpty()) {
-            Image(
-                painter = painterResource(id = R.drawable.placeholder),
-                contentDescription = stringResource(id = R.string.change_ad_picture),
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .clip(RoundedCornerShape(16.dp))
+        // Bakgrunnsbilde
+        Image(
+            painter = if (activity.imageUrl.isEmpty()) {
+                painterResource(id = R.drawable.placeholder)
+            } else {
+                rememberAsyncImagePainter(activity.imageUrl)
+            },
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(16.dp))
+        )
+
+        // Forsterket overlay for å fremheve teksten mer
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 1f) // Øker opasiteten til 0.8 for mørkere overlay
+                        ),
+                        startY = 100f // Justerer gradient-start for en mykere overgang
+                    )
+                )
+                .clip(RoundedCornerShape(16.dp))
+        )
+
+        // Tekst og lokasjon som ligger over overlay
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp), // Padding rundt tekst for bedre plassering
+            verticalArrangement = Arrangement.Bottom // Plasser teksten nederst
+        ) {
+            Text(
+                text = activity.title ?: "Ingen tittel",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
             )
-        } else {
-            Image(
-                painter = rememberAsyncImagePainter(activity.imageUrl),
-                contentDescription = activity.title,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .clip(RoundedCornerShape(16.dp))
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = activity.location ?: "Ukjent sted",
+                fontSize = 14.sp,
+                color = Color.LightGray
             )
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Title for the activity
-        Text(
-            text = activity.title ?: "Ingen tittel",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.align(Alignment.Start)
-        )
-
-        // Show the city/location under the title
-        Text(
-            text = activity.location ?: "Ukjent sted",
-            fontSize = 14.sp,
-            color = Color.Gray, // Gi byen en lysere farge
-            modifier = Modifier.align(Alignment.Start)
-        )
     }
 }
+
+
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -544,6 +562,3 @@ fun NearActivities(viewModel: HomeViewModel, navController: NavHostController) {
         }
     }
 }
-
-
-
