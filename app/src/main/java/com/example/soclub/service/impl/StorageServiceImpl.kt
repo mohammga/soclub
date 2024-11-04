@@ -1,31 +1,30 @@
 package com.example.soclub.service.impl
 
-import com.example.soclub.service.AccountService
+import android.net.Uri
+import android.util.Log
 import com.example.soclub.service.StorageService
-import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.tasks.await
+import com.google.firebase.storage.FirebaseStorage
 import javax.inject.Inject
 
 class StorageServiceImpl @Inject constructor(
-    private val firestore: FirebaseFirestore,
-    private val accountService: AccountService
+    private val firebaseStorage: FirebaseStorage
 ) : StorageService {
 
-    override suspend fun <T : Any> createDocument(collection: String, data: T) {
-        firestore.collection(collection).add(data).await()
+    override fun uploadImage(
+        imageUri: Uri,
+        onSuccess: (String) -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        val storageRef = firebaseStorage.reference.child("images/${imageUri.lastPathSegment}")
+        storageRef.putFile(imageUri)
+            .addOnSuccessListener {
+                storageRef.downloadUrl.addOnSuccessListener { uri ->
+                    onSuccess(uri.toString())
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.e("StorageServiceImpl", "Error uploading image: ${exception.message}")
+                onError(exception)
+            }
     }
-
-    override suspend fun <T> readDocument(collection: String, documentId: String, clazz: Class<T>): T? {
-        val snapshot = firestore.collection(collection).document(documentId).get().await()
-        return snapshot.toObject(clazz)
-    }
-
-    override suspend fun <T : Any> updateDocument(collection: String, documentId: String, data: T) {
-        firestore.collection(collection).document(documentId).set(data).await()
-    }
-
-    override suspend fun deleteDocument(collection: String, documentId: String) {
-        firestore.collection(collection).document(documentId).delete().await()
-    }
-
 }

@@ -261,5 +261,8 @@
 
     <string name="name_label">Navn</string>
     <string name="error_user_already_registered">Det finnes allerede en bruker med denne e-postadressen</string>
+    <string name="error_loading_kommuner">Kunne ikke laste inn kommuner. Vennligst prøv igjen senere.\n</string>
+    <string name="error_image_upload_failed">Kunne ikke laste opp bilde</string>
+    <string name="error_creating_activity">Kunne ikke lage aktiviteten</string>
 
 </resources>
