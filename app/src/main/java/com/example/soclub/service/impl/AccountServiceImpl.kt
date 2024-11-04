@@ -5,6 +5,7 @@ import com.example.soclub.models.UserInfo
 import com.example.soclub.service.AccountService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.EmailAuthProvider
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -81,10 +82,16 @@ class AccountServiceImpl @Inject constructor(
                         onResult(Exception("User is null after registration"))
                     }
                 } else {
-                    onResult(task.exception)
+                    // Check if the error is because the user already exists
+                    if (task.exception is FirebaseAuthUserCollisionException) {
+                        onResult(Exception("User already registered"))
+                    } else {
+                        onResult(task.exception)
+                    }
                 }
             }.await()
     }
+
 
 
     override suspend fun signOut() {

@@ -5,8 +5,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import java.util.Date
 
 
-
-
 data class Activity(
     val id: String = "",
     val imageUrl: String = "",
@@ -16,7 +14,7 @@ data class Activity(
     val maxParticipants: Int = 0,
     val location: String = "",
     val restOfAddress: String = "",
-    val date: Timestamp? = null,  // Updated to Timestamp for Firebase
+    val date: Timestamp? = null,
     val creatorId: String = "",
     val createdAt: Timestamp = Timestamp.now(),
     val startTime: String = "",
@@ -35,7 +33,6 @@ data class createActivity(
     val startTime: String = "",
     val createdAt: Timestamp = Timestamp.now(),
     val lastUpdated: Timestamp = Timestamp.now(),
-    val soclubCode: Int = 0
 )
 
 
@@ -53,7 +50,6 @@ data class editActivity(
     val category: String = "",
     val createdAt: Timestamp = Timestamp.now(),
     val lastUpdated: Timestamp = Timestamp.now(),
-    val soclubCode: Int = 0
 )
 
 

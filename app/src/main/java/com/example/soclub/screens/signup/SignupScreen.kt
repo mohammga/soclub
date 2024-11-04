@@ -73,6 +73,16 @@ fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hilt
         }
 
         item {
+            if (uiState.generalError != null) {
+                Text(
+                    text = stringResource(id = uiState.generalError!!),
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+        }
+
+        item {
             SignUpButton(navController, viewModel)
             Spacer(modifier = Modifier.height(16.dp))
         }

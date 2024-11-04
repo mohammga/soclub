@@ -16,6 +16,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.example.soclub.R
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.Alignment
 import androidx.lifecycle.Lifecycle
 
 
@@ -26,7 +27,7 @@ fun EditPermissionScreen(
 ) {
     val context = LocalContext.current
     val locationPermission by viewModel.locationPermission.collectAsState()
-    val cameraPermission by viewModel.cameraPermission.collectAsState()
+    val galleryPermission by viewModel.galleryPermission.collectAsState()
     val notificationPermission by viewModel.notificationPermission.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -65,6 +66,7 @@ fun EditPermissionScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
@@ -82,7 +84,7 @@ fun EditPermissionScreen(
 
         item {
             Text(
-                text = stringResource(id = R.string.change_Camera_screen_title),
+                text = stringResource(id = R.string.change_Gallery_screen_title),
                 style = MaterialTheme.typography.bodyLarge.copy(
                     fontWeight = FontWeight.Bold
                 ),
@@ -92,14 +94,15 @@ fun EditPermissionScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = stringResource(id = R.string.change_Camera_promission_screen),
+                    text = stringResource(id = R.string.change_Gallery_promission_screen),
                     style = MaterialTheme.typography.labelLarge
                 )
                 Switch(
-                    checked = cameraPermission,
+                    checked = galleryPermission,
                     onCheckedChange = {
                         viewModel.navigateToSettings(context)
                     }
@@ -119,6 +122,7 @@ fun EditPermissionScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
@@ -135,4 +139,3 @@ fun EditPermissionScreen(
         }
     }
 }
-

@@ -20,10 +20,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -45,9 +49,6 @@ fun NewActivityScreen(navController: NavController, viewModel: NewActivityViewMo
     val uiState by viewModel.uiState
     val locationSuggestions by remember { derivedStateOf { uiState.locationSuggestions } }
     val addressSuggestions by remember { derivedStateOf { uiState.addressSuggestions } }
-
-    var showAddressField by remember { mutableStateOf(false) }
-    var showPostalCodeField by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -73,37 +74,37 @@ fun NewActivityScreen(navController: NavController, viewModel: NewActivityViewMo
                     value = uiState.location,
                     onNewValue = { location ->
                         viewModel.onLocationChange(location)
-                        showAddressField = location.isNotBlank()
+                        viewModel.uiState.value = uiState.copy(locationConfirmed = false) // Reset confirmation
                     },
                     suggestions = locationSuggestions,
                     onSuggestionClick = { suggestion ->
-                        viewModel.onLocationChange(suggestion)
-                        showAddressField = true
+                        viewModel.onLocationSelected(suggestion)
+                        viewModel.uiState.value = uiState.copy(locationConfirmed = true) // Confirm selection
                     },
                     error = uiState.locationError
                 )
             }
 
-            if (showAddressField) {
+            if (uiState.locationConfirmed) {
                 item {
                     AddressField(
                         value = uiState.address,
                         onNewValue = { address ->
                             viewModel.onAddressChange(address)
-                            showPostalCodeField = address.isNotBlank()
+                            viewModel.uiState.value = uiState.copy(addressConfirmed = false) // Reset confirmation
                         },
                         suggestions = addressSuggestions,
                         onSuggestionClick = { suggestion ->
                             viewModel.onAddressSelected(suggestion)
-                            showPostalCodeField = true
+                            viewModel.uiState.value = uiState.copy(addressConfirmed = true) // Confirm selection
                         },
-                        isEnabled = true,
+                        isEnabled = uiState.locationConfirmed,
                         error = uiState.addressError
                     )
                 }
             }
 
-            if (showPostalCodeField) {
+            if (uiState.addressConfirmed) {
                 item {
                     PostalCodeField(
                         value = uiState.postalCode,
@@ -126,6 +127,7 @@ fun NewActivityScreen(navController: NavController, viewModel: NewActivityViewMo
         }
     }
 }
+
 
 @Composable
 fun TitleField(value: String, onNewValue: (String) -> Unit, error: String?) {
@@ -317,52 +319,111 @@ fun PostalCodeField(value: String, error: String?) {
 @Composable
 fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
     val context = LocalContext.current
-    val datePickerDialog = DatePickerDialog(context, { _, year, month, dayOfMonth ->
-        val newDate = Calendar.getInstance().apply { set(year, month, dayOfMonth) }
-        onNewValue(Timestamp(Date(newDate.timeInMillis)))
-    }, Calendar.getInstance().get(Calendar.YEAR), Calendar.getInstance().get(Calendar.MONTH), Calendar.getInstance().get(Calendar.DAY_OF_MONTH))
+    val datePickerDialog = remember {
+        DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                val newDate = Calendar.getInstance().apply { set(year, month, dayOfMonth) }
+                onNewValue(Timestamp(Date(newDate.timeInMillis)))
+            },
+            Calendar.getInstance().get(Calendar.YEAR),
+            Calendar.getInstance().get(Calendar.MONTH),
+            Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
+        )
+    }
 
-    OutlinedTextField(
-        value = if (value != 0L) SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value)) else "Velg dato",
-        onValueChange = {},
-        label = { Text(stringResource(id = R.string.date_label)) },
-        modifier = Modifier.fillMaxWidth().clickable { datePickerDialog.show() }.padding(vertical = 8.dp),
-        readOnly = true,
-        isError = error != null,
-        supportingText = {
-            if (error == null) {
-                Text(stringResource(id = R.string.date_supporting_text))
-            } else {
-                Text(text = error, color = MaterialTheme.colorScheme.error)
+    // Display the formatted date or a default placeholder
+    val dateText = if (value != 0L) {
+        SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
+    } else {
+        "Velg dato"
+    }
+
+    Box {
+        OutlinedTextField(
+            value = dateText,
+            onValueChange = {},
+            label = { Text(stringResource(id = R.string.date_label)) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            readOnly = true,
+            isError = error != null,
+            supportingText = {
+                if (error == null) {
+                    Text(stringResource(id = R.string.date_supporting_text))
+                } else {
+                    Text(text = error, color = MaterialTheme.colorScheme.error)
+                }
             }
-        }
-    )
+        )
+
+        // Invisible box overlay to handle clicks
+        Box(
+            modifier = Modifier
+                .matchParentSize()  // Matches size of OutlinedTextField
+                .alpha(0f)           // Makes the box invisible
+                .clickable { datePickerDialog.show() }  // Opens DatePickerDialog on click
+        )
+    }
 }
 
-@SuppressLint("DefaultLocale")
+
+
 @Composable
 fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) {
     val context = LocalContext.current
-    val timePickerDialog = TimePickerDialog(context, { _, hour, minute ->
-        onNewValue(String.format("%02d:%02d", hour, minute))
-    }, Calendar.getInstance().get(Calendar.HOUR_OF_DAY), Calendar.getInstance().get(Calendar.MINUTE), true)
+    val timePickerDialog = remember {
+        TimePickerDialog(
+            context,
+            { _, hour, minute ->
+                onNewValue(String.format("%02d:%02d", hour, minute))
+            },
+            Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
+            Calendar.getInstance().get(Calendar.MINUTE),
+            true
+        )
+    }
 
-    OutlinedTextField(
-        value = if (value.isNotEmpty()) value else "Velg starttidspunkt",
-        onValueChange = {},
-        label = { Text(stringResource(id = R.string.start_time_label)) },
-        modifier = Modifier.fillMaxWidth().clickable { timePickerDialog.show() }.padding(vertical = 8.dp),
-        readOnly = true,
-        isError = error != null,
-        supportingText = {
-            if (error == null) {
-                Text(stringResource(id = R.string.start_time_supporting_text))
-            } else {
-                Text(text = error, color = MaterialTheme.colorScheme.error)
+    // State to handle focus
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+
+    Box {
+        OutlinedTextField(
+            value = if (value.isNotEmpty()) value else "Velg tidspunkt",
+            onValueChange = {},
+            label = { Text(stringResource(id = R.string.start_time_label)) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+                .focusRequester(focusRequester), // Set focus requester
+            readOnly = true,
+            isError = error != null,
+            supportingText = {
+                if (error == null) {
+                    Text(stringResource(id = R.string.start_time_supporting_text))
+                } else {
+                    Text(text = error, color = MaterialTheme.colorScheme.error)
+                }
             }
-        }
-    )
+        )
+
+        // Invisible overlay box to intercept clicks
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .alpha(0f)
+                .clickable {
+                    // Clear focus to prevent keyboard from appearing
+                    focusManager.clearFocus()
+                    // Show the TimePickerDialog
+                    timePickerDialog.show()
+                }
+        )
+    }
 }
+
 
 @Composable
 fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: String?) {
