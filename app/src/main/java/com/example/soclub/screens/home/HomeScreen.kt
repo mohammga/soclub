@@ -1,6 +1,6 @@
 package com.example.soclub.screens.home
 
-import androidx.compose.foundation.ExperimentalFoundationApi
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,18 +29,18 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.example.soclub.R
 
-
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hiltViewModel()) {
     val categories by viewModel.getCategories().observeAsState(emptyList())
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { categories.size })
-
     var showBottomSheet by remember { mutableStateOf(false) }
     var isSelectingArea by remember { mutableStateOf(true) }
     val selectedCities by viewModel.selectedCities.observeAsState(mutableListOf())
@@ -48,7 +48,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
     val userCity by viewModel.userCity.observeAsState(null)
 
     LaunchedEffect(Unit) {
-        viewModel.fetchUserLocation()  // Hent GPS-plassering ved start
+        viewModel.fetchUserLocation()
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -58,20 +58,29 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        val selectedCategory = categories.getOrNull(pagerState.currentPage) ?: ""
+
+        // Tittel og filter-ikon på samme linje
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(end = 16.dp), // Fjern venstre padding her
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            val selectedCategory = categories.getOrNull(pagerState.currentPage) ?: ""
-            CategoryTitle(selectedCategory)
+            Text(
+                text = selectedCategory,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(start = 16.dp)
+            )
+
 
             if (selectedCategory != "Nærme Aktiviteter") {
                 Icon(
                     imageVector = Icons.Default.FilterList,
                     contentDescription = "Filter",
                     modifier = Modifier
-                        .padding(horizontal = 16.dp)
                         .clickable {
                             showBottomSheet = true
                             isSelectingArea = true
@@ -80,22 +89,32 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        val selectedCategory = if (categories.isNotEmpty() && pagerState.currentPage < categories.size) {
-            categories[pagerState.currentPage]
-        } else {
-            ""
+        // Filterchips under tittelen med FlowRow for linjeskift
+        if (selectedCategory != "Nærme Aktiviteter" && selectedCities.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(8.dp))
+            FlowRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                selectedCities.forEach { city ->
+                    Chip(
+                        text = city,
+                        onRemove = { viewModel.updateSelectedCities(city, false) }
+                    )
+                }
+            }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         if (selectedCategory == "Nærme Aktiviteter") {
             userCity?.let { city ->
-                // Kall den nye `getNearestActivities()` funksjonen
                 LaunchedEffect(city) {
                     viewModel.getNearestActivities()
                 }
-
-                // Vis aktiviteter nærmest brukerens posisjon
                 NearActivities(viewModel = viewModel, navController = navController)
             } ?: run {
                 Text(
@@ -136,6 +155,41 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
         )
     }
 }
+
+
+
+
+
+
+
+
+
+@Composable
+fun Chip(text: String, onRemove: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp))  // Mindre runding
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
+            .padding(horizontal = 8.dp, vertical = 4.dp),  // Reduser padding
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = text,
+            fontSize = 14.sp,  // Mindre fontstørrelse
+            fontWeight = FontWeight.Normal
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Icon(
+            imageVector = Icons.Default.Close,
+            contentDescription = "Remove $text",
+            modifier = Modifier
+                .size(16.dp)  // Mindre ikonstørrelse
+                .clickable { onRemove() }
+        )
+    }
+}
+
 
 
 
@@ -249,24 +303,24 @@ fun FilterListItem(
 @Composable
 fun CategoryTabs(categories: List<String>, pagerState: PagerState) {
     val coroutineScope = rememberCoroutineScope()
-
-    ScrollableTabRow(
-        selectedTabIndex = pagerState.currentPage,
-        edgePadding = 2.dp
-    ) {
-        categories.forEachIndexed { index, category ->
-            Tab(
-                text = { Text(category) },
-                selected = pagerState.currentPage == index,
-                onClick = {
-                    coroutineScope.launch {
-                        pagerState.scrollToPage(index)
+        ScrollableTabRow(
+            selectedTabIndex = pagerState.currentPage,
+            edgePadding = 2.dp,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            categories.forEachIndexed { index, category ->
+                Tab(
+                    text = { Text(category) },
+                    selected = pagerState.currentPage == index,
+                    onClick = {
+                        coroutineScope.launch {
+                            pagerState.scrollToPage(index)
+                        }
                     }
-                }
-            )
+                )
+            }
         }
     }
-}
 
 @Composable
 fun CategoryTitle(category: String) {
@@ -427,15 +481,19 @@ fun FilterBottomSheet(
 
                     Button(
                         onClick = { onSearch() },
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp)
                     ) {
                         Text(text = "Søk")
                     }
 
                     if (selectedCities.isNotEmpty()) {
                         Button(
-                            onClick = { onResetFilter() },
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                            onClick = { onResetFilter() },  // Fjern tilbakestilling av `_selectedCities` her
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
                         ) {
                             Text("Nullstill filtrering")
                         }
@@ -445,6 +503,7 @@ fun FilterBottomSheet(
         }
     }
 }
+
 
 @Composable
 fun NearActivities(viewModel: HomeViewModel, navController: NavHostController) {

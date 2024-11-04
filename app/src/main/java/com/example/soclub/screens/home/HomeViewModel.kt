@@ -42,6 +42,8 @@ class HomeViewModel @Inject constructor(
     private val _selectedCities = MutableLiveData<List<String>>(emptyList())
     val selectedCities: LiveData<List<String>> get() = _selectedCities
 
+
+
     init {
         fetchAndGroupActivitiesByCities(emptyList())  // Hent aktiviteter uten filter ved oppstart
     }
@@ -100,7 +102,17 @@ class HomeViewModel @Inject constructor(
             currentCities.remove(city)
         }
         _selectedCities.value = currentCities
+
+        // Oppdater aktivitetene basert på gjeldende filter
+        if (currentCities.isEmpty()) {
+            // Nullstill filteret hvis ingen byer er valgt
+            fetchAndGroupActivitiesByCities(emptyList())
+        } else {
+            fetchAndGroupActivitiesByCities(currentCities)
+        }
     }
+
+
 
     fun fetchAndGroupActivitiesByCities(selectedCities: List<String>) {
         _selectedCities.value = selectedCities.toMutableList()
