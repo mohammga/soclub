@@ -16,6 +16,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.example.soclub.R
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.Alignment
 import androidx.lifecycle.Lifecycle
 
 
@@ -65,6 +66,7 @@ fun EditPermissionScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
@@ -92,6 +94,7 @@ fun EditPermissionScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
@@ -119,6 +122,7 @@ fun EditPermissionScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
@@ -135,4 +139,3 @@ fun EditPermissionScreen(
         }
     }
 }
-
