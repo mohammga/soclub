@@ -178,9 +178,13 @@ fun ActivityDetailsContent(
 
     Column(modifier = Modifier.padding(16.dp)) {
         ActivityTitle(activity?.title ?: stringResource(R.string.activity_no_title))
-
-        // Bruk date fra aktiviteten
         ActivityDate(date = activity?.date)
+        if (activity?.startTime?.isNotEmpty() == true) {
+            Text(
+                text = "Starttid: ${activity.startTime}",
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+        }
 
         InfoRow(
             icon = Icons.Default.LocationOn,
@@ -249,19 +253,19 @@ fun ActivityTitle(title: String) {
 
 @Composable
 fun ActivityDate(date: Timestamp?) {
-    // Konverter Timestamp til et lesbart datoformat på norsk
     val formattedDate = date?.let {
-        val sdf = SimpleDateFormat("EEEE, d. MMMM yyyy, HH:mm", Locale("no", "NO")) // Norsk lokalisering
-        val dateStr = sdf.format(it.toDate())
-        // Gjør første bokstav i ukedagen stor
-        dateStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-    } ?: "Ukjent tid"
+
+        val sdf = SimpleDateFormat("EEEE, d. MMMM yyyy", Locale("no", "NO"))
+        sdf.format(it.toDate())
+    } ?: "Ukjent dato"
 
     Text(
-        text = formattedDate,
+        text = "Dato: $formattedDate",
         modifier = Modifier.padding(vertical = 4.dp)
     )
 }
+
+
 
 
 fun splitDescriptionWithNaturalFlow(description: String, linesPerChunk: Int = 1): String {
