@@ -96,55 +96,50 @@ fun EntryItem(
     category: String,
     navController: NavController
 ) {
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .clickable {
+                navController.navigate("editActivity/$category/$activityId")
+            }
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
+        EventImage(imageUrl ?: "")
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title ?: "Ingen tittel",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = time ?: "Ukjent tid",
+                style = MaterialTheme.typography.bodyMedium
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // "Endre annonse"-knappen plassert inne i kolonnen, justert for å matche layout
+            Button(
+                onClick = {
                     navController.navigate("editActivity/$category/$activityId")
                 },
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            EventImage(imageUrl ?: "")
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title ?: "Ingen tittel",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Text(
-                    text = time ?: "Ukjent tid",
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Endre annonse")
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            HorizontalDivider(thickness = 1.dp)
         }
-
-        // Legger til "Endre annonse"-knappen
-        Button(
-            onClick = {
-                navController.navigate("editActivity/$category/$activityId")
-            },
-            modifier = Modifier.align(Alignment.End)
-        ) {
-            Text("Endre annonse")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        HorizontalDivider(thickness = 1.dp)
     }
 }
-
-
 
 @Composable
 fun EventImage(imageUrl: String) {
