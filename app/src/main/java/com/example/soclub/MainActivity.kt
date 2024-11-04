@@ -2,15 +2,13 @@ package com.example.soclub
 
 import android.Manifest
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -33,9 +31,8 @@ class MainActivity : ComponentActivity() {
     lateinit var activityService: ActivityService
 
     private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
-    private lateinit var cameraLauncher: ActivityResultLauncher<Intent>
     private var isLocationPermissionGranted = false
-    private var isCameraPermissionGranted = false
+    private var isGalleryPermissionGranted = false // Updated from camera to gallery
     private var isPOST_NOTIFICATIONS = false
 
     private lateinit var connectivityManager: ConnectivityManager
@@ -47,7 +44,13 @@ class MainActivity : ComponentActivity() {
         permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             isLocationPermissionGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: isLocationPermissionGranted
             isPOST_NOTIFICATIONS = permissions[Manifest.permission.POST_NOTIFICATIONS] ?: isPOST_NOTIFICATIONS
-            isCameraPermissionGranted = permissions[Manifest.permission.CAMERA] ?: isCameraPermissionGranted
+
+            // Updated from camera permission to gallery permission
+            isGalleryPermissionGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                permissions[Manifest.permission.READ_MEDIA_IMAGES] ?: isGalleryPermissionGranted
+            } else {
+                permissions[Manifest.permission.READ_EXTERNAL_STORAGE] ?: isGalleryPermissionGranted
+            }
         }
 
         requestPermission()
@@ -84,7 +87,13 @@ class MainActivity : ComponentActivity() {
 
     private fun requestPermission() {
         isLocationPermissionGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-        isCameraPermissionGranted = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+
+        // Updated from camera to gallery permission
+        isGalleryPermissionGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED
+        } else {
+            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+        }
 
         val permissionRequest: MutableList<String> = ArrayList()
 
@@ -94,23 +103,18 @@ class MainActivity : ComponentActivity() {
         if (!isPOST_NOTIFICATIONS) {
             permissionRequest.add(Manifest.permission.POST_NOTIFICATIONS)
         }
-        if (!isCameraPermissionGranted) {
-            permissionRequest.add(Manifest.permission.CAMERA)
+
+        // Request appropriate gallery permissions based on Android version
+        if (!isGalleryPermissionGranted) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                permissionRequest.add(Manifest.permission.READ_MEDIA_IMAGES)
+            } else {
+                permissionRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+            }
         }
 
         if (permissionRequest.isNotEmpty()) {
             permissionLauncher.launch(permissionRequest.toTypedArray())
-        } else {
-            openCamera()
-        }
-    }
-
-    private fun openCamera() {
-        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        if (cameraIntent.resolveActivity(packageManager) != null) {
-            cameraLauncher.launch(cameraIntent)
-        } else {
-            Toast.makeText(this, "No camera application found.", Toast.LENGTH_SHORT).show()
         }
     }
 
