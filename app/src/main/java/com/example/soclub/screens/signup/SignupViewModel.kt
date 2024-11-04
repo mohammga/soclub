@@ -30,7 +30,8 @@ data class RegistrationNewUserState(
     @StringRes val emailError: Int? = null,
     @StringRes val nameError: Int? = null,
     @StringRes val passwordError: Int? = null,
-    @StringRes val ageError: Int? = null
+    @StringRes val ageError: Int? = null,
+    @StringRes val generalError: Int? = null
 )
 
 @HiltViewModel
@@ -113,7 +114,8 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
             nameError = nameError,
             ageError = ageError,
             emailError = emailError,
-            passwordError = passwordError
+            passwordError = passwordError,
+            generalError = null // Reset general error on each new attempt
         )
 
         if (hasError) return
@@ -124,11 +126,17 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
                 accountService.createEmailAccount(uiState.value.email, uiState.value.password, uiState.value.name, convertedAge) { error ->
                     if (error == null) {
                         navController.navigate(AppScreens.HOME.name)
+                    } else if (error.message == "User already registered") {
+                        uiState.value = uiState.value.copy(generalError = R.string.error_user_already_registered)
+                    } else {
+                        uiState.value = uiState.value.copy(generalError = R.string.error_account_creation)
                     }
                 }
             } catch (e: Exception) {
-                uiState.value = uiState.value.copy(emailError = R.string.error_account_creation)
+                uiState.value = uiState.value.copy(generalError = R.string.error_account_creation)
             }
         }
     }
+
+
 }

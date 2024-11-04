@@ -70,6 +70,16 @@ fun SigninScreen(navController: NavController, viewModel: SigninViewModel = hilt
 
         item {
             ResetPasswordText(navController)
+        }
+
+        item {
+            if (uiState.generalError != null) {
+                Text(
+                    text = stringResource(id = uiState.generalError!!),
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
             Spacer(modifier = Modifier.height(32.dp))
         }
 
@@ -154,7 +164,7 @@ fun PasswordField(
 @Composable
 private fun SignInButton(navController: NavController, viewModel: SigninViewModel, context: Context) {
     Button(
-        onClick = { viewModel.onLoginClick(context, navController) },
+        onClick = { viewModel.onLoginClick(navController) },
         modifier = Modifier
             .fillMaxWidth()
             .height(60.dp)

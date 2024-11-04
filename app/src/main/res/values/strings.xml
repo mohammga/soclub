@@ -260,5 +260,6 @@
 
 
     <string name="name_label">Navn</string>
+    <string name="error_user_already_registered">Det finnes allerede en bruker med denne e-postadressen</string>
 
 </resources>
