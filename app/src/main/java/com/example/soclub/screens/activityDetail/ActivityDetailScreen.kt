@@ -53,8 +53,6 @@ import android.icu.text.SimpleDateFormat
 import com.google.firebase.Timestamp
 import java.util.Locale
 
-
-
 fun openGoogleMaps(context: Context, gmmIntentUri: String) {
     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(gmmIntentUri))
     intent.setPackage("com.google.android.apps.maps")
@@ -62,7 +60,6 @@ fun openGoogleMaps(context: Context, gmmIntentUri: String) {
         context.startActivity(intent)
     }
 }
-
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
