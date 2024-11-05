@@ -74,6 +74,8 @@ dependencies {
     implementation(libs.androidx.foundation.android)
     implementation(libs.androidx.foundation.android)
     implementation(libs.places)
+    implementation(libs.androidx.hilt.common)
+    implementation(libs.androidx.hilt.work)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -110,6 +112,10 @@ dependencies {
     // google maps
     implementation ("com.google.android.gms:play-services-maps:18.0.0")
     implementation ("com.google.maps.android:maps-compose:2.0.0")
+
+
+    implementation ("androidx.work:work-runtime-ktx:2.7.1")
+
 
 
 }

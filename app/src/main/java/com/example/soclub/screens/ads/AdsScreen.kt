@@ -1,3 +1,5 @@
+package com.example.soclub.screens.ads
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,8 +19,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import com.example.soclub.screens.ads.AdsViewModel
-
 
 @Composable
 fun AdsScreen(
@@ -59,7 +59,7 @@ fun AdsScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = "Ingen annonser funnet.", color = MaterialTheme.colorScheme.onBackground)
+                    Text(text = "Du har ingen publiserte annonser", color = MaterialTheme.colorScheme.onBackground)
                 }
             }
             else -> {

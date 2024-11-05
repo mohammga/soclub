@@ -1,15 +1,23 @@
 package com.example.soclub.screens.notifications
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
+import com.example.soclub.models.Notification
+import com.example.soclub.service.NotificationService
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-data class Notification(val timeAgo: String, val message: String)
-
-class NotificationsViewModel : ViewModel() {
+@HiltViewModel
+class NotificationsViewModel @Inject constructor(
+    private val notificationService: NotificationService
+) : ViewModel() {
 
     private val _notifications = MutableStateFlow<List<Notification>>(emptyList())
     val notifications: StateFlow<List<Notification>> = _notifications
@@ -20,25 +28,43 @@ class NotificationsViewModel : ViewModel() {
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
-    // Funksjon for å laste varslinger
+    val notificationCount: StateFlow<Int> = _notifications.map { it.size }.stateIn(
+        viewModelScope,
+        SharingStarted.Lazily,
+        initialValue = 0
+    )
+
+    init {
+        viewModelScope.launch {
+            notificationService.getNotificationsStream().collect { notifications ->
+                _notifications.value = notifications
+            }
+        }
+    }
+
     fun loadNotifications() {
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
 
             try {
-                // Simulerer lasting av data med en forsinkelse
-                delay(1000)
-                _notifications.value = listOf(
-                    Notification("2 minutter siden", "Du har fått en ny melding fra Cathrine."),
-                    Notification("20 minutter siden", "Cathrine har meldt seg på arrangementet."),
-                    Notification("1 time siden", "Vennen din skal også delta på arrangementet."),
-                    Notification("I går", "Det er opprettet et nytt arrangement av vennen din.")
-                )
+                val notificationsFromDb = notificationService.getAllNotifications()
+                _notifications.value = notificationsFromDb
+                _isLoading.value = false
             } catch (e: Exception) {
                 _errorMessage.value = "Det skjedde en feil. Vennligst prøv igjen senere."
-            } finally {
                 _isLoading.value = false
+            }
+        }
+    }
+
+    fun deleteNotification(notification: Notification) {
+        viewModelScope.launch {
+            try {
+                notificationService.deleteNotification(notification)
+                _notifications.value = _notifications.value.filter { it != notification }
+            } catch (e: Exception) {
+                _errorMessage.value = "Feil ved sletting av varsling. Vennligst prøv igjen senere."
             }
         }
     }

@@ -2,17 +2,17 @@ package com.example.soclub.screens.notifications
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.BasicText
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import com.example.soclub.models.Notification
 
 @Composable
 fun NotificationsScreen(
@@ -34,24 +34,30 @@ fun NotificationsScreen(
     ) {
         when {
             isLoading -> {
-
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             }
             errorMessage != null -> {
-                // Viser en feilmelding hvis det oppsto en feil
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = errorMessage!!, color = MaterialTheme.colorScheme.error, fontSize = 16.sp)
+                    Text(
+                        text = errorMessage!!,
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 16.sp
+                    )
                 }
             }
             else -> {
-                // Viser varslinger når de er lastet uten feil
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(notifications.size) { index ->
-                        NotificationItem(notification = notifications[index])
+                        NotificationItem(
+                            notification = notifications[index],
+                            onDelete = { notification ->
+                                viewModel.deleteNotification(notification)
+                            }
+                        )
                     }
                 }
             }
@@ -59,14 +65,66 @@ fun NotificationsScreen(
     }
 }
 
-@Composable
-fun NotificationItem(notification: Notification) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.Start
-    ) {
-        BasicText(text = notification.timeAgo, style = MaterialTheme.typography.bodySmall)
-        Spacer(modifier = Modifier.height(4.dp))
-        BasicText(text = notification.message, style = MaterialTheme.typography.bodyMedium)
+fun getTimeAgo(timestamp: Long): String {
+    val diff = System.currentTimeMillis() - timestamp
+    val seconds = diff / 1000
+    val minutes = seconds / 60
+    val hours = minutes / 60
+    val days = hours / 24
+
+    return when {
+        seconds < 60 -> "Akkurat nå"
+        minutes < 60 -> {
+            val minuteText = if (minutes == 1L) "minutt" else "minutter"
+            "$minutes $minuteText siden"
+        }
+        hours < 24 -> {
+            val hourText = if (hours == 1L) "time" else "timer"
+            "$hours $hourText siden"
+        }
+        else -> {
+            val dayText = if (days == 1L) "dag" else "dager"
+            "$days $dayText siden"
+        }
     }
 }
+
+@Composable
+fun NotificationItem(
+    notification: Notification,
+    onDelete: (Notification) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = getTimeAgo(notification.timestamp),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = notification.message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
+        // Center the IconButton vertically by wrapping it in a Box
+        Box(
+            contentAlignment = Alignment.Center
+        ) {
+            IconButton(onClick = { onDelete(notification) }) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Delete Notification",
+                )
+            }
+        }
+    }
+}
+

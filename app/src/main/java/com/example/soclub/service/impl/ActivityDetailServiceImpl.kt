@@ -1,7 +1,7 @@
 package com.example.soclub.service.impl
 
 import com.example.soclub.models.Activity
-import com.example.soclub.service.ActivityDetaillService
+import com.example.soclub.service.ActivityDetailService
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -9,8 +9,8 @@ import java.util.Date
 import javax.inject.Inject
 
 class ActivityDetailServiceImpl @Inject constructor(
-    private val firestore: FirebaseFirestore
-) : ActivityDetaillService {
+    private val firestore: FirebaseFirestore,
+) : ActivityDetailService {
 
 
     override suspend fun getActivityById(category: String, activityId: String): Activity? {
@@ -71,23 +71,20 @@ class ActivityDetailServiceImpl @Inject constructor(
                 .await()
 
             if (!registrationRef.isEmpty) {
-
+                // Update existing registration
                 for (document in registrationRef.documents) {
                     firestore.collection("registrations")
                         .document(document.id)
-                        .update(mapOf(
-                            "status" to status,
-                        )).await()
+                        .update(mapOf("status" to status)).await()
                 }
             } else {
-
+                // Create a new registration entry
                 val newRegistration = hashMapOf(
                     "userId" to userId,
                     "activityId" to activityId,
                     "status" to status,
                     "timestamp" to Timestamp(Date())
                 )
-
                 firestore.collection("registrations").add(newRegistration).await()
             }
             true
@@ -96,7 +93,6 @@ class ActivityDetailServiceImpl @Inject constructor(
             false
         }
     }
-
 
     override suspend fun getRegisteredParticipantsCount(activityId: String): Int {
         val registrationRef = firestore.collection("registrations")

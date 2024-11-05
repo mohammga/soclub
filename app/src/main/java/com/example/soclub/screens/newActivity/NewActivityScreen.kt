@@ -370,6 +370,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
 
 
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) {
     val context = LocalContext.current

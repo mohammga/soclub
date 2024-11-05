@@ -48,9 +48,6 @@ class AdsViewModel @Inject constructor(
                     )
                 }
                 _activities.value = fetchedActivities
-                if (fetchedActivities.isEmpty()) {
-                    _errorMessage.value = "Du har ingen annonser ennå."
-                }
             } catch (e: Exception) {
                 e.printStackTrace()
                 _errorMessage.value = "Det skjedde en feil. Vennligst prøv igjen senere."

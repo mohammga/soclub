@@ -1,6 +1,7 @@
 package com.example.soclub.screens.home
 
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -303,6 +304,7 @@ fun FilterListItem(
     }
 }
 
+@SuppressLint("SuspiciousIndentation")
 @Composable
 fun CategoryTabs(categories: List<String>, pagerState: PagerState) {
     val coroutineScope = rememberCoroutineScope()

@@ -7,11 +7,13 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.example.soclub.service.ActivityService
-import com.example.soclub.service.ActivityDetaillService
+import com.example.soclub.service.ActivityDetailService
 import com.example.soclub.service.EntriesService
+import com.example.soclub.service.NotificationService
 import com.example.soclub.service.impl.ActivityServiceImpl
 import com.example.soclub.service.impl.ActivityDetailServiceImpl
 import com.example.soclub.service.impl.EntriesServiceImpl
+import com.example.soclub.service.impl.NotificationServiceImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -42,7 +44,7 @@ object FirebaseModule {
 
     @Provides
     @Singleton
-    fun provideActivityDetailService(firestore: FirebaseFirestore): ActivityDetaillService {
+    fun provideActivityDetailService(firestore: FirebaseFirestore): ActivityDetailService {
         return ActivityDetailServiceImpl(firestore)
     }
 
@@ -50,6 +52,12 @@ object FirebaseModule {
     @Singleton
     fun provideEntriesService(firestore: FirebaseFirestore): EntriesService {
         return EntriesServiceImpl(firestore)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNotificationService(firestore: FirebaseFirestore): NotificationService {
+        return NotificationServiceImpl(firestore)
     }
 
 }
