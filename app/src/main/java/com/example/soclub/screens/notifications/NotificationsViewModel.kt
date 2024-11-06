@@ -10,6 +10,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -35,7 +36,14 @@ class NotificationsViewModel @Inject constructor(
         initialValue = 0
     )
 
-
+    init {
+        viewModelScope.launch {
+            notificationService.getNotificationsStream().collect { notifications ->
+                _notifications.value = notifications
+            }
+        }
+    }
+    
     fun loadNotifications() {
         viewModelScope.launch {
             _isLoading.value = true

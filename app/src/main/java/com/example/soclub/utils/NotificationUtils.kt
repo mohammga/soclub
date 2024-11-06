@@ -71,6 +71,15 @@ fun scheduleNotificationForActivity(
             userId = userId
         )
     }
+
+        Log.d("NotificationUtils", "Scheduling 0-minute notification")
+        enqueueNotification(
+            context,
+            delay = 0,
+            message = "Du er påmeldt til aktiviteten $activityTitle",
+            activityId = "$activityId-0min",
+            userId = userId
+        )
 }
 
 fun enqueueNotification(
@@ -105,4 +114,5 @@ fun cancelNotificationForActivity(context: Context, activityId: String, userId: 
     workManager.cancelAllWorkByTag("$activityId-12h-$userId")
     workManager.cancelAllWorkByTag("$activityId-1h-$userId")
     workManager.cancelAllWorkByTag("$activityId-2min-$userId")
+    workManager.cancelAllWorkByTag("$activityId-0min-$userId")
 }

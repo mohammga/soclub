@@ -1,5 +1,6 @@
 package com.example.soclub.components.navigation
 
+import android.util.Log
 import com.example.soclub.screens.ads.AdsScreen
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -42,6 +43,7 @@ fun AppNavigation(navController: NavHostController, notificationsViewModel: Noti
     val currentScreen = getCurrentScreen(navController)
 
     val notificationCount by notificationsViewModel.notificationCount.collectAsState()
+    Log.d("AppNavigation", "Notification count: $notificationCount")
 
         // Definer profil- og detaljerelaterte skjermer
     val profileScreens = setOf(
