@@ -114,8 +114,7 @@ dependencies {
     implementation ("com.google.maps.android:maps-compose:2.0.0")
 
 
-    implementation ("androidx.work:work-runtime-ktx:2.7.1")
-
-
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+    implementation ("androidx.work:work-runtime-ktx:2.8.1")
 
 }
