@@ -1,6 +1,5 @@
 package com.example.soclub.screens.notifications
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soclub.models.Notification
@@ -35,6 +34,13 @@ class NotificationsViewModel @Inject constructor(
         initialValue = 0
     )
 
+    init {
+        viewModelScope.launch {
+            notificationService.getNotificationsStream().collect { notifications ->
+                _notifications.value = notifications
+            }
+        }
+    }
 
     fun loadNotifications() {
         viewModelScope.launch {

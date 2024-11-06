@@ -14,6 +14,8 @@ import javax.inject.Inject
 import android.content.Context
 import android.util.Log
 import com.example.soclub.utils.cancelNotificationForActivity
+import com.example.soclub.utils.enqueueSignUpNotification
+import com.example.soclub.utils.enqueueUnregistrationNotification
 import dagger.hilt.android.qualifiers.ApplicationContext
 import com.example.soclub.utils.scheduleNotificationForActivity
 import java.util.Calendar
@@ -82,8 +84,6 @@ class ActivityDetailViewModel @Inject constructor(
         }
     }
 
-    // Rest of the ViewModel code remains the same
-    // ...
 
     private fun loadRegisteredParticipants(activityId: String) {
         viewModelScope.launch {
@@ -109,6 +109,7 @@ class ActivityDetailViewModel @Inject constructor(
                     val startTimeMillis = getActivityStartTimeInMillis(currentActivity)
 
                     if (isRegistering && startTimeMillis != null) {
+                        // Schedule notifications only for registration
                         scheduleNotificationForActivity(
                             context = context,
                             activityTitle = currentActivity.title,
@@ -116,17 +117,33 @@ class ActivityDetailViewModel @Inject constructor(
                             startTimeMillis = startTimeMillis,
                             userId = userId
                         )
+
+                        enqueueSignUpNotification(
+                            context = context,
+                            activityTitle = currentActivity.title,
+                            userId = userId
+                        )
+
                     } else if (!isRegistering) {
+                        // Cancel existing notifications and send unregistration notification
                         cancelNotificationForActivity(
                             context = context,
                             userId = userId,
                             activityId = activityId
+                        )
+                        enqueueUnregistrationNotification(
+                            context = context,
+                            activityTitle = currentActivity.title,
+                            userId = userId
                         )
                     }
                 }
             }
         }
     }
+
+
+
 
     private fun getActivityStartTimeInMillis(activity: Activity): Long? {
         val activityDate = activity.date?.toDate() ?: return null // Convert Timestamp to Date
