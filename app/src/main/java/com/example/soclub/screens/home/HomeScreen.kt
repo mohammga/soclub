@@ -41,6 +41,13 @@ import androidx.compose.ui.res.stringResource
 import com.example.soclub.R
 import kotlinx.coroutines.delay
 
+import android.content.res.Configuration
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.ui.platform.LocalConfiguration
+
+
+
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hiltViewModel()) {
@@ -50,8 +57,6 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
     var isSelectingArea by remember { mutableStateOf(true) }
     val selectedCities by viewModel.selectedCities.observeAsState(mutableListOf())
     val cities by viewModel.getCities().observeAsState(emptyList())
-    val userCity by viewModel.userCity.observeAsState(null)
-
     LaunchedEffect(Unit) {
         viewModel.fetchUserLocation()
     }
@@ -122,7 +127,6 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
     }
 
-    // BottomSheet for filtering
     if (showBottomSheet) {
         FilterBottomSheet(
             showBottomSheet = showBottomSheet,
@@ -198,8 +202,6 @@ fun CategoryActivitiesPager(
         userScrollEnabled = true
     ) { page ->
         val selectedCategory = categories[page]
-
-        // For "Nærme Aktiviteter", use the nearby activities
         val activitiesToShow = if (selectedCategory == "Nærme Aktiviteter") {
             if (!hasLoaded) {
                 LaunchedEffect(Unit) {
@@ -304,10 +306,19 @@ fun FilterListItem(
 @Composable
 fun CategoryTabs(categories: List<String>, pagerState: PagerState) {
     val coroutineScope = rememberCoroutineScope()
-        ScrollableTabRow(
+    val isLandscape = isLandscape()
+
+    if (isLandscape) {
+        // Use TabRow in landscape mode
+        TabRow(
             selectedTabIndex = pagerState.currentPage,
-            edgePadding = 2.dp,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            indicator = { tabPositions ->
+                TabRowDefaults.Indicator(
+                    Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage])
+                )
+            },
+            divider = {}
         ) {
             categories.forEachIndexed { index, category ->
                 Tab(
@@ -315,13 +326,41 @@ fun CategoryTabs(categories: List<String>, pagerState: PagerState) {
                     selected = pagerState.currentPage == index,
                     onClick = {
                         coroutineScope.launch {
-                            pagerState.scrollToPage(index)
+                            pagerState.animateScrollToPage(index)
+                        }
+                    }
+                )
+            }
+        }
+    } else {
+        // Use ScrollableTabRow in portrait mode
+        ScrollableTabRow(
+            selectedTabIndex = pagerState.currentPage,
+            modifier = Modifier.fillMaxWidth(),
+            edgePadding = 0.dp,
+            indicator = { tabPositions ->
+                TabRowDefaults.Indicator(
+                    Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage])
+                )
+            },
+            divider = {}
+        ) {
+            categories.forEachIndexed { index, category ->
+                Tab(
+                    text = { Text(category) },
+                    selected = pagerState.currentPage == index,
+                    onClick = {
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(index)
                         }
                     }
                 )
             }
         }
     }
+}
+
+
 
 @Composable
 fun CategoryTitle(category: String) {
@@ -527,6 +566,11 @@ fun NearActivities(viewModel: HomeViewModel, navController: NavHostController) {
             }
         }
     }
+}
+
+@Composable
+fun isLandscape(): Boolean {
+    return LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 }
 
 
