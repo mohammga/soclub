@@ -1,6 +1,7 @@
 package com.example.soclub.screens.home
 
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -36,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.example.soclub.R
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -112,19 +114,10 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
         Spacer(modifier = Modifier.height(16.dp))
 
         if (selectedCategory == "Nærme Aktiviteter") {
-            userCity?.let { city ->
-                LaunchedEffect(city) {
-                    viewModel.getNearestActivities()
-                }
-                NearActivities(viewModel = viewModel, navController = navController)
-            } ?: run {
-                Text(
-                    text = "Henter nærmeste aktiviteter...",
-                    modifier = Modifier.padding(16.dp),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
+            LaunchedEffect(Unit) {
+                viewModel.getNearestActivities()
             }
+            NearActivities(viewModel = viewModel, navController = navController)
         } else {
             CategoryActivitiesPager(
                 categories = categories,
@@ -301,6 +294,7 @@ fun FilterListItem(
     }
 }
 
+@SuppressLint("SuspiciousIndentation")
 @Composable
 fun CategoryTabs(categories: List<String>, pagerState: PagerState) {
     val coroutineScope = rememberCoroutineScope()
@@ -527,38 +521,32 @@ fun FilterBottomSheet(
 fun NearActivities(viewModel: HomeViewModel, navController: NavHostController) {
     val activities by viewModel.activities.observeAsState(emptyList())
     val isLoading by viewModel.isLoading.observeAsState(false)
+    val hasLoaded by viewModel.hasLoadedActivities.observeAsState(false)
 
-    if (isLoading) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "Henter de 10 nærmeste aktivitetene...",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        when {
+            isLoading || !hasLoaded -> {
                 CircularProgressIndicator()
             }
-        }
-    } else {
-        if (activities.isNotEmpty()) {
-            ActivityList(
-                activities = activities,
-                selectedCategory = "Nærme Aktiviteter",
-                navController = navController
-            )
-        } else {
-            Text(
-                text = "Ingen aktiviteter tilgjengelig for Nærme Aktiviteter.",
-                modifier = Modifier.padding(16.dp),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
+            activities.isNotEmpty() -> {
+                ActivityList(
+                    activities = activities,
+                    selectedCategory = "Nærme Aktiviteter",
+                    navController = navController
+                )
+            }
+            else -> {
+                Text(
+                    text = "Ingen aktiviteter tilgjengelig for Nærme Aktiviteter.",
+                    modifier = Modifier.padding(16.dp),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }
+
+
+
+
