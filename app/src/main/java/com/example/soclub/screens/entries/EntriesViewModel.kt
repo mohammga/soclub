@@ -1,12 +1,15 @@
 package com.example.soclub.screens.entries
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soclub.models.Activity
 import com.example.soclub.service.EntriesService
 import com.example.soclub.service.AccountService
 import com.example.soclub.service.ActivityDetailService
+import com.example.soclub.utils.enqueueUnregistrationNotification
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -16,7 +19,8 @@ import javax.inject.Inject
 class EntriesScreenViewModel @Inject constructor(
     private val entriesService: EntriesService,
     private val accountService: AccountService,
-    private val activityDetailService: ActivityDetailService
+    private val activityDetailService: ActivityDetailService,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val _activeActivities = MutableStateFlow<List<Activity>>(emptyList())
@@ -31,10 +35,8 @@ class EntriesScreenViewModel @Inject constructor(
     private val _isLoadingInactive = MutableStateFlow(false)
     val isLoadingInactive: StateFlow<Boolean> = _isLoadingInactive
 
-
     private val _isLoadingExpired = MutableStateFlow(false)
     val isLoadingExpired: StateFlow<Boolean> = _isLoadingExpired
-
 
     init {
         listenForActivityUpdates()
@@ -55,8 +57,6 @@ class EntriesScreenViewModel @Inject constructor(
         }
     }
 
-
-
     private fun listenForNotActiveActivityUpdates() {
         val userId = accountService.currentUserId
         if (userId.isNotEmpty()) {
@@ -74,19 +74,22 @@ class EntriesScreenViewModel @Inject constructor(
     fun cancelRegistration(activityId: String) {
         viewModelScope.launch {
             val userId = accountService.currentUserId
-            activityDetailService.updateRegistrationStatus(userId, activityId, "notAktiv")
+            val success = activityDetailService.updateRegistrationStatus(userId, activityId, "notAktiv")
 
-            // Midlertidig fjern den kansellerte aktiviteten fra listen lokalt
-            _activeActivities.value = _activeActivities.value.filter { it.id != activityId }
+            if (success) {
+                // Midlertidig fjern den kansellerte aktiviteten fra listen lokalt
+                _activeActivities.value = _activeActivities.value.filter { it.id != activityId }
+
+                // Send a cancellation notification to the user
+                val activityTitle = _activeActivities.value.find { it.id == activityId }?.title ?: "Aktivitet"
+                enqueueUnregistrationNotification(
+                    context = context, // Ensure context is passed correctly
+                    activityTitle = activityTitle,
+                    userId = userId
+                )
+            }
 
             // La SnapshotListener håndtere oppdateringen etterpå
         }
     }
-
-
-
 }
-
-
-
-

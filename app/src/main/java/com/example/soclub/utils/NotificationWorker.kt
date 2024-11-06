@@ -27,9 +27,10 @@ class NotificationWorker(
         val activityId = inputData.getString("activityId") ?: return Result.failure()
         val timestamp = inputData.getLong("timestamp", System.currentTimeMillis())
 
-        showNotification(message)
+        val channelId = getChannelId(activityId)
+        showNotification(message, channelId)
 
-        // Save notification to the database
+        // Lagre varsel i databasen
         notificationService.saveNotification(
             Notification(userId = userId, activityId = activityId, timestamp = timestamp, message = message)
         )
@@ -38,30 +39,56 @@ class NotificationWorker(
     }
 
     @SuppressLint("ObsoleteSdkInt")
-    private fun showNotification(message: String) {
+    private fun showNotification(message: String, channelId: String) {
         val notificationManager =
             applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
+        val channelName = when (channelId) {
+            "CANCEL_CHANNEL" -> "Kansellerte varsler"
+            "SIGNUP_CHANNEL" -> "Deltakelsesvarsler"
+            else -> "Påminnelsesvarsler"
+        }
+
+        val channelDescription = when (channelId) {
+            "CANCEL_CHANNEL" -> "Varsler når aktiviteter er kansellert eller når brukere melder seg av."
+            "SIGNUP_CHANNEL" -> "Varsler for deltakelse i aktiviteter."
+            else -> "Varsler for påminnelser om aktiviteter."
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                "SOCIAL_CHANNEL",
-                "Påminnelser",
+                channelId,
+                channelName,
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Påminnelser til aktiviteter"
+                description = channelDescription
                 setShowBadge(true)
             }
             notificationManager.createNotificationChannel(channel)
         }
 
-        val notification = NotificationCompat.Builder(applicationContext, "SOCIAL_CHANNEL")
+        val notificationTitle = when (channelId) {
+            "CANCEL_CHANNEL" -> "Avbestilling"
+            "SIGNUP_CHANNEL" -> "Deltakelse"
+            else -> "Påminnelse"
+        }
+
+        val notification = NotificationCompat.Builder(applicationContext, channelId)
             .setSmallIcon(R.drawable.user)
-            .setContentTitle("Påminnelse")
+            .setContentTitle(notificationTitle)
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .build()
 
-        notificationManager.notify(1, notification)
+        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+    }
+
+    private fun getChannelId(activityId: String): String {
+        return when {
+            activityId.contains("unregistration") -> "CANCEL_CHANNEL"
+            activityId.contains("signup") -> "SIGNUP_CHANNEL"
+            else -> "REMINDER_CHANNEL"
+        }
     }
 }

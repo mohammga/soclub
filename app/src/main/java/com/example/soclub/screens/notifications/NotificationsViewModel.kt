@@ -1,6 +1,5 @@
 package com.example.soclub.screens.notifications
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soclub.models.Notification
@@ -10,7 +9,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -43,7 +41,7 @@ class NotificationsViewModel @Inject constructor(
             }
         }
     }
-    
+
     fun loadNotifications() {
         viewModelScope.launch {
             _isLoading.value = true
