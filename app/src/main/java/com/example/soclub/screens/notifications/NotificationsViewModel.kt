@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.soclub.models.Notification
 import com.example.soclub.service.NotificationService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -34,29 +35,26 @@ class NotificationsViewModel @Inject constructor(
         initialValue = 0
     )
 
-    init {
-        viewModelScope.launch {
-            notificationService.getNotificationsStream().collect { notifications ->
-                _notifications.value = notifications
-            }
-        }
-    }
 
     fun loadNotifications() {
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
 
+            // Simulate a delay of 2000 milliseconds (2 seconds)
+            delay(1000)
+
             try {
                 val notificationsFromDb = notificationService.getAllNotifications()
                 _notifications.value = notificationsFromDb
-                _isLoading.value = false
             } catch (e: Exception) {
                 _errorMessage.value = "Det skjedde en feil. Vennligst prøv igjen senere."
+            } finally {
                 _isLoading.value = false
             }
         }
     }
+
 
     fun deleteNotification(notification: Notification) {
         viewModelScope.launch {

@@ -23,6 +23,7 @@ fun NotificationsScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
+    // Optionally, remove this if you're handling loading in the init block
     LaunchedEffect(Unit) {
         viewModel.loadNotifications()
     }
@@ -64,6 +65,7 @@ fun NotificationsScreen(
         }
     }
 }
+
 
 fun getTimeAgo(timestamp: Long): String {
     val diff = System.currentTimeMillis() - timestamp
