@@ -1,3 +1,4 @@
+// NotificationUtils.kt
 package com.example.soclub.utils
 
 import android.content.Context
@@ -25,7 +26,7 @@ fun scheduleNotificationForActivity(
     val delay24Hours = startTimeMillis - currentTimeMillis - TimeUnit.HOURS.toMillis(24)
     val delay12Hours = startTimeMillis - currentTimeMillis - TimeUnit.HOURS.toMillis(12)
     val delay1Hour = startTimeMillis - currentTimeMillis - TimeUnit.HOURS.toMillis(1)
-//    val delay2Minutes = startTimeMillis - currentTimeMillis - TimeUnit.MINUTES.toMillis(2)
+    val delay2Minutes = startTimeMillis - currentTimeMillis - TimeUnit.MINUTES.toMillis(2)
 
     if (delay24Hours > 0) {
         Log.d("NotificationUtils", "Scheduling 24-hour notification")
@@ -60,16 +61,16 @@ fun scheduleNotificationForActivity(
         )
     }
 
-//    if (delay2Minutes > 0) {
-//        Log.d("NotificationUtils", "Scheduling 2-minute notification")
-//        enqueueNotification(
-//            context,
-//            delay = delay2Minutes,
-//            message = "$activityTitle starter om 2 minutter",
-//            activityId = "$activityId-2min",
-//            userId = userId
-//        )
-//    }
+    if (delay2Minutes > 0) {
+        Log.d("NotificationUtils", "Scheduling 2-minute notification")
+        enqueueNotification(
+            context,
+            delay = delay2Minutes,
+            message = "$activityTitle starter om 2 minutter",
+            activityId = "$activityId-2min",
+            userId = userId
+        )
+    }
 }
 
 fun enqueueNotification(
@@ -86,19 +87,22 @@ fun enqueueNotification(
         "timestamp" to System.currentTimeMillis()
     )
 
+    val tag = "$activityId-$userId" // Include userId in the tag
+
     val workRequest = OneTimeWorkRequestBuilder<NotificationWorker>()
         .setInitialDelay(delay, TimeUnit.MILLISECONDS)
         .setInputData(workData)
-        .addTag(activityId) // Unique tag for each scheduled notification
+        .addTag(tag)
         .build()
 
     WorkManager.getInstance(context).enqueue(workRequest)
 }
 
-fun cancelNotificationForActivity(context: Context, activityId: String) {
-    Log.d("NotificationUtils", "Cancelling notifications for activity ID: $activityId")
-    WorkManager.getInstance(context).cancelAllWorkByTag("$activityId-24h")
-    WorkManager.getInstance(context).cancelAllWorkByTag("$activityId-12h")
-    WorkManager.getInstance(context).cancelAllWorkByTag("$activityId-1h")
-//    WorkManager.getInstance(context).cancelAllWorkByTag("$activityId-2min")
+fun cancelNotificationForActivity(context: Context, activityId: String, userId: String) {
+    Log.d("NotificationUtils", "Cancelling notifications for activity ID: $activityId and user ID: $userId")
+    val workManager = WorkManager.getInstance(context)
+    workManager.cancelAllWorkByTag("$activityId-24h-$userId")
+    workManager.cancelAllWorkByTag("$activityId-12h-$userId")
+    workManager.cancelAllWorkByTag("$activityId-1h-$userId")
+    workManager.cancelAllWorkByTag("$activityId-2min-$userId")
 }
