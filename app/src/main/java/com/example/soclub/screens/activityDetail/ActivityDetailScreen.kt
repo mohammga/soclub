@@ -78,6 +78,9 @@ fun ActivityDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    // **Collect isCreator from ViewModel**
+    val isCreator = viewModel.isCreator.collectAsState().value
+
     LaunchedEffect(activityId, category) {
         if (activityId != null && category != null) {
             viewModel.loadActivityWithStatus(category, activityId)
@@ -89,19 +92,19 @@ fun ActivityDetailScreen(
         content = {
             when {
                 isLoading -> {
-                    // Viser en progressindikator mens data lastes
+                    // Display loading indicator
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
                 }
                 errorMessage != null -> {
-                    // Viser en feilmelding hvis det oppsto en feil
+                    // Display error message
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(text = errorMessage, color = Color.Red, fontSize = 16.sp)
                     }
                 }
                 else -> {
-                    // Viser innholdet når det er lastet uten feil
+                    // Display content when loaded without errors
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.Start
@@ -114,6 +117,7 @@ fun ActivityDetailScreen(
                                 activity = activity,
                                 currentParticipants = currentParticipants,
                                 isRegistered = isRegistered,
+                                isCreator = isCreator, // **Pass isCreator to ActivityDetailsContent**
                                 canRegister = canRegister,
                                 ageGroup = activity?.ageGroup ?: 0,
                                 onRegisterClick = {
@@ -163,6 +167,7 @@ fun ActivityDetailsContent(
     activity: Activity?,
     currentParticipants: Int,
     isRegistered: Boolean,
+    isCreator: Boolean, // **Add isCreator parameter**
     canRegister: Boolean,
     ageGroup: Int,
     onRegisterClick: () -> Unit,
@@ -206,11 +211,13 @@ fun ActivityDetailsContent(
 
         ActivityDescription(activity?.description ?: stringResource(R.string.unknown_description))
 
-        // Send lokasjon og kontekst til ActivityGPSImage
+        // Send location and context to ActivityGPSImage
         ActivityGPSImage(context = context, destinationLocation = fullLocation)
 
+        // **Pass isCreator to ActivityRegisterButton**
         ActivityRegisterButton(
             isRegistered = isRegistered,
+            isCreator = isCreator,
             canRegister = canRegister,
             ageGroup = ageGroup,
             onRegisterClick = onRegisterClick,
@@ -218,8 +225,6 @@ fun ActivityDetailsContent(
         )
     }
 }
-
-
 
 
 @Composable
@@ -235,8 +240,6 @@ fun ActivityImage(imageUrl: String) {
         contentScale = ContentScale.Crop
     )
 }
-
-
 
 @Composable
 fun ActivityTitle(title: String) {
@@ -262,9 +265,6 @@ fun ActivityDate(date: Timestamp?) {
     )
 }
 
-
-
-
 fun splitDescriptionWithNaturalFlow(description: String, linesPerChunk: Int = 1): String {
     val sentences = description.split(Regex("(?<=\\.)\\s+")) // Splitter teksten ved punktum etterfulgt av mellomrom
     val result = StringBuilder()
@@ -284,10 +284,6 @@ fun splitDescriptionWithNaturalFlow(description: String, linesPerChunk: Int = 1)
     return result.toString().trim() // Fjerner eventuelt overflødig mellomrom
 }
 
-
-
-
-
 @Composable
 fun ActivityDescription(description: String) {
     val formattedDescription = remember(description) {
@@ -299,8 +295,6 @@ fun ActivityDescription(description: String) {
         modifier = Modifier.padding(vertical = 16.dp)
     )
 }
-
-
 
 @Composable
 fun ActivityGPSImage(context: Context, destinationLocation: String) {
@@ -378,18 +372,23 @@ fun ActivityGPSImage(context: Context, destinationLocation: String) {
 @Composable
 fun ActivityRegisterButton(
     isRegistered: Boolean,
+    isCreator: Boolean,
     canRegister: Boolean,
     ageGroup: Int,
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
+    if (isCreator) {
+        // Ikke vis knappen hvis brukeren er skaperen
+        return
+    }
 
+    // Resten av knappekoden forblir den samme
     val buttonText = when {
         !canRegister -> stringResource(R.string.under_age_limit, ageGroup)
         isRegistered -> stringResource(R.string.unregister)
         else -> stringResource(R.string.registerr)
     }
-
 
     val buttonColor = when {
         !canRegister -> Color.Gray
@@ -412,7 +411,6 @@ fun ActivityRegisterButton(
         Text(text = buttonText, color = Color.White)
     }
 }
-
 
 @Composable
 fun InfoRow(

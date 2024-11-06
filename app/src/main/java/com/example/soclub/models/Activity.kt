@@ -19,7 +19,7 @@ data class Activity(
     val createdAt: Timestamp = Timestamp.now(),
     val startTime: String = "",
     val category: String? = null,
-    val lastUpdated: Timestamp = Timestamp.now(),
+    val lastUpdated: Timestamp = Timestamp.now()
 )
 
 data class createActivity(
