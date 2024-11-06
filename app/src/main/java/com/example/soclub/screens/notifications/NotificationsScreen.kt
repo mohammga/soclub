@@ -55,7 +55,7 @@ fun NotificationsScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Ingen varslinger hittil",
+                            text = "Ingen varslinger",
                             fontSize = 18.sp,
                             color = MaterialTheme.colorScheme.onBackground
                         )
