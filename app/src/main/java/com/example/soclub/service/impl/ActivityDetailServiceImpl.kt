@@ -23,21 +23,21 @@ class ActivityDetailServiceImpl @Inject constructor(
 
         val activity = documentSnapshot.toObject(Activity::class.java)
 
-        // Hent full adresse
+        // Sørg for at 'creatorId' er hentet korrekt
+        val creatorId = documentSnapshot.getString("creatorId") ?: ""
+
+        // Hent andre nødvendige felt
         val fullLocation = activity?.location ?: "Ukjent"
         val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
-
-        // Hent dato fra dokumentet
         val date = documentSnapshot.getTimestamp("date")
-
-        // Hent startTime som String fra dokumentet
         val startTime = documentSnapshot.getString("startTime") ?: "Ukjent tid"
 
-        // Returner aktiviteten med date, restOfAddress, og startTime
+        // Returner aktiviteten med 'creatorId' satt
         return activity?.copy(
             restOfAddress = restOfAddress,
             date = date,
-            startTime = startTime // Legg til startTime her
+            startTime = startTime,
+            creatorId = creatorId // Sett 'creatorId' her
         )
     }
 

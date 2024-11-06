@@ -44,6 +44,9 @@ class ActivityDetailViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
+    // **Added StateFlow to indicate if the user is the creator**
+    private val _isCreator = MutableStateFlow(false)
+    val isCreator: StateFlow<Boolean> = _isCreator
 
     fun loadActivityWithStatus(category: String, activityId: String) {
         viewModelScope.launch {
@@ -59,8 +62,11 @@ class ActivityDetailViewModel @Inject constructor(
                 _isRegistered.value = registered
 
                 val userInfo = accountService.getUserInfo()
+
                 if (loadedActivity != null) {
-                    _canRegister.value = userInfo.age >= loadedActivity.ageGroup
+                    // Bruk 'creatorId' i stedet for 'createdBy'
+                    _isCreator.value = loadedActivity.creatorId == userId
+                    _canRegister.value = userInfo.age >= loadedActivity.ageGroup && !_isCreator.value
                 }
 
                 loadRegisteredParticipants(activityId)
@@ -76,13 +82,15 @@ class ActivityDetailViewModel @Inject constructor(
         }
     }
 
+    // Rest of the ViewModel code remains the same
+    // ...
+
     private fun loadRegisteredParticipants(activityId: String) {
         viewModelScope.launch {
             val count = activityDetailService.getRegisteredParticipantsCount(activityId)
             _currentParticipants.value = count
         }
     }
-
 
     fun updateRegistrationForActivity(activityId: String, isRegistering: Boolean) {
         viewModelScope.launch {
@@ -120,7 +128,6 @@ class ActivityDetailViewModel @Inject constructor(
         }
     }
 
-
     private fun getActivityStartTimeInMillis(activity: Activity): Long? {
         val activityDate = activity.date?.toDate() ?: return null // Convert Timestamp to Date
         val startTime = activity.startTime
@@ -141,8 +148,4 @@ class ActivityDetailViewModel @Inject constructor(
             null
         }
     }
-
-
-
-
 }
