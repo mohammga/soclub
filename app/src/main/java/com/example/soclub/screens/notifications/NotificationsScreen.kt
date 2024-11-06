@@ -23,7 +23,6 @@ fun NotificationsScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
-    // Optionally, remove this if you're handling loading in the init block
     LaunchedEffect(Unit) {
         viewModel.loadNotifications()
     }
@@ -49,22 +48,38 @@ fun NotificationsScreen(
                 }
             }
             else -> {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(notifications.size) { index ->
-                        NotificationItem(
-                            notification = notifications[index],
-                            onDelete = { notification ->
-                                viewModel.deleteNotification(notification)
-                            }
+                if (notifications.isEmpty()) {
+                    // Display the message when there are no notifications
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Ingen varslinger hittil",
+                            fontSize = 18.sp,
+                            color = MaterialTheme.colorScheme.onBackground
                         )
+                    }
+                } else {
+                    // Display the list of notifications
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(notifications.size) { index ->
+                            NotificationItem(
+                                notification = notifications[index],
+                                onDelete = { notification ->
+                                    viewModel.deleteNotification(notification)
+                                }
+                            )
+                        }
                     }
                 }
             }
         }
     }
 }
+
 
 
 fun getTimeAgo(timestamp: Long): String {
