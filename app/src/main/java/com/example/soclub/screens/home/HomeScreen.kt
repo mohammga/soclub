@@ -41,6 +41,13 @@ import androidx.compose.ui.res.stringResource
 import com.example.soclub.R
 import kotlinx.coroutines.delay
 
+import android.content.res.Configuration
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.ui.platform.LocalConfiguration
+
+
+
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hiltViewModel()) {
@@ -50,8 +57,6 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
     var isSelectingArea by remember { mutableStateOf(true) }
     val selectedCities by viewModel.selectedCities.observeAsState(mutableListOf())
     val cities by viewModel.getCities().observeAsState(emptyList())
-    val userCity by viewModel.userCity.observeAsState(null)
-
     LaunchedEffect(Unit) {
         viewModel.fetchUserLocation()
     }
@@ -65,7 +70,6 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
         val selectedCategory = categories.getOrNull(pagerState.currentPage) ?: ""
 
-        // Tittel og filter-ikon på samme linje
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -94,7 +98,6 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
             }
         }
 
-        // Filterchips under tittelen med FlowRow for linjeskift
         if (selectedCategory != "Nærme Aktiviteter" && selectedCities.isNotEmpty()) {
             Spacer(modifier = Modifier.height(8.dp))
             FlowRow(
@@ -115,22 +118,15 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (selectedCategory == "Nærme Aktiviteter") {
-            LaunchedEffect(Unit) {
-                viewModel.getNearestActivities()
-            }
-            NearActivities(viewModel = viewModel, navController = navController)
-        } else {
-            CategoryActivitiesPager(
-                categories = categories,
-                pagerState = pagerState,
-                viewModel = viewModel,
-                navController = navController
-            )
-        }
+        CategoryActivitiesPager(
+            categories = categories,
+            pagerState = pagerState,
+            viewModel = viewModel,
+            navController = navController
+        )
+
     }
 
-    // BottomSheet for filtering
     if (showBottomSheet) {
         FilterBottomSheet(
             showBottomSheet = showBottomSheet,
@@ -188,8 +184,6 @@ fun Chip(text: String, onRemove: () -> Unit) {
 
 
 
-
-
 @Composable
 fun CategoryActivitiesPager(
     categories: List<String>,
@@ -199,6 +193,8 @@ fun CategoryActivitiesPager(
 ) {
     val groupedActivities by viewModel.groupedActivities.observeAsState(emptyMap())
     val isLoading by viewModel.isLoading.observeAsState(false)
+    val activities by viewModel.activities.observeAsState(emptyList())
+    val hasLoaded by viewModel.hasLoadedActivities.observeAsState(false)
 
     HorizontalPager(
         state = pagerState,
@@ -206,7 +202,16 @@ fun CategoryActivitiesPager(
         userScrollEnabled = true
     ) { page ->
         val selectedCategory = categories[page]
-        val activities = groupedActivities[selectedCategory] ?: emptyList()
+        val activitiesToShow = if (selectedCategory == "Nærme Aktiviteter") {
+            if (!hasLoaded) {
+                LaunchedEffect(Unit) {
+                    viewModel.getNearestActivities()
+                }
+            }
+            activities
+        } else {
+            groupedActivities[selectedCategory] ?: emptyList()
+        }
 
         Column(modifier = Modifier.fillMaxSize()) {
             if (isLoading) {
@@ -216,12 +221,12 @@ fun CategoryActivitiesPager(
                         .padding(top = 16.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator() // Viser loading-indikator til alt er klart
+                    CircularProgressIndicator()
                 }
             } else {
-                if (activities.isNotEmpty()) {
+                if (activitiesToShow.isNotEmpty()) {
                     ActivityList(
-                        activities = activities,
+                        activities = activitiesToShow,
                         selectedCategory = selectedCategory,
                         navController = navController
                     )
@@ -237,6 +242,7 @@ fun CategoryActivitiesPager(
         }
     }
 }
+
 
 
 @Composable
@@ -300,10 +306,19 @@ fun FilterListItem(
 @Composable
 fun CategoryTabs(categories: List<String>, pagerState: PagerState) {
     val coroutineScope = rememberCoroutineScope()
-        ScrollableTabRow(
+    val isLandscape = isLandscape()
+
+    if (isLandscape) {
+        // Use TabRow in landscape mode
+        TabRow(
             selectedTabIndex = pagerState.currentPage,
-            edgePadding = 2.dp,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            indicator = { tabPositions ->
+                TabRowDefaults.Indicator(
+                    Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage])
+                )
+            },
+            divider = {}
         ) {
             categories.forEachIndexed { index, category ->
                 Tab(
@@ -311,13 +326,41 @@ fun CategoryTabs(categories: List<String>, pagerState: PagerState) {
                     selected = pagerState.currentPage == index,
                     onClick = {
                         coroutineScope.launch {
-                            pagerState.scrollToPage(index)
+                            pagerState.animateScrollToPage(index)
+                        }
+                    }
+                )
+            }
+        }
+    } else {
+        // Use ScrollableTabRow in portrait mode
+        ScrollableTabRow(
+            selectedTabIndex = pagerState.currentPage,
+            modifier = Modifier.fillMaxWidth(),
+            edgePadding = 0.dp,
+            indicator = { tabPositions ->
+                TabRowDefaults.Indicator(
+                    Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage])
+                )
+            },
+            divider = {}
+        ) {
+            categories.forEachIndexed { index, category ->
+                Tab(
+                    text = { Text(category) },
+                    selected = pagerState.currentPage == index,
+                    onClick = {
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(index)
                         }
                     }
                 )
             }
         }
     }
+}
+
+
 
 @Composable
 fun CategoryTitle(category: String) {
@@ -523,6 +566,11 @@ fun NearActivities(viewModel: HomeViewModel, navController: NavHostController) {
             }
         }
     }
+}
+
+@Composable
+fun isLandscape(): Boolean {
+    return LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 }
 
 

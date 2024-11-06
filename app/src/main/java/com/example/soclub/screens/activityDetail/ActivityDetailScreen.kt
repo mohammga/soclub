@@ -167,7 +167,7 @@ fun ActivityDetailsContent(
     activity: Activity?,
     currentParticipants: Int,
     isRegistered: Boolean,
-    isCreator: Boolean, // **Add isCreator parameter**
+    isCreator: Boolean,
     canRegister: Boolean,
     ageGroup: Int,
     onRegisterClick: () -> Unit,
@@ -378,39 +378,42 @@ fun ActivityRegisterButton(
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
-    if (isCreator) {
-        // Ikke vis knappen hvis brukeren er skaperen
-        return
-    }
+    val context = LocalContext.current
 
-    // Resten av knappekoden forblir den samme
     val buttonText = when {
+        isCreator -> stringResource(R.string.own_activity)
         !canRegister -> stringResource(R.string.under_age_limit, ageGroup)
         isRegistered -> stringResource(R.string.unregister)
         else -> stringResource(R.string.registerr)
     }
 
     val buttonColor = when {
-        !canRegister -> Color.Gray
+        isCreator || !canRegister -> Color.Gray // Grå når deaktivert
         isRegistered -> Color.Red
         else -> Color.Black
     }
 
+    val buttonEnabled = !isCreator && canRegister
+
     Button(
         onClick = {
-            if (!canRegister) return@Button
-            if (isRegistered) onUnregisterClick() else onRegisterClick()
+            if (isRegistered) {
+                onUnregisterClick()
+            } else {
+                onRegisterClick()
+            }
         },
         colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 16.dp)
             .height(48.dp),
-        enabled = canRegister
+        enabled = buttonEnabled // Knappen er deaktivert hvis 'buttonEnabled' er false
     ) {
         Text(text = buttonText, color = Color.White)
     }
 }
+
 
 @Composable
 fun InfoRow(

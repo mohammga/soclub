@@ -144,6 +144,10 @@
     <string name="unregister">Meld deg ut</string>
 
 
+    <!-- aktivityDetalierscreen  -->
+    <string name="own_activity">Egen aktivitet</string>
+
+
 
     <string name="error_age_required">Alder er påkrevd</string>
 
