@@ -2,17 +2,18 @@ package com.example.soclub.service.impl
 
 import com.example.soclub.models.Notification
 import com.example.soclub.service.NotificationService
+import com.example.soclub.service.AccountService
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
-
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.channels.awaitClose
-import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.flow.Flow
+import com.google.firebase.firestore.ListenerRegistration
 
 class NotificationServiceImpl @Inject constructor(
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val accountService: AccountService
 ) : NotificationService {
 
     override suspend fun saveNotification(notification: Notification) {
@@ -22,14 +23,21 @@ class NotificationServiceImpl @Inject constructor(
     }
 
     override suspend fun getAllNotifications(): List<Notification> {
-        val snapshot = firestore.collection("notifications").get().await()
+        val userId = accountService.currentUserId
+        val snapshot = firestore.collection("notifications")
+            .whereEqualTo("userId", userId)
+            .get()
+            .await()
         return snapshot.documents.mapNotNull { it.toObject(Notification::class.java) }
     }
 
     override suspend fun deleteNotification(notification: Notification) {
+        val userId = accountService.currentUserId
         val snapshot = firestore.collection("notifications")
+            .whereEqualTo("userId", userId)
             .whereEqualTo("message", notification.message)
             .whereEqualTo("timestamp", notification.timestamp)
+            .whereEqualTo("activityId", notification.activityId)
             .get()
             .await()
 
@@ -39,17 +47,19 @@ class NotificationServiceImpl @Inject constructor(
     }
 
     override fun getNotificationsStream(): Flow<List<Notification>> = callbackFlow {
+        val userId = accountService.currentUserId
         val listenerRegistration: ListenerRegistration = firestore.collection("notifications")
+            .whereEqualTo("userId", userId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error) // Close the flow if there’s an error
+                    close(error)
                     return@addSnapshotListener
                 }
                 if (snapshot != null) {
                     val notifications = snapshot.documents.mapNotNull { it.toObject(Notification::class.java) }
-                    trySend(notifications) // Send the updated list to the flow
+                    trySend(notifications).isSuccess
                 }
             }
-        awaitClose { listenerRegistration.remove() } // Remove the listener when the flow is closed
+        awaitClose { listenerRegistration.remove() }
     }
 }

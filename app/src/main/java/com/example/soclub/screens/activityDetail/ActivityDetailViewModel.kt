@@ -111,6 +111,7 @@ class ActivityDetailViewModel @Inject constructor(
                     } else if (!isRegistering) {
                         cancelNotificationForActivity(
                             context = context,
+                            userId = userId,
                             activityId = activityId
                         )
                     }
