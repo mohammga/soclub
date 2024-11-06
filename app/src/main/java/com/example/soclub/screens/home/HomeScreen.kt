@@ -28,23 +28,20 @@ import androidx.compose.foundation.pager.HorizontalPager
 import coil.compose.rememberAsyncImagePainter
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import com.example.soclub.R
-import kotlinx.coroutines.delay
-
 import android.content.res.Configuration
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.ui.platform.LocalConfiguration
-
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 
@@ -147,13 +144,6 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
         )
     }
 }
-
-
-
-
-
-
-
 
 
 @Composable
@@ -417,7 +407,7 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
                 .clip(RoundedCornerShape(16.dp))
         )
 
-        // Forsterket overlay for å fremheve teksten mer
+        // Overlay for å fremheve teksten
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -425,7 +415,7 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
                     brush = Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
-                            Color.Black.copy(alpha = 1f) // Øker opasiteten til 0.8 for mørkere overlay
+                            Color.Black.copy(alpha = 0.8f) // Økt opasitet for mørkere overlay
                         ),
                         startY = 100f // Justerer gradient-start for en mykere overgang
                     )
@@ -433,12 +423,12 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
                 .clip(RoundedCornerShape(16.dp))
         )
 
-        // Tekst og lokasjon som ligger over overlay
+        // Tekst og lokasjon over overlay
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp), // Padding rundt tekst for bedre plassering
-            verticalArrangement = Arrangement.Bottom // Plasser teksten nederst
+            verticalArrangement = Arrangement.Bottom // Plasserer teksten nederst
         ) {
             Text(
                 text = activity.title ?: "Ingen tittel",
@@ -454,10 +444,48 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
                 fontSize = 14.sp,
                 color = Color.LightGray
             )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Formaterer dato og tid
+            val activityDateTime = combineDateAndTime(activity.date, activity.startTime)
+            val formattedDateTime = activityDateTime?.let {
+                val formatter = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
+                formatter.format(it)
+            } ?: "Ukjent dato"
+
+            Text(
+                text = formattedDateTime,
+                fontSize = 14.sp,
+                color = Color.LightGray
+            )
         }
     }
 }
 
+fun combineDateAndTime(date: com.google.firebase.Timestamp?, timeString: String): Date? {
+    if (date == null || timeString.isEmpty()) return null
+
+    return try {
+        val calendar = Calendar.getInstance()
+        calendar.time = date.toDate()
+
+        val timeParts = timeString.split(":")
+        if (timeParts.size != 2) return null
+
+        val hour = timeParts[0].toInt()
+        val minute = timeParts[1].toInt()
+
+        calendar.set(Calendar.HOUR_OF_DAY, hour)
+        calendar.set(Calendar.MINUTE, minute)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+
+        calendar.time
+    } catch (e: Exception) {
+        null
+    }
+}
 
 
 
