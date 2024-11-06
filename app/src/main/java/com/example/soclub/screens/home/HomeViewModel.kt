@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.Locale
 import javax.inject.Inject
+import kotlinx.coroutines.delay
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -41,6 +42,12 @@ class HomeViewModel @Inject constructor(
 
     private val _selectedCities = MutableLiveData<List<String>>(emptyList())
     val selectedCities: LiveData<List<String>> get() = _selectedCities
+
+    private var hasLoadedNearestActivities = false
+
+    private val _hasLoadedActivities = MutableLiveData(false)
+    val hasLoadedActivities: LiveData<Boolean> get() = _hasLoadedActivities
+
 
 
 
@@ -112,8 +119,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-
-
     fun fetchAndGroupActivitiesByCities(selectedCities: List<String>) {
         _selectedCities.value = selectedCities.toMutableList()
         _isLoading.value = true
@@ -160,12 +165,12 @@ class HomeViewModel @Inject constructor(
 
     @SuppressLint("MissingPermission")
     fun getNearestActivities() {
+        if (hasLoadedNearestActivities) return
+
         _isLoading.value = true
         viewModelScope.launch {
             try {
                 val userLocation = fusedLocationClient.lastLocation.await() ?: return@launch
-
-                // Hent alle aktiviteter og filtrer de som er i nærheten
                 val activities = activityService.getAllActivities().mapNotNull { activity ->
                     val location = Geocoder(getApplication<Application>().applicationContext, Locale.getDefault())
                         .getFromLocationName(activity.location, 1)
@@ -176,25 +181,29 @@ class HomeViewModel @Inject constructor(
                                 longitude = it.longitude
                             }
                         }
+
                     location?.let {
                         val distance = userLocation.distanceTo(location) // Avstand i meter
                         activity to distance
                     }
                 }
 
-                // Sorter aktiviteter etter avstand og ta kun de 5 nærmeste
+                // Sorter og ta de 10 nærmeste aktivitetene
                 val nearestActivities = activities.sortedBy { it.second }.take(10).map { it.first }
 
+                // Oppdater aktiviteter kun når dataene er klare til visning
                 _activities.postValue(nearestActivities)
+                hasLoadedNearestActivities = true
+                _hasLoadedActivities.postValue(true)
             } catch (e: Exception) {
                 _activities.postValue(emptyList())
                 Log.e("HomeViewModel", "Feil ved henting av nærmeste aktiviteter: ${e.message}")
-            } finally {
-                _isLoading.postValue(false)
             }
+
+            // Sett isLoading til false etter at aktivitetene er klare
+            _isLoading.postValue(false)
         }
     }
-
 
 
 
