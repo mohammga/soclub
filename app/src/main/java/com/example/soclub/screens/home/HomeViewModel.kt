@@ -19,7 +19,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.Locale
 import javax.inject.Inject
-import kotlinx.coroutines.delay
+import java.util.Calendar
+import com.google.firebase.Timestamp
+import java.util.Date
+
+
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -126,12 +130,22 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val allActivities = activityService.getAllActivities()
+
+                // Get current date and time
+                val currentDateTime = Calendar.getInstance().time
+
+                // Filter out expired activities
+                val nonExpiredActivities = allActivities.filter { activity ->
+                    val activityDateTime = combineDateAndTime(activity.date, activity.startTime)
+                    activityDateTime?.after(currentDateTime) ?: false
+                }
+
                 val filteredActivities = if (selectedCities.isNotEmpty()) {
-                    allActivities.filter { activity ->
-                        selectedCities.any { city -> activity.location.contains(city, ignoreCase = true) }
+                    nonExpiredActivities.filter { activity ->
+                        selectedCities.any { city -> activity.location?.contains(city, ignoreCase = true) == true }
                     }
                 } else {
-                    allActivities
+                    nonExpiredActivities
                 }
 
                 val grouped = filteredActivities.groupBy { it.category ?: "Ukjent kategori" }
@@ -143,6 +157,7 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
 
     fun resetFilter() {
         _selectedCities.value = mutableListOf()
@@ -171,9 +186,20 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val userLocation = fusedLocationClient.lastLocation.await() ?: return@launch
-                val activities = activityService.getAllActivities().mapNotNull { activity ->
+                val allActivities = activityService.getAllActivities()
+
+                // Get current date and time
+                val currentDateTime = Calendar.getInstance().time
+
+                // Filter out expired activities
+                val nonExpiredActivities = allActivities.filter { activity ->
+                    val activityDateTime = combineDateAndTime(activity.date, activity.startTime)
+                    activityDateTime?.after(currentDateTime) ?: false
+                }
+
+                val activitiesWithDistance = nonExpiredActivities.mapNotNull { activity ->
                     val location = Geocoder(getApplication<Application>().applicationContext, Locale.getDefault())
-                        .getFromLocationName(activity.location, 1)
+                        .getFromLocationName(activity.location ?: "", 1)
                         ?.firstOrNull()
                         ?.let {
                             Location("").apply {
@@ -183,31 +209,49 @@ class HomeViewModel @Inject constructor(
                         }
 
                     location?.let {
-                        val distance = userLocation.distanceTo(location) // Avstand i meter
+                        val distance = userLocation.distanceTo(location)
                         activity to distance
                     }
                 }
 
-                // Sorter og ta de 10 nærmeste aktivitetene
-                val nearestActivities = activities.sortedBy { it.second }.take(10).map { it.first }
+                // Sort and take the 10 nearest activities
+                val nearestActivities = activitiesWithDistance.sortedBy { it.second }.take(10).map { it.first }
 
-                // Oppdater aktiviteter kun når dataene er klare til visning
                 _activities.postValue(nearestActivities)
                 hasLoadedNearestActivities = true
                 _hasLoadedActivities.postValue(true)
             } catch (e: Exception) {
                 _activities.postValue(emptyList())
-                Log.e("HomeViewModel", "Feil ved henting av nærmeste aktiviteter: ${e.message}")
+                Log.e("HomeViewModel", "Error fetching nearest activities: ${e.message}")
+            } finally {
+                _isLoading.postValue(false)
             }
-
-            // Sett isLoading til false etter at aktivitetene er klare
-            _isLoading.postValue(false)
         }
     }
 
 
+    private fun combineDateAndTime(date: Timestamp?, timeString: String): Date? {
+        if (date == null || timeString.isEmpty()) return null
 
+        return try {
+            val calendar = Calendar.getInstance()
+            calendar.time = date.toDate()
 
+            val timeParts = timeString.split(":")
+            if (timeParts.size != 2) return null
 
+            val hour = timeParts[0].toInt()
+            val minute = timeParts[1].toInt()
+
+            calendar.set(Calendar.HOUR_OF_DAY, hour)
+            calendar.set(Calendar.MINUTE, minute)
+            calendar.set(Calendar.SECOND, 0)
+            calendar.set(Calendar.MILLISECOND, 0)
+
+            calendar.time
+        } catch (e: Exception) {
+            null
+        }
+    }
 }
 
