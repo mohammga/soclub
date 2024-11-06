@@ -35,7 +35,11 @@ val shortcuts = listOf(
 )
 
 @Composable
-fun BottomNavBar(navController: NavController, currentScreen: String) {
+fun BottomNavBar(
+    navController: NavController,
+    currentScreen: String,
+    notificationCount: Int // New parameter
+) {
     val profileScreens = setOf(
         AppScreens.PROFILE.name,
         AppScreens.EDIT_PROFILE.name,
@@ -46,7 +50,6 @@ fun BottomNavBar(navController: NavController, currentScreen: String) {
 
     NavigationBar {
         shortcuts.forEach { shortcut ->
-            // Sjekk om det valgte ikonet skal markeres som aktivt
             val isSelected = when (shortcut.route) {
                 AppScreens.PROFILE -> currentScreen.startsWith("editActivity") || currentScreen in profileScreens
                 AppScreens.HOME -> currentScreen == AppScreens.HOME.name
@@ -55,8 +58,9 @@ fun BottomNavBar(navController: NavController, currentScreen: String) {
 
             NavigationBarItem(
                 icon = {
-                    if (shortcut.showBadge) {
-                        BadgedBox(badge = { Badge { Text("5") } }) {
+                    if (shortcut.route == AppScreens.NOTIFICATIONS && notificationCount > 0) {
+                        // Show badge with the notification count on the Notifications icon
+                        BadgedBox(badge = { Badge { Text(notificationCount.toString()) } }) {
                             Icon(shortcut.icon, contentDescription = stringResource(shortcut.label))
                         }
                     } else {
@@ -72,21 +76,18 @@ fun BottomNavBar(navController: NavController, currentScreen: String) {
                 selected = isSelected,
                 onClick = {
                     when {
-                        // Hvis brukeren er på en profilscreen (inkludert editActivity), naviger til PROFILE-skjermen
                         shortcut.route == AppScreens.PROFILE && (currentScreen.startsWith("editActivity") || currentScreen in profileScreens) -> {
                             navController.navigate(AppScreens.PROFILE.name) {
                                 popUpTo(AppScreens.PROFILE.name) { inclusive = false }
                                 launchSingleTop = true
                             }
                         }
-                        // Naviger til HOME-skjermen uten å duplisere
                         shortcut.route == AppScreens.HOME -> {
                             navController.navigate(AppScreens.HOME.name) {
                                 popUpTo(AppScreens.HOME.name) { inclusive = false }
                                 launchSingleTop = true
                             }
                         }
-                        // For alle andre tilfeller, naviger normalt til den valgte skjermen
                         else -> {
                             navController.navigate(shortcut.route.name) {
                                 popUpTo(navController.graph.startDestinationId) { inclusive = false }
@@ -111,6 +112,7 @@ fun getCurrentScreen(navController: NavController): String {
 fun BottomNavBarPreview() {
     BottomNavBar(
         navController = rememberNavController(),
-        currentScreen = AppScreens.HOME.name
+        currentScreen = AppScreens.HOME.name,
+        notificationCount = 0
     )
 }

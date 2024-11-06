@@ -28,6 +28,8 @@ import androidx.compose.foundation.pager.HorizontalPager
 import coil.compose.rememberAsyncImagePainter
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
@@ -251,12 +253,12 @@ fun CitySelectionItem(city: String, isSelected: Boolean, onCitySelected: (Boolea
             text = city,
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(start = 16.dp)
+
         )
         Checkbox(
             checked = isSelected,
             onCheckedChange = { onCitySelected(it) },
-            modifier = Modifier.padding(end = 16.dp)
+
         )
     }
 }
@@ -274,7 +276,7 @@ fun FilterListItem(
             .clip(RoundedCornerShape(16.dp))
             .background(backgroundColor)
             .clickable { onClick() }
-            .padding(vertical = 12.dp),
+            .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -283,10 +285,10 @@ fun FilterListItem(
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
             color = contentColor,
-            modifier = Modifier.padding(start = 16.dp)
+
         )
         Icon(
-            imageVector = Icons.Default.ArrowForward,
+            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
             contentDescription = "Arrow",
             tint = contentColor,
             modifier = Modifier.padding(end = 16.dp)
@@ -416,7 +418,6 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
 
 
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterBottomSheet(
@@ -434,48 +435,22 @@ fun FilterBottomSheet(
         ModalBottomSheet(
             onDismissRequest = { onDismissRequest() }
         ) {
-            if (isSelectingArea) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = "Filtrer etter", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                    Spacer(modifier = Modifier.height(16.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(16.dp)
+            ) {
+                Text(text = "Filtrer etter område", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Spacer(modifier = Modifier.height(16.dp))
 
-                    FilterListItem(
-                        title = "Område",
-                        onClick = { onSelectArea(false) },
-                        backgroundColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
-            } else {
-                Column(
+                // Wrap LazyColumn in a Box with weight to make it scrollable within available space
+                Box(
                     modifier = Modifier
-                        .fillMaxHeight()
-                        .padding(16.dp)
+                        .fillMaxWidth()
+                        .weight(1f) // Allows the LazyColumn to take remaining space
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelectArea(true) }
-                            .padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Tilbake",
-                            modifier = Modifier.padding(end = 16.dp)
-                        )
-                        Text(text = "Tilbake", fontSize = 16.sp, fontWeight = FontWeight.Medium)
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(text = "Velg By", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                    Spacer(modifier = Modifier.height(16.dp))
-
                     LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(300.dp)
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         items(cities) { city ->
                             CitySelectionItem(
@@ -488,33 +463,36 @@ fun FilterBottomSheet(
                             Spacer(modifier = Modifier.height(8.dp))
                         }
                     }
+                }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
+                // Buttons outside the scrollable LazyColumn
+                Button(
+                    onClick = { onSearch() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
+                    Text(text = "Vis treff")
+                }
+
+                if (selectedCities.isNotEmpty()) {
                     Button(
-                        onClick = { onSearch() },
+                        onClick = { onResetFilter() },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 16.dp)
+                            .padding(vertical = 4.dp)
                     ) {
-                        Text(text = "Søk")
-                    }
-
-                    if (selectedCities.isNotEmpty()) {
-                        Button(
-                            onClick = { onResetFilter() },  // Fjern tilbakestilling av `_selectedCities` her
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp)
-                        ) {
-                            Text("Nullstill filtrering")
-                        }
+                        Text("Nullstill")
                     }
                 }
             }
         }
     }
 }
+
+
 
 
 @Composable

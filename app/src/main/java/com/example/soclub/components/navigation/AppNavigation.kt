@@ -1,12 +1,15 @@
 package com.example.soclub.components.navigation
 
-import AdsScreen
+import com.example.soclub.screens.ads.AdsScreen
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -25,6 +28,7 @@ import com.example.soclub.screens.editProfile.EditProfileScreen
 import com.example.soclub.screens.entries.EntriesScreen
 import com.example.soclub.screens.home.HomeScreen
 import com.example.soclub.screens.notifications.NotificationsScreen
+import com.example.soclub.screens.notifications.NotificationsViewModel
 import com.example.soclub.screens.profile.ProfileScreen
 import com.example.soclub.screens.resetPassword.ResetPasswordScreen
 import com.example.soclub.screens.signin.SigninScreen
@@ -34,10 +38,12 @@ import com.example.soclub.service.impl.AccountServiceImpl
 import com.example.soclub.service.module.FirebaseModule
 
 @Composable
-fun AppNavigation(navController: NavHostController) {
+fun AppNavigation(navController: NavHostController, notificationsViewModel: NotificationsViewModel = hiltViewModel()) {
     val currentScreen = getCurrentScreen(navController)
 
-    // Definer profil- og detaljerelaterte skjermer
+    val notificationCount by notificationsViewModel.notificationCount.collectAsState()
+
+        // Definer profil- og detaljerelaterte skjermer
     val profileScreens = setOf(
         AppScreens.PROFILE.name,
         AppScreens.EDIT_PROFILE.name,
@@ -117,7 +123,8 @@ fun AppNavigation(navController: NavHostController) {
             if (currentScreen !in screensWithoutBottomBar) {
                 BottomNavBar(
                     navController = navController,
-                    currentScreen = adjustedCurrentScreen
+                    currentScreen = adjustedCurrentScreen,
+                    notificationCount = notificationCount
                 )
             }
         },

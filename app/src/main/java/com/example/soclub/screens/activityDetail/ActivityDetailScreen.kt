@@ -118,13 +118,13 @@ fun ActivityDetailScreen(
                                 ageGroup = activity?.ageGroup ?: 0,
                                 onRegisterClick = {
                                     if (activityId != null && category != null) {
-                                        viewModel.updateRegistrationForActivity(category, activityId, true)
+                                        viewModel.updateRegistrationForActivity(activityId, true)
                                         showSnackbar(true, snackbarHostState, scope, activity, currentParticipants)
                                     }
                                 },
                                 onUnregisterClick = {
                                     if (activityId != null && category != null) {
-                                        viewModel.updateRegistrationForActivity(category, activityId, false)
+                                        viewModel.updateRegistrationForActivity(activityId, false)
                                         showSnackbar(false, snackbarHostState, scope, activity, currentParticipants)
                                     }
                                 }

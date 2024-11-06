@@ -155,7 +155,7 @@ fun onDeleteClick(navController: NavController, category: String, activityId: St
     viewModelScope.launch {
         try {
             activityService.deleteActivity(category, activityId)
-            navController.navigate("adsScreen") // Naviger til AdsScreen etter sletting
+            navController.navigate("adsScreen") // Naviger til com.example.soclub.screens.ads.AdsScreen etter sletting
         } catch (e: Exception) {
             _errorMessage.value = "Feil ved sletting av aktivitet: ${e.message}"
         } finally {

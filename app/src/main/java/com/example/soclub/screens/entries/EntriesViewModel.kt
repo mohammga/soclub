@@ -5,9 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.soclub.models.Activity
 import com.example.soclub.service.EntriesService
 import com.example.soclub.service.AccountService
-import com.example.soclub.service.ActivityDetaillService
+import com.example.soclub.service.ActivityDetailService
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -17,7 +16,7 @@ import javax.inject.Inject
 class EntriesScreenViewModel @Inject constructor(
     private val entriesService: EntriesService,
     private val accountService: AccountService,
-    private val activityDetaillService: ActivityDetaillService
+    private val activityDetailService: ActivityDetailService
 ) : ViewModel() {
 
     private val _activeActivities = MutableStateFlow<List<Activity>>(emptyList())
@@ -75,7 +74,7 @@ class EntriesScreenViewModel @Inject constructor(
     fun cancelRegistration(activityId: String) {
         viewModelScope.launch {
             val userId = accountService.currentUserId
-            activityDetaillService.updateRegistrationStatus(userId, activityId, "notAktiv")
+            activityDetailService.updateRegistrationStatus(userId, activityId, "notAktiv")
 
             // Midlertidig fjern den kansellerte aktiviteten fra listen lokalt
             _activeActivities.value = _activeActivities.value.filter { it.id != activityId }
