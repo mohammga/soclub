@@ -29,6 +29,7 @@ class NotificationServiceImpl @Inject constructor(
             .get()
             .await()
         return snapshot.documents.mapNotNull { it.toObject(Notification::class.java) }
+            .sortedByDescending { it.timestamp }
     }
 
     override suspend fun deleteNotification(notification: Notification) {

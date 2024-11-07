@@ -6,7 +6,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.*
 import androidx.compose.material3.*
 import androidx.compose.foundation.Image
@@ -20,9 +19,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,33 +29,28 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.soclub.R
-import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState
     val isLoading by viewModel.isLoading
-    val errorMessage by viewModel.errorMessage  // Henter `errorMessage` fra ViewModel
-    val snackbarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope()
+    val errorMessage by viewModel.errorMessage
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.loadUserProfile()
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         content = {
             when {
                 isLoading -> {
-                    // Viser loading-indikator
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
                 }
                 errorMessage != null -> {
-                    // Viser feilmelding hvis det oppsto en feil
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
                             text = errorMessage ?: "En ukjent feil oppsto",
@@ -66,7 +60,6 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                     }
                 }
                 else -> {
-                    // Viser innholdet hvis det ikke er en feil og ikke laster
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
@@ -109,14 +102,7 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
 
                             SaveButton(
                                 onClick = {
-                                    viewModel.onSaveProfileClick(navController)
-                                    if (uiState.firstnameError == null && uiState.lastnameError == null) {
-                                        coroutineScope.launch {
-                                            snackbarHostState.showSnackbar(
-                                                message = "Personlig info endret"
-                                            )
-                                        }
-                                    }
+                                    viewModel.onSaveProfileClick(navController, context)
                                 },
                                 enabled = uiState.isDirty
                             )
@@ -127,7 +113,6 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
         }
     )
 }
-
 
 @Composable
 fun ProfileTextField(
