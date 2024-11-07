@@ -70,7 +70,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(end = 16.dp), // Fjern venstre padding her
+                .padding(end = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -166,7 +166,7 @@ fun Chip(text: String, onRemove: () -> Unit) {
             imageVector = Icons.Default.Close,
             contentDescription = "Remove $text",
             modifier = Modifier
-                .size(16.dp)  // Mindre ikonstørrelse
+                .size(16.dp)
                 .clickable { onRemove() }
         )
     }
@@ -299,7 +299,6 @@ fun CategoryTabs(categories: List<String>, pagerState: PagerState) {
     val isLandscape = isLandscape()
 
     if (isLandscape) {
-        // Use TabRow in landscape mode
         TabRow(
             selectedTabIndex = pagerState.currentPage,
             modifier = Modifier.fillMaxWidth(),
@@ -323,7 +322,7 @@ fun CategoryTabs(categories: List<String>, pagerState: PagerState) {
             }
         }
     } else {
-        // Use ScrollableTabRow in portrait mode
+
         ScrollableTabRow(
             selectedTabIndex = pagerState.currentPage,
             modifier = Modifier.fillMaxWidth(),
@@ -370,9 +369,8 @@ fun ActivityList(activities: List<Activity>, selectedCategory: String, navContro
         modifier = Modifier.fillMaxSize()
     ) {
         items(activities) { activity ->
-            // Hvis vi er på "Forslag", bruk aktiviteten sin kategori til å navigere
             val categoryToUse = if (selectedCategory == "Nærme Aktiviteter") {
-                activity.category ?: "ukjent"  // Sørg for at aktiviteten har kategori
+                activity.category ?: "ukjent"
             } else {
                 selectedCategory
             }
@@ -389,11 +387,10 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp) // Holder samme størrelse
+            .height(200.dp)
             .clip(RoundedCornerShape(16.dp))
             .clickable { onClick() }
     ) {
-        // Bakgrunnsbilde
         Image(
             painter = if (activity.imageUrl.isEmpty()) {
                 painterResource(id = R.drawable.placeholder)
@@ -407,7 +404,6 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
                 .clip(RoundedCornerShape(16.dp))
         )
 
-        // Overlay for å fremheve teksten
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -415,20 +411,20 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
                     brush = Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
-                            Color.Black.copy(alpha = 0.8f) // Økt opasitet for mørkere overlay
+                            Color.Black.copy(alpha = 0.8f)
                         ),
-                        startY = 100f // Justerer gradient-start for en mykere overgang
+                        startY = 100f
                     )
                 )
                 .clip(RoundedCornerShape(16.dp))
         )
 
-        // Tekst og lokasjon over overlay
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp), // Padding rundt tekst for bedre plassering
-            verticalArrangement = Arrangement.Bottom // Plasserer teksten nederst
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Bottom
         ) {
             Text(
                 text = activity.title ?: "Ingen tittel",
@@ -447,7 +443,7 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Formaterer dato og tid
+
             val activityDateTime = combineDateAndTime(activity.date, activity.startTime)
             val formattedDateTime = activityDateTime?.let {
                 val formatter = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
@@ -513,12 +509,10 @@ fun FilterBottomSheet(
             ) {
                 Text(text = "Filtrer etter område", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(16.dp))
-
-                // Wrap LazyColumn in a Box with weight to make it scrollable within available space
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f) // Allows the LazyColumn to take remaining space
+                        .weight(1f)
                 ) {
                     LazyColumn(
                         modifier = Modifier.fillMaxWidth()
@@ -538,7 +532,6 @@ fun FilterBottomSheet(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Buttons outside the scrollable LazyColumn
                 Button(
                     onClick = { onSearch() },
                     modifier = Modifier

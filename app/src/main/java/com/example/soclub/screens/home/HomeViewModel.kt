@@ -23,11 +23,9 @@ import java.util.Calendar
 import com.google.firebase.Timestamp
 import java.util.Date
 
-
-
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    application: Application, // Få tilgang til Application context
+    application: Application,
     private val activityService: ActivityService,
     private val fusedLocationClient: FusedLocationProviderClient
 ) : AndroidViewModel(application) {
@@ -56,7 +54,7 @@ class HomeViewModel @Inject constructor(
 
 
     init {
-        fetchAndGroupActivitiesByCities(emptyList())  // Hent aktiviteter uten filter ved oppstart
+        fetchAndGroupActivitiesByCities(emptyList())
     }
 
     @SuppressLint("MissingPermission")
@@ -114,9 +112,7 @@ class HomeViewModel @Inject constructor(
         }
         _selectedCities.value = currentCities
 
-        // Oppdater aktivitetene basert på gjeldende filter
         if (currentCities.isEmpty()) {
-            // Nullstill filteret hvis ingen byer er valgt
             fetchAndGroupActivitiesByCities(emptyList())
         } else {
             fetchAndGroupActivitiesByCities(currentCities)
@@ -193,10 +189,8 @@ class HomeViewModel @Inject constructor(
                 val userLocation = fusedLocationClient.lastLocation.await() ?: return@launch
                 val allActivities = activityService.getAllActivities()
 
-                // Get current date and time
                 val currentDateTime = Calendar.getInstance().time
 
-                // Filter out expired activities
                 val nonExpiredActivities = allActivities.filter { activity ->
                     val activityDateTime = combineDateAndTime(activity.date, activity.startTime)
                     activityDateTime?.after(currentDateTime) ?: false
@@ -219,7 +213,6 @@ class HomeViewModel @Inject constructor(
                     }
                 }
 
-                // Sort and take the 10 nearest activities
                 val nearestActivities = activitiesWithDistance.sortedBy { it.second }.take(10).map { it.first }
 
                 _activities.postValue(nearestActivities)
