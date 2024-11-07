@@ -68,12 +68,10 @@ fun ActiveEntriesList(navController: NavHostController, viewModel: EntriesScreen
     val isLoading by viewModel.isLoadingActive.collectAsState()
 
     if (isLoading) {
-        // Vis en lastesirkel mens dataene lastes
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
     } else if (activeActivities.isEmpty()) {
-        // Viser en melding når det ikke er noen aktive aktiviteter
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(text = "Det er ingen aktiviteter som er aktive", modifier = Modifier.padding(16.dp))
         }
@@ -108,12 +106,10 @@ fun CancelledEntriesList(navController: NavHostController, viewModel: EntriesScr
     val isLoading by viewModel.isLoadingInactive.collectAsState()
 
     if (isLoading) {
-        // Vis en lastesirkel mens dataene lastes
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
     } else if (cancelledActivities.isEmpty()) {
-        // Viser en melding når det ikke er noen kansellerte aktiviteter
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(text = "Det er ingen aktiviteter som er kansellerte", modifier = Modifier.padding(16.dp))
         }
@@ -193,7 +189,7 @@ fun CancelledEntryItem(
 @Composable
 fun EventImage(imageUrl: String?) {
     val imagePainter = if (imageUrl.isNullOrEmpty()) {
-        rememberAsyncImagePainter("defaultImageUrl") // Erstatt med en faktisk URL eller placeholder-bilde
+        rememberAsyncImagePainter("defaultImageUrl")
     } else {
         rememberAsyncImagePainter(imageUrl)
     }
