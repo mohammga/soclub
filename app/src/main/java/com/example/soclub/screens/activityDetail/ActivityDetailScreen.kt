@@ -48,6 +48,7 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.icu.text.SimpleDateFormat
 import android.widget.Toast
+import androidx.compose.ui.res.painterResource
 import com.google.firebase.Timestamp
 import java.util.Locale
 
@@ -224,8 +225,14 @@ fun ActivityDetailsContent(
 
 @Composable
 fun ActivityImage(imageUrl: String) {
+    val painter = if (imageUrl.isNotBlank()) {
+        rememberAsyncImagePainter(model = imageUrl)
+    } else {
+        painterResource(id = R.drawable.placeholder)
+    }
+
     Image(
-        painter = rememberAsyncImagePainter(imageUrl),
+        painter = painter,
         contentDescription = "Activity Image",
         modifier = Modifier
             .fillMaxWidth()
@@ -235,6 +242,7 @@ fun ActivityImage(imageUrl: String) {
         contentScale = ContentScale.Crop
     )
 }
+
 
 @Composable
 fun ActivityTitle(title: String) {
