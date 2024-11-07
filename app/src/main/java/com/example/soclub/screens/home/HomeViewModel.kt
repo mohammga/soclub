@@ -131,10 +131,10 @@ class HomeViewModel @Inject constructor(
             try {
                 val allActivities = activityService.getAllActivities()
 
-                // Get current date and time
+
                 val currentDateTime = Calendar.getInstance().time
 
-                // Filter out expired activities
+
                 val nonExpiredActivities = allActivities.filter { activity ->
                     val activityDateTime = combineDateAndTime(activity.date, activity.startTime)
                     activityDateTime?.after(currentDateTime) ?: false
@@ -148,7 +148,11 @@ class HomeViewModel @Inject constructor(
                     nonExpiredActivities
                 }
 
-                val grouped = filteredActivities.groupBy { it.category ?: "Ukjent kategori" }
+                val sortedActivities = filteredActivities.sortedByDescending { activity ->
+                    combineDateAndTime(activity.date, activity.startTime)
+                }
+
+                val grouped = sortedActivities.groupBy { it.category ?: "Ukjent kategori" }
                 _groupedActivities.postValue(grouped)
             } catch (e: Exception) {
                 _groupedActivities.postValue(emptyMap())
@@ -157,6 +161,7 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
 
 
     fun resetFilter() {
