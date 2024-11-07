@@ -90,7 +90,7 @@ fun SaveChangesButton(navController: NavController, viewModel: EditActivityViewM
         onClick = { viewModel.onSaveClick(navController, category, activityId) },
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text(text = "Lagre endringer")
+        Text(stringResource(R.string.save_changes_button))
     }
 }
 
@@ -101,7 +101,7 @@ fun DeleteButton(navController: NavController, viewModel: EditActivityViewModel,
         modifier = Modifier.fillMaxWidth(1f),
         colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.error)
     ) {
-        Text(text = "Slett")
+        Text(stringResource(R.string.delete))
     }
 }
 
@@ -181,7 +181,7 @@ fun LocationField(value: String, onNewValue: (String) -> Unit) {
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
-        placeholder = { Text("Sted") },
+        placeholder = { Text(stringResource(R.string.location_label)) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
@@ -194,7 +194,7 @@ fun AddressField(value: String, onNewValue: (String) -> Unit) {
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
-        placeholder = { Text("Adresse") },
+        placeholder = { Text(stringResource(R.string.address_label)) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
@@ -207,7 +207,7 @@ fun PostalCodeField(value: String, onNewValue: (String) -> Unit) {
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
-        placeholder = { Text("Postnummer") },
+        placeholder = { Text(stringResource(R.string.postal_code_label)) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
@@ -246,7 +246,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit) {
         val formattedDate = if (value != 0L) {
             SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
         } else {
-            "Velg dato"
+            stringResource(id = R.string.choose_Dato)
         }
         Text(text = formattedDate)
     }
@@ -280,7 +280,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit) {
         val formattedTime = if (value.isNotEmpty()) {
             value
         } else {
-            "Velg starttidspunkt"
+            stringResource(id = R.string.choose_start_time)
         }
         Text(text = formattedTime)
     }

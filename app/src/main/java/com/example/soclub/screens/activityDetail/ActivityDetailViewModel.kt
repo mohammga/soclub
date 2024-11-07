@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.content.Context
 import android.util.Log
+import com.example.soclub.R
 import com.example.soclub.utils.cancelNotificationForActivity
 import com.example.soclub.utils.enqueueSignUpNotification
 import com.example.soclub.utils.enqueueUnregistrationNotification
@@ -77,7 +78,7 @@ class ActivityDetailViewModel @Inject constructor(
                 }
 
             } catch (e: Exception) {
-                _errorMessage.value = "Det skjedde en feil. Vennligst prøv igjen senere."
+                _errorMessage.value = context.getString(R.string.error_message)
             } finally {
                 _isLoading.value = false
             }

@@ -225,7 +225,8 @@ fun LocationField(value: String, onNewValue: (String) -> Unit, suggestions: List
                 expanded = it.isNotEmpty() && suggestions.isNotEmpty()
             },
             label = { Text(stringResource(id = R.string.location_label)) },
-            placeholder = { Text("Sted") },
+            //placeholder = { Text("Sted") },
+            placeholder = { Text(stringResource(R.string.location_label)) },
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             isError = error != null,
             supportingText = {
@@ -265,7 +266,7 @@ fun AddressField(value: String, onNewValue: (String) -> Unit, suggestions: List<
                 }
             },
             label = { Text(stringResource(id = R.string.address_label)) },
-            placeholder = { Text("Adresse") },
+            placeholder = { Text(stringResource(id = R.string.address_label)) },
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             singleLine = true,
             enabled = isEnabled,
@@ -300,7 +301,7 @@ fun PostalCodeField(value: String, error: String?) {
         value = value,
         onValueChange = {},
         label = { Text(stringResource(id = R.string.postal_code_label)) },
-        placeholder = { Text("Postnummer") },
+        placeholder = { Text(stringResource(id = R.string.postal_code_label)) },
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         singleLine = true,
@@ -392,7 +393,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
 
     Box {
         OutlinedTextField(
-            value = if (value.isNotEmpty()) value else "Velg tidspunkt",
+            value = if (value.isNotEmpty()) value else stringResource(R.string.choose_start_time),
             onValueChange = {},
             label = { Text(stringResource(id = R.string.start_time_label)) },
             modifier = Modifier

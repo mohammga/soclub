@@ -59,7 +59,7 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                     // Viser feilmelding hvis det oppsto en feil
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = errorMessage ?: "En ukjent feil oppsto",
+                            text = errorMessage ?: stringResource(R.string.unknown_eror),
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -114,6 +114,7 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                                         coroutineScope.launch {
                                             snackbarHostState.showSnackbar(
                                                 message = "Personlig info endret"
+
                                             )
                                         }
                                     }

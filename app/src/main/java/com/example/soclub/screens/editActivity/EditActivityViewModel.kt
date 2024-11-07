@@ -85,6 +85,7 @@ class EditActivityViewModel @Inject constructor(
     }
 
 
+
     fun onTitleChange(newValue: String) {
         uiState.value = uiState.value.copy(title = newValue)
     }

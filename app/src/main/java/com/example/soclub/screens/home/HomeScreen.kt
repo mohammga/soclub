@@ -40,6 +40,7 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -511,7 +512,7 @@ fun FilterBottomSheet(
                     .fillMaxHeight()
                     .padding(16.dp)
             ) {
-                Text(text = "Filtrer etter område", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text(stringResource(R.string.filter_by_area), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Wrap LazyColumn in a Box with weight to make it scrollable within available space
@@ -545,7 +546,7 @@ fun FilterBottomSheet(
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
                 ) {
-                    Text(text = "Vis treff")
+                    Text(stringResource(R.string.Show_hits))
                 }
 
                 if (selectedCities.isNotEmpty()) {
@@ -555,7 +556,7 @@ fun FilterBottomSheet(
                             .fillMaxWidth()
                             .padding(vertical = 4.dp)
                     ) {
-                        Text("Nullstill")
+                        Text(stringResource(R.string.Reset))
                     }
                 }
             }
@@ -586,7 +587,7 @@ fun NearActivities(viewModel: HomeViewModel, navController: NavHostController) {
             }
             else -> {
                 Text(
-                    text = "Ingen aktiviteter tilgjengelig for Nærme Aktiviteter.",
+                    text = stringResource(R.string.No_Aktivirty_is_Near),
                     modifier = Modifier.padding(16.dp),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
