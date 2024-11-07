@@ -1,5 +1,6 @@
 package com.example.soclub.screens.activityDetail
 
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -219,6 +220,8 @@ fun ActivityDetailsContent(
             isRegistered = isRegistered,
             isCreator = isCreator,
             canRegister = canRegister,
+            currentParticipants = currentParticipants,
+            maxParticipants = activity?.maxParticipants ?: 0,
             ageGroup = ageGroup,
             onRegisterClick = onRegisterClick,
             onUnregisterClick = onUnregisterClick
@@ -374,13 +377,16 @@ fun ActivityRegisterButton(
     isRegistered: Boolean,
     isCreator: Boolean,
     canRegister: Boolean,
+    currentParticipants: Int,
+    maxParticipants: Int,
     ageGroup: Int,
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
-    val context = LocalContext.current
+    val isFull = currentParticipants >= maxParticipants
 
     val buttonText = when {
+        isFull -> ""
         isCreator -> stringResource(R.string.own_activity)
         !canRegister -> stringResource(R.string.under_age_limit, ageGroup)
         isRegistered -> stringResource(R.string.unregister)
@@ -388,12 +394,13 @@ fun ActivityRegisterButton(
     }
 
     val buttonColor = when {
-        isCreator || !canRegister -> Color.Gray // Grå når deaktivert
+        isFull -> Color.Green
+        isCreator || !canRegister -> Color.Gray
         isRegistered -> Color.Red
         else -> Color.Black
     }
 
-    val buttonEnabled = !isCreator && canRegister
+    val buttonEnabled = !isCreator && canRegister && !isFull
 
     Button(
         onClick = {
@@ -408,9 +415,13 @@ fun ActivityRegisterButton(
             .fillMaxWidth()
             .padding(vertical = 16.dp)
             .height(48.dp),
-        enabled = buttonEnabled // Knappen er deaktivert hvis 'buttonEnabled' er false
+        enabled = buttonEnabled
     ) {
-        Text(text = buttonText, color = Color.White)
+        if (isFull) {
+            Text(text = "Ingen ledige plasser igjen", color = Color.White)
+        } else {
+            Text(text = buttonText, color = Color.White)
+        }
     }
 }
 
