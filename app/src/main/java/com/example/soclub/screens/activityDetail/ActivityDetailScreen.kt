@@ -32,11 +32,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.soclub.models.Activity
 import androidx.compose.material3.*
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.res.stringResource
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -51,6 +47,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.icu.text.SimpleDateFormat
+import android.widget.Toast
 import com.google.firebase.Timestamp
 import java.util.Locale
 
@@ -76,10 +73,9 @@ fun ActivityDetailScreen(
     val currentParticipants = viewModel.currentParticipants.collectAsState().value
     val isLoading = viewModel.isLoading.collectAsState().value
     val errorMessage = viewModel.errorMessage.collectAsState().value
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
-    // **Collect isCreator from ViewModel**
+    // Collect isCreator from ViewModel
     val isCreator = viewModel.isCreator.collectAsState().value
 
     LaunchedEffect(activityId, category) {
@@ -89,7 +85,6 @@ fun ActivityDetailScreen(
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         content = {
             when {
                 isLoading -> {
@@ -118,19 +113,19 @@ fun ActivityDetailScreen(
                                 activity = activity,
                                 currentParticipants = currentParticipants,
                                 isRegistered = isRegistered,
-                                isCreator = isCreator, // **Pass isCreator to ActivityDetailsContent**
+                                isCreator = isCreator,
                                 canRegister = canRegister,
                                 ageGroup = activity?.ageGroup ?: 0,
                                 onRegisterClick = {
                                     if (activityId != null && category != null) {
                                         viewModel.updateRegistrationForActivity(activityId, true)
-                                        showSnackbar(true, snackbarHostState, scope, activity, currentParticipants)
+                                        showToast(context, true, activity, currentParticipants)
                                     }
                                 },
                                 onUnregisterClick = {
                                     if (activityId != null && category != null) {
                                         viewModel.updateRegistrationForActivity(activityId, false)
-                                        showSnackbar(false, snackbarHostState, scope, activity, currentParticipants)
+                                        showToast(context, false, activity, currentParticipants)
                                     }
                                 }
                             )
@@ -142,13 +137,10 @@ fun ActivityDetailScreen(
     )
 }
 
-
-
-fun showSnackbar(isRegistering: Boolean, snackbarHostState: SnackbarHostState, scope: CoroutineScope, activity: Activity?, currentParticipants: Int) {
+fun showToast(context: Context, isRegistering: Boolean, activity: Activity?, currentParticipants: Int) {
     val maxParticipants = activity?.maxParticipants ?: 0
     val remainingSlots = maxParticipants - currentParticipants
-    scope.launch {
-        delay(500)
+
     val message = if (isRegistering) {
         if (remainingSlots > 0) {
             "Påmeldingen var vellykket."
@@ -158,8 +150,8 @@ fun showSnackbar(isRegistering: Boolean, snackbarHostState: SnackbarHostState, s
     } else {
         "Du har nå meldt deg ut av aktiviteten."
     }
-        snackbarHostState.showSnackbar(message)
-    }
+
+    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 }
 
 
@@ -372,6 +364,7 @@ fun ActivityGPSImage(context: Context, destinationLocation: String) {
     }
 }
 
+
 @Composable
 fun ActivityRegisterButton(
     isRegistered: Boolean,
@@ -383,6 +376,7 @@ fun ActivityRegisterButton(
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
+  
     val isFull = currentParticipants >= maxParticipants
 
     val buttonText = when {
@@ -424,7 +418,6 @@ fun ActivityRegisterButton(
         }
     }
 }
-
 
 @Composable
 fun InfoRow(

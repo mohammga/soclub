@@ -1,7 +1,9 @@
 package com.example.soclub.screens.editProfile
 
+import android.content.Context
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -81,7 +83,8 @@ class EditProfileViewModel @Inject constructor(
         uiState.value = uiState.value.copy(imageUri = uri, isDirty = true)
     }
 
-    fun onSaveProfileClick(navController: NavController) {
+
+    fun onSaveProfileClick(navController: NavController, context: Context) {
         var hasError = false
         var firstnameError: Int? = null
         var lastnameError: Int? = null
@@ -113,13 +116,12 @@ class EditProfileViewModel @Inject constructor(
         val imageUri = uiState.value.imageUri
 
         if (imageUri != null) {
-            // Use StorageService to upload the image
             storageService.uploadImage(
                 imageUri = imageUri,
-                isActivity = false, // Set to false for user profile images
-                category = "", // Category not needed for user images
+                isActivity = false,
+                category = "",
                 onSuccess = { imageUrl ->
-                    updateUserInfoAndNavigate(navController, fullName, imageUrl)
+                    updateUserInfoAndNavigate(navController, fullName, imageUrl, context)
                 },
                 onError = { error ->
                     Log.e("EditProfileViewModel", "Error uploading image: ${error.message}")
@@ -127,9 +129,32 @@ class EditProfileViewModel @Inject constructor(
                 }
             )
         } else {
-            updateUserInfoAndNavigate(navController, fullName, "") // No image URL if imageUri is null
+            updateUserInfoAndNavigate(navController, fullName, "", context)
         }
     }
+
+    private fun updateUserInfoAndNavigate(navController: NavController, fullName: String, imageUrl: String, context: Context) {
+        viewModelScope.launch {
+            try {
+                accountService.updateProfile(name = fullName, imageUrl = imageUrl) { error ->
+                    if (error == null) {
+                        Toast.makeText(context, "Profilinformasjon ble endret", Toast.LENGTH_SHORT).show()
+                        viewModelScope.launch {
+                            delay(2000)
+                            navController.navigate("profile") {
+                                popUpTo("edit_profile") { inclusive = true }
+                            }
+                        }
+                    } else {
+                        uiState.value = uiState.value.copy(firstnameError = R.string.error_profile_creation)
+                    }
+                }
+            } catch (e: Exception) {
+                uiState.value = uiState.value.copy(firstnameError = R.string.error_profile_creation)
+            }
+        }
+    }
+
 
     private fun updateUserInfoAndNavigate(navController: NavController, fullName: String, imageUrl: String) {
         viewModelScope.launch {

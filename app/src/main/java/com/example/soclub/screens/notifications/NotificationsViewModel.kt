@@ -34,13 +34,15 @@ class NotificationsViewModel @Inject constructor(
         initialValue = 0
     )
 
+
     init {
         viewModelScope.launch {
             notificationService.getNotificationsStream().collect { notifications ->
-                _notifications.value = notifications
+                _notifications.value = notifications.sortedByDescending { it.timestamp }
             }
         }
     }
+
 
     fun loadNotifications() {
         viewModelScope.launch {

@@ -1,4 +1,3 @@
-// NotificationUtils.kt
 package com.example.soclub.utils
 
 import android.content.Context
@@ -42,7 +41,6 @@ fun scheduleNotificationForActivity(
             )
         }
     }
-
 }
 
 fun enqueueReminderNotification(
@@ -61,13 +59,25 @@ fun enqueueReminderNotification(
 
     val tag = "$activityId-$userId"
 
+    // Set constraints for reliability
+    val constraints = Constraints.Builder()
+        .setRequiredNetworkType(NetworkType.NOT_REQUIRED) // Can run offline
+        .setRequiresBatteryNotLow(true) // Only runs if battery is not low
+        .setRequiresDeviceIdle(false) // Can run even if device is not idle
+        .build()
+
     val workRequest = OneTimeWorkRequestBuilder<NotificationWorker>()
         .setInitialDelay(delay, TimeUnit.MILLISECONDS)
         .setInputData(workData)
+        .setConstraints(constraints)
         .addTag(tag)
         .build()
 
-    WorkManager.getInstance(context).enqueue(workRequest)
+    WorkManager.getInstance(context).enqueueUniqueWork(
+        tag, // Ensures unique scheduling for the activity-user combination
+        ExistingWorkPolicy.REPLACE,
+        workRequest
+    )
 }
 
 fun enqueueSignUpNotification(
@@ -75,20 +85,17 @@ fun enqueueSignUpNotification(
     activityTitle: String,
     userId: String
 ) {
-    // Customize the activityId for sign-up notifications
-    val activityId = "signup" // You can customize this as needed
+    val activityId = "signup"
     val message = "Du er påmeldt til aktiviteten $activityTitle"
     enqueueReminderNotification(context, 0, message, activityId, userId)
 }
-
 
 fun enqueueUnregistrationNotification(
     context: Context,
     activityTitle: String,
     userId: String
 ) {
-    // Calls enqueueReminderNotification with a 0 delay for immediate notification
-    val activityId = "unregistration" // You can customize this as needed
+    val activityId = "unregistration" // Unique ID for unregistration notifications
     val message = "Du har meldt deg ut av aktiviteten $activityTitle"
     enqueueReminderNotification(context, 0, message, activityId, userId)
 }
