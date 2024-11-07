@@ -74,6 +74,10 @@ class EntriesScreenViewModel @Inject constructor(
     fun cancelRegistration(activityId: String) {
         viewModelScope.launch {
             val userId = accountService.currentUserId
+
+            // Get the activity title before updating or modifying the list
+            val activityTitle = _activeActivities.value.find { it.id == activityId }?.title ?: "Aktivitet"
+
             val success = activityDetailService.updateRegistrationStatus(userId, activityId, "notAktiv")
 
             if (success) {
@@ -81,15 +85,13 @@ class EntriesScreenViewModel @Inject constructor(
                 _activeActivities.value = _activeActivities.value.filter { it.id != activityId }
 
                 // Send a cancellation notification to the user
-                val activityTitle = _activeActivities.value.find { it.id == activityId }?.title ?: "Aktivitet"
                 enqueueUnregistrationNotification(
                     context = context, // Ensure context is passed correctly
                     activityTitle = activityTitle,
                     userId = userId
                 )
             }
-
-            // La SnapshotListener håndtere oppdateringen etterpå
         }
     }
+
 }
