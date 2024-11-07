@@ -14,11 +14,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.example.soclub.R
 
 @Composable
 fun AdsScreen(
@@ -142,9 +144,15 @@ fun EntryItem(
 }
 
 @Composable
-fun EventImage(imageUrl: String) {
+fun EventImage(imageUrl: String?) {
+    val imagePainter = if (imageUrl.isNullOrEmpty()) {
+        painterResource(id = R.drawable.placeholder) // Replace with the actual placeholder resource ID
+    } else {
+        rememberAsyncImagePainter(imageUrl)
+    }
+
     Image(
-        painter = rememberAsyncImagePainter(imageUrl),
+        painter = imagePainter,
         contentDescription = null,
         modifier = Modifier
             .width(100.dp)
@@ -153,5 +161,6 @@ fun EventImage(imageUrl: String) {
         contentScale = ContentScale.Crop
     )
 }
+
 
 

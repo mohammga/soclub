@@ -14,11 +14,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
+import com.example.soclub.R
 import com.google.firebase.Timestamp
 import java.util.Locale
 
@@ -189,7 +191,7 @@ fun CancelledEntryItem(
 @Composable
 fun EventImage(imageUrl: String?) {
     val imagePainter = if (imageUrl.isNullOrEmpty()) {
-        rememberAsyncImagePainter("defaultImageUrl")
+        painterResource(id = R.drawable.placeholder)
     } else {
         rememberAsyncImagePainter(imageUrl)
     }
@@ -204,6 +206,7 @@ fun EventImage(imageUrl: String?) {
         contentScale = ContentScale.Crop
     )
 }
+
 
 @Composable
 fun DateDisplay(date: Timestamp?) {

@@ -1,8 +1,8 @@
 package com.example.soclub.screens.newActivity
-
-import android.annotation.SuppressLint
-import android.app.DatePickerDialog
-import android.app.TimePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.material3.TimePickerDefaults
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,24 +22,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.soclub.R
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Locale
 import com.google.firebase.Timestamp
 import java.util.Date
@@ -316,24 +312,15 @@ fun PostalCodeField(value: String, error: String?) {
     )
 }
 
+
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
-    val context = LocalContext.current
-    val datePickerDialog = remember {
-        DatePickerDialog(
-            context,
-            { _, year, month, dayOfMonth ->
-                val newDate = Calendar.getInstance().apply { set(year, month, dayOfMonth) }
-                onNewValue(Timestamp(Date(newDate.timeInMillis)))
-            },
-            Calendar.getInstance().get(Calendar.YEAR),
-            Calendar.getInstance().get(Calendar.MONTH),
-            Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
-        )
-    }
+    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = value)
+    val isDatePickerVisible = remember { mutableStateOf(false) }
 
-    // Display the formatted date or a default placeholder
-    val dateText = if (value != 0L) {
+    val formattedDate = if (value != 0L) {
         SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
     } else {
         "Velg dato"
@@ -341,9 +328,9 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
 
     Box {
         OutlinedTextField(
-            value = dateText,
+            value = formattedDate,
             onValueChange = {},
-            label = { Text(stringResource(id = R.string.date_label)) },
+            label = { Text("Dato") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
@@ -351,59 +338,62 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
             isError = error != null,
             supportingText = {
                 if (error == null) {
-                    Text(stringResource(id = R.string.date_supporting_text))
+                    Text("Velg dato for aktiviteten")
                 } else {
                     Text(text = error, color = MaterialTheme.colorScheme.error)
                 }
             }
         )
 
-        // Invisible box overlay to handle clicks
         Box(
             modifier = Modifier
-                .matchParentSize()  // Matches size of OutlinedTextField
-                .alpha(0f)           // Makes the box invisible
-                .clickable { datePickerDialog.show() }  // Opens DatePickerDialog on click
+                .matchParentSize()
+                .alpha(0f)
+                .clickable { isDatePickerVisible.value = true }
         )
+
+        if (isDatePickerVisible.value) {
+            DatePickerDialog(
+                onDismissRequest = { isDatePickerVisible.value = false },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            datePickerState.selectedDateMillis?.let {
+                                onNewValue(Timestamp(Date(it)))
+                            }
+                            isDatePickerVisible.value = false
+                        }
+                    ) {
+                        Text("OK")
+                    }
+                }
+            ) {
+                DatePicker(state = datePickerState)
+            }
+        }
     }
 }
 
-
-
-@SuppressLint("DefaultLocale")
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) {
-    val context = LocalContext.current
-    val timePickerDialog = remember {
-        TimePickerDialog(
-            context,
-            { _, hour, minute ->
-                onNewValue(String.format("%02d:%02d", hour, minute))
-            },
-            Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
-            Calendar.getInstance().get(Calendar.MINUTE),
-            true
-        )
-    }
-
-    // State to handle focus
-    val focusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
+    val isTimePickerVisible = remember { mutableStateOf(false) }
+    val timePickerState = rememberTimePickerState()
 
     Box {
         OutlinedTextField(
-            value = if (value.isNotEmpty()) value else "Velg tidspunkt",
+            value = value,
             onValueChange = {},
-            label = { Text(stringResource(id = R.string.start_time_label)) },
+            placeholder = { Text("Starttidspunkt") },
+            label = { Text("Starttidspunkt") },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp)
-                .focusRequester(focusRequester), // Set focus requester
+                .padding(vertical = 8.dp),
             readOnly = true,
             isError = error != null,
             supportingText = {
                 if (error == null) {
-                    Text(stringResource(id = R.string.start_time_supporting_text))
+                    Text("Velg starttid for aktiviteten")
                 } else {
                     Text(text = error, color = MaterialTheme.colorScheme.error)
                 }
@@ -416,14 +406,45 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
                 .matchParentSize()
                 .alpha(0f)
                 .clickable {
-                    // Clear focus to prevent keyboard from appearing
-                    focusManager.clearFocus()
-                    // Show the TimePickerDialog
-                    timePickerDialog.show()
+                    isTimePickerVisible.value = true
                 }
         )
+
+        if (isTimePickerVisible.value) {
+            Dialog(onDismissRequest = { isTimePickerVisible.value = false }) {
+                Surface(
+                    shape = MaterialTheme.shapes.medium,
+                    tonalElevation = 8.dp
+                ) {
+                    Column {
+                        TimePicker(
+                            state = timePickerState,
+                            colors = TimePickerDefaults.colors()
+                        )
+                        Row(
+                            modifier = Modifier.padding(8.dp),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            TextButton(onClick = { isTimePickerVisible.value = false }) {
+                                Text("Avbryt")
+                            }
+                            TextButton(onClick = {
+                                val hour = timePickerState.hour
+                                val minute = timePickerState.minute
+                                onNewValue(String.format("%02d:%02d", hour, minute))
+                                isTimePickerVisible.value = false
+                            }) {
+                                Text("OK")
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
+
+
 
 
 @Composable
