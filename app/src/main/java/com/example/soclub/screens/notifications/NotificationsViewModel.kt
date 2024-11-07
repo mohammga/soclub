@@ -63,7 +63,6 @@ class NotificationsViewModel @Inject constructor(
         }
     }
 
-
     fun deleteNotification(notification: Notification) {
         viewModelScope.launch {
             try {
