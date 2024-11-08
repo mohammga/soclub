@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.example.soclub.R
-import com.example.soclub.models.createActivity
+import com.example.soclub.models.CreateActivity
 import com.example.soclub.service.ActivityService
 import com.example.soclub.service.AccountService
 import com.example.soclub.service.LocationService
@@ -342,7 +342,7 @@ class NewActivityViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
-                val newActivity = createActivity(
+                val newActivity = CreateActivity(
                     createdAt = Timestamp.now(),
                     lastUpdated = Timestamp.now(),
                     creatorId = creatorId,

@@ -5,7 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.example.soclub.models.createActivity
+import com.example.soclub.models.CreateActivity
 import com.example.soclub.service.ActivityService
 import com.example.soclub.service.AccountService
 import com.google.firebase.storage.FirebaseStorage
@@ -209,7 +209,7 @@ private fun handleUpdate(
 ) {
     viewModelScope.launch {
         try {
-            val updatedActivity = createActivity(
+            val updatedActivity = CreateActivity(
                 createdAt = Timestamp.now(),
                 lastUpdated = Timestamp.now(),
                 creatorId = creatorId,

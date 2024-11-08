@@ -22,7 +22,7 @@ data class Activity(
     val lastUpdated: Timestamp = Timestamp.now()
 )
 
-data class createActivity(
+data class CreateActivity(
     val creatorId: String = "",
     val imageUrl: String = "",
     val title: String = "",
@@ -37,7 +37,7 @@ data class createActivity(
 )
 
 
-data class editActivity(
+data class EditActivity(
     val id: String = "",
     val creatorId: String = "",
     val imageUrl: String = "",
