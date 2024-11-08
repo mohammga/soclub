@@ -48,11 +48,7 @@ class MainActivity : ComponentActivity() {
                 if (hasInternetConnection) {
                     AppNavigation(navController)
                 } else {
-                    NoInternetScreen(onRetryClick = {
-                        if (networkHelper.hasInternetConnection) {
-                            // Retry only if the network status has changed
-                        }
-                    })
+                    NoInternetScreen()
                 }
             }
         }
