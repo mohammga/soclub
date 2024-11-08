@@ -173,9 +173,8 @@ class HomeViewModel @Inject constructor(
     }
 
     @SuppressLint("MissingPermission")
-    fun getNearestActivities() {
-        if (hasLoadedNearestActivities) return
 
+    fun getNearestActivities() {
         _isLoading.value = true
         viewModelScope.launch {
             try {

@@ -176,6 +176,17 @@ fun CategoryActivitiesPager(
     val activities by viewModel.activities.observeAsState(emptyList())
     val hasLoaded by viewModel.hasLoadedActivities.observeAsState(false)
 
+    // Variabel som holder styr på om vi er på "Nærme Aktiviteter"-siden
+    val isNearestActivitiesSelected = pagerState.currentPage < categories.size &&
+            categories[pagerState.currentPage] == "Nærme Aktiviteter"
+
+    // Kall getNearestActivities() kun hvis "Nærme Aktiviteter" er valgt
+    LaunchedEffect(isNearestActivitiesSelected) {
+        if (isNearestActivitiesSelected) {
+            viewModel.getNearestActivities()
+        }
+    }
+
     HorizontalPager(
         state = pagerState,
         modifier = Modifier.fillMaxSize(),
@@ -183,18 +194,14 @@ fun CategoryActivitiesPager(
     ) { page ->
         val selectedCategory = categories[page]
         val activitiesToShow = if (selectedCategory == "Nærme Aktiviteter") {
-            if (!hasLoaded) {
-                LaunchedEffect(Unit) {
-                    viewModel.getNearestActivities()
-                }
-            }
-            activities
+            activities // Bruker nærme aktiviteter hvis "Nærme Aktiviteter" er valgt
         } else {
-            groupedActivities[selectedCategory] ?: emptyList()
+            groupedActivities[selectedCategory] ?: emptyList() // Ellers bruker vi grupperte aktiviteter
         }
 
         Column(modifier = Modifier.fillMaxSize()) {
             if (isLoading) {
+                // Viser en lastesirkel mens data lastes inn
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -205,12 +212,14 @@ fun CategoryActivitiesPager(
                 }
             } else {
                 if (activitiesToShow.isNotEmpty()) {
+                    // Vis liste over aktiviteter
                     ActivityList(
                         activities = activitiesToShow,
                         selectedCategory = selectedCategory,
                         navController = navController
                     )
                 } else {
+                    // Viser en melding dersom ingen aktiviteter er tilgjengelige for den valgte kategorien
                     Text(
                         text = "Ingen aktiviteter tilgjengelig for $selectedCategory.",
                         modifier = Modifier.padding(16.dp),
@@ -222,6 +231,8 @@ fun CategoryActivitiesPager(
         }
     }
 }
+
+
 
 @Composable
 fun CitySelectionItem(city: String, isSelected: Boolean, onCitySelected: (Boolean) -> Unit) {
