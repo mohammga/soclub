@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.navigation.compose.rememberNavController
 import com.example.soclub.components.navigation.AppNavigation
 import com.example.soclub.screens.noInternet.NoInternetScreen
