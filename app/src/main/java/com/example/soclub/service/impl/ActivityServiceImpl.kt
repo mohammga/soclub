@@ -7,10 +7,26 @@ import com.example.soclub.service.ActivityService
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
+import com.google.firebase.firestore.ListenerRegistration
 
 class ActivityServiceImpl @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : ActivityService {
+
+    override fun listenForActivities(onUpdate: (List<Activity>) -> Unit): ListenerRegistration {
+        return firestore.collectionGroup("activities")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    onUpdate(emptyList())
+                    return@addSnapshotListener
+                }
+                val activities = snapshot.documents.mapNotNull { doc ->
+                    val category = doc.reference.parent.parent?.id
+                    doc.toObject(Activity::class.java)?.copy(id = doc.id, category = category)
+                }
+                onUpdate(activities)
+            }
+    }
 
     override suspend fun createActivity(category: String, activity: CreateActivity) {
         firestore.collection("category").document(category)

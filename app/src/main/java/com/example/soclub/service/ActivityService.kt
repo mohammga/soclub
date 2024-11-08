@@ -1,6 +1,7 @@
 package com.example.soclub.service
 
 import com.example.soclub.models.Activity
+import com.google.firebase.firestore.ListenerRegistration
 import com.example.soclub.models.CreateActivity
 import com.example.soclub.models.EditActivity
 
@@ -14,4 +15,5 @@ interface ActivityService {
     suspend fun getAllActivities(): List<Activity>
     suspend fun getActivitiesGroupedByCategory(): Map<String, List<Activity>>
     suspend fun deleteActivity(category: String, activityId: String) // Ny funksjon for å slette en aktivitet
+    fun listenForActivities(onUpdate: (List<Activity>) -> Unit): ListenerRegistration
 }
