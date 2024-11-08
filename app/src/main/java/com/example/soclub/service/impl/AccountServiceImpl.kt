@@ -59,7 +59,8 @@ class AccountServiceImpl @Inject constructor(
     override suspend fun createEmailAccount(
         email: String,
         password: String,
-        name: String,
+        firstname: String,
+        lastname: String,
         age: Int,
         onResult: (Throwable?) -> Unit
     ) {
@@ -70,7 +71,8 @@ class AccountServiceImpl @Inject constructor(
                     user?.let {
                         val userData = hashMapOf(
                             "email" to email,
-                            "name" to name,
+                            "firstname" to firstname,
+                            "lastname" to lastname,
                             "age" to age
                         )
                         firestore.collection("users").document(it.uid)
@@ -104,11 +106,12 @@ class AccountServiceImpl @Inject constructor(
             .await()
     }
 
-    override suspend fun updateProfile(name: String, imageUrl: String, onResult: (Throwable?) -> Unit) {
+    override suspend fun updateProfile(firstname: String, lastname: String, imageUrl: String, onResult: (Throwable?) -> Unit) {
         val userId = auth.currentUser?.uid ?: throw Exception("User not logged in")
 
         val updates = hashMapOf(
-            "name" to name,
+            "firstname" to firstname,
+            "lastname" to lastname,
             "imageUrl" to imageUrl
         )
 

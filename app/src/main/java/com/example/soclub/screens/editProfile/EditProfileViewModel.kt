@@ -50,14 +50,11 @@ class EditProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val userInfo: UserInfo = accountService.getUserInfo()
-                val nameParts = userInfo.name.split(" ")
-                val firstname = nameParts.firstOrNull() ?: ""
-                val lastname = nameParts.drop(1).joinToString(" ")
                 val imageUri = userInfo.imageUrl.let { Uri.parse(it) }
 
                 uiState.value = uiState.value.copy(
-                    firstname = firstname,
-                    lastname = lastname,
+                    firstname = userInfo.firstname,
+                    lastname = userInfo.lastname,
                     imageUri = imageUri
                 )
             } catch (e: Exception) {
@@ -82,7 +79,6 @@ class EditProfileViewModel @Inject constructor(
     fun onImageSelected(uri: Uri?) {
         uiState.value = uiState.value.copy(imageUri = uri, isDirty = true)
     }
-
 
     fun onSaveProfileClick(navController: NavController, context: Context) {
         var hasError = false
@@ -112,7 +108,8 @@ class EditProfileViewModel @Inject constructor(
 
         if (hasError) return
 
-        val fullName = "${uiState.value.firstname} ${uiState.value.lastname}"
+        val firstname = uiState.value.firstname
+        val lastname = uiState.value.lastname
         val imageUri = uiState.value.imageUri
 
         if (imageUri != null) {
@@ -121,7 +118,7 @@ class EditProfileViewModel @Inject constructor(
                 isActivity = false,
                 category = "",
                 onSuccess = { imageUrl ->
-                    updateUserInfoAndNavigate(navController, fullName, imageUrl, context)
+                    updateUserInfoAndNavigate(navController, firstname, lastname, imageUrl, context)
                 },
                 onError = { error ->
                     Log.e("EditProfileViewModel", "Error uploading image: ${error.message}")
@@ -129,38 +126,16 @@ class EditProfileViewModel @Inject constructor(
                 }
             )
         } else {
-            updateUserInfoAndNavigate(navController, fullName, "", context)
+            updateUserInfoAndNavigate(navController, firstname, lastname, "", context)
         }
     }
 
-    private fun updateUserInfoAndNavigate(navController: NavController, fullName: String, imageUrl: String, context: Context) {
+    private fun updateUserInfoAndNavigate(navController: NavController, firstname: String, lastname: String, imageUrl: String, context: Context) {
         viewModelScope.launch {
             try {
-                accountService.updateProfile(name = fullName, imageUrl = imageUrl) { error ->
+                accountService.updateProfile(firstname = firstname, lastname = lastname, imageUrl = imageUrl) { error ->
                     if (error == null) {
                         Toast.makeText(context, "Profilinformasjon ble endret", Toast.LENGTH_SHORT).show()
-                        viewModelScope.launch {
-                            delay(2000)
-                            navController.navigate("profile") {
-                                popUpTo("edit_profile") { inclusive = true }
-                            }
-                        }
-                    } else {
-                        uiState.value = uiState.value.copy(firstnameError = R.string.error_profile_creation)
-                    }
-                }
-            } catch (e: Exception) {
-                uiState.value = uiState.value.copy(firstnameError = R.string.error_profile_creation)
-            }
-        }
-    }
-
-
-    private fun updateUserInfoAndNavigate(navController: NavController, fullName: String, imageUrl: String) {
-        viewModelScope.launch {
-            try {
-                accountService.updateProfile(name = fullName, imageUrl = imageUrl) { error ->
-                    if (error == null) {
                         viewModelScope.launch {
                             delay(2000)
                             navController.navigate("profile") {

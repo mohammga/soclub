@@ -13,6 +13,7 @@ import com.example.soclub.screens.noInternet.NoInternetScreen
 import com.example.soclub.service.ActivityService
 import com.example.soclub.ui.theme.SoclubTheme
 import com.example.soclub.utils.NetworkHelper
+import com.example.soclub.utils.PermissionHelper
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 

@@ -24,11 +24,13 @@ import javax.inject.Inject
 
 data class RegistrationNewUserState(
     val email: String = "",
-    val name: String = "",
+    val firstname: String = "",
+    val lastname: String = "",
     val password: String = "",
     val age: String = "",
     @StringRes val emailError: Int? = null,
-    @StringRes val nameError: Int? = null,
+    @StringRes val firstNameError: Int? = null,
+    @StringRes val lastNameError: Int? = null,
     @StringRes val passwordError: Int? = null,
     @StringRes val ageError: Int? = null,
     @StringRes val generalError: Int? = null
@@ -44,8 +46,12 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
         uiState.value = uiState.value.copy(email = newValue, emailError = null)
     }
 
-    fun onNameChange(newValue: String) {
-        uiState.value = uiState.value.copy(name = newValue, nameError = null)
+    fun onFirstNameChange(newValue: String) {
+        uiState.value = uiState.value.copy(firstname = newValue, firstNameError = null)
+    }
+
+    fun onLastNameChange(newValue: String) {
+        uiState.value = uiState.value.copy(lastname = newValue, lastNameError = null)
     }
 
     fun onPasswordChange(newValue: String) {
@@ -58,16 +64,25 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
 
     fun onSignUpClick(navController: NavController) {
         var hasError = false
-        var nameError: Int? = null
+        var firstNameError: Int? = null
+        var lastNameError: Int? = null
         var ageError: Int? = null
         var emailError: Int? = null
         var passwordError: Int? = null
 
-        if (uiState.value.name.isBlank()) {
-            nameError = R.string.error_name_required
+        if (uiState.value.firstname.isBlank()) {
+            firstNameError = R.string.error_first_name_required
             hasError = true
-        } else if (!uiState.value.name.isValidName()) {
-            nameError = R.string.error_invalid_name
+        } else if (!uiState.value.firstname.isValidName()) {
+            firstNameError = R.string.error_invalid_firstname
+            hasError = true
+        }
+
+        if (uiState.value.lastname.isBlank()) {
+            lastNameError = R.string.error_last_name_required
+            hasError = true
+        } else if (!uiState.value.lastname.isValidName()) {
+            lastNameError = R.string.error_invalid_lastname
             hasError = true
         }
 
@@ -111,7 +126,8 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
         }
 
         uiState.value = uiState.value.copy(
-            nameError = nameError,
+            firstNameError = firstNameError,
+            lastNameError = lastNameError,
             ageError = ageError,
             emailError = emailError,
             passwordError = passwordError,
@@ -123,7 +139,7 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
         viewModelScope.launch {
             try {
                 val convertedAge = uiState.value.age.toIntOrNull() ?: 0
-                accountService.createEmailAccount(uiState.value.email, uiState.value.password, uiState.value.name, convertedAge) { error ->
+                accountService.createEmailAccount(uiState.value.email, uiState.value.password, uiState.value.firstname, uiState.value.lastname, convertedAge) { error ->
                     if (error == null) {
                         navController.navigate(AppScreens.HOME.name)
                     } else if (error.message == "User already registered") {
