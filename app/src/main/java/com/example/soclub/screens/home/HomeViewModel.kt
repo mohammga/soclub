@@ -5,27 +5,22 @@ import android.app.Application
 import android.location.Geocoder
 import android.location.Location
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.liveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.example.soclub.models.Activity
 import com.example.soclub.service.ActivityService
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.firebase.firestore.ListenerRegistration
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.util.Locale
+import java.util.*
 import javax.inject.Inject
-import java.util.Calendar
-import com.google.firebase.Timestamp
-import java.util.Date
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     application: Application,
+
     private val activityService: ActivityService,
     private val fusedLocationClient: FusedLocationProviderClient
 ) : AndroidViewModel(application) {
@@ -50,11 +45,55 @@ class HomeViewModel @Inject constructor(
     private val _hasLoadedActivities = MutableLiveData(false)
     val hasLoadedActivities: LiveData<Boolean> get() = _hasLoadedActivities
 
+    // Hold alle aktiviteter
+    private var allActivities = listOf<Activity>()
 
-
+    // Listener for sanntidsoppdateringer
+    private var activitiesListener: ListenerRegistration? = null
 
     init {
-        fetchAndGroupActivitiesByCities(emptyList())
+        listenForActivityUpdates()
+    }
+
+    private fun listenForActivityUpdates() {
+        activitiesListener = activityService.listenForActivities { activities ->
+            allActivities = activities
+            applyFilters()
+        }
+    }
+
+    private fun applyFilters() {
+        viewModelScope.launch(Dispatchers.Default) {
+            val currentDateTime = Calendar.getInstance().time
+            val nonExpiredActivities = allActivities.filter { activity ->
+                val activityDateTime = combineDateAndTime(activity.date, activity.startTime)
+                activityDateTime?.after(currentDateTime) ?: false
+            }
+
+            val filteredActivities = if (_selectedCities.value?.isNotEmpty() == true) {
+                nonExpiredActivities.filter { activity ->
+                    _selectedCities.value?.any { city ->
+                        activity.location?.contains(city, ignoreCase = true) == true
+                    } == true
+                }
+            } else {
+                nonExpiredActivities
+            }
+
+            val sortedActivities = filteredActivities.sortedByDescending { activity ->
+                combineDateAndTime(activity.date, activity.startTime)
+            }
+
+            val grouped = sortedActivities.groupBy { it.category ?: "Ukjent kategori" }
+
+            _groupedActivities.postValue(grouped)
+            _hasLoadedActivities.postValue(true)
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        activitiesListener?.remove()
     }
 
     @SuppressLint("MissingPermission")
@@ -112,57 +151,12 @@ class HomeViewModel @Inject constructor(
         }
         _selectedCities.value = currentCities
 
-        if (currentCities.isEmpty()) {
-            fetchAndGroupActivitiesByCities(emptyList())
-        } else {
-            fetchAndGroupActivitiesByCities(currentCities)
-        }
+        applyFilters()
     }
-
-    fun fetchAndGroupActivitiesByCities(selectedCities: List<String>) {
-        _selectedCities.value = selectedCities.toMutableList()
-        _isLoading.value = true
-
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val allActivities = activityService.getAllActivities()
-
-
-                val currentDateTime = Calendar.getInstance().time
-
-
-                val nonExpiredActivities = allActivities.filter { activity ->
-                    val activityDateTime = combineDateAndTime(activity.date, activity.startTime)
-                    activityDateTime?.after(currentDateTime) ?: false
-                }
-
-                val filteredActivities = if (selectedCities.isNotEmpty()) {
-                    nonExpiredActivities.filter { activity ->
-                        selectedCities.any { city -> activity.location?.contains(city, ignoreCase = true) == true }
-                    }
-                } else {
-                    nonExpiredActivities
-                }
-
-                val sortedActivities = filteredActivities.sortedByDescending { activity ->
-                    combineDateAndTime(activity.date, activity.startTime)
-                }
-
-                val grouped = sortedActivities.groupBy { it.category ?: "Ukjent kategori" }
-                _groupedActivities.postValue(grouped)
-            } catch (e: Exception) {
-                _groupedActivities.postValue(emptyMap())
-            } finally {
-                _isLoading.postValue(false)
-            }
-        }
-    }
-
-
 
     fun resetFilter() {
         _selectedCities.value = mutableListOf()
-        fetchAndGroupActivitiesByCities(emptyList())
+        applyFilters()
     }
 
     private fun getCityFromLocation(location: Location?): String? {
@@ -177,7 +171,6 @@ class HomeViewModel @Inject constructor(
         }
         return null
     }
-
 
     @SuppressLint("MissingPermission")
     fun getNearestActivities() {
@@ -227,8 +220,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-
-    private fun combineDateAndTime(date: Timestamp?, timeString: String): Date? {
+    private fun combineDateAndTime(date: com.google.firebase.Timestamp?, timeString: String): Date? {
         if (date == null || timeString.isEmpty()) return null
 
         return try {
@@ -252,4 +244,3 @@ class HomeViewModel @Inject constructor(
         }
     }
 }
-

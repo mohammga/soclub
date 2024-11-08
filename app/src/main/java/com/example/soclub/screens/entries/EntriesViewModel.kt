@@ -85,5 +85,4 @@ class EntriesScreenViewModel @Inject constructor(
             }
         }
     }
-
 }
