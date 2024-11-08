@@ -1,8 +1,8 @@
 package com.example.soclub.service.impl
 
 import com.example.soclub.models.Activity
-import com.example.soclub.models.createActivity
-import com.example.soclub.models.editActivity
+import com.example.soclub.models.CreateActivity
+import com.example.soclub.models.EditActivity
 import com.example.soclub.service.ActivityService
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -28,7 +28,7 @@ class ActivityServiceImpl @Inject constructor(
             }
     }
 
-    override suspend fun createActivity(category: String, activity: createActivity) {
+    override suspend fun createActivity(category: String, activity: CreateActivity) {
         firestore.collection("category").document(category)
             .collection("activities").add(activity).await()
     }
@@ -73,9 +73,9 @@ class ActivityServiceImpl @Inject constructor(
     }
 
 
-    override suspend fun getAllActivitiesByCreator(creatorId: String): List<editActivity> {
+    override suspend fun getAllActivitiesByCreator(creatorId: String): List<EditActivity> {
         val categoriesSnapshot = firestore.collection("category").get().await()
-        val allActivities = mutableListOf<editActivity>()
+        val allActivities = mutableListOf<EditActivity>()
 
 
         for (categoryDocument in categoriesSnapshot.documents) {
@@ -89,7 +89,7 @@ class ActivityServiceImpl @Inject constructor(
 
 
             activitiesSnapshot.documents.mapNotNullTo(allActivities) { document ->
-                val activity = document.toObject(editActivity::class.java)
+                val activity = document.toObject(EditActivity::class.java)
 
                 val fullLocation = activity?.location ?: "Ukjent"
                 val lastWord = fullLocation.substringAfterLast(" ")
@@ -116,7 +116,7 @@ class ActivityServiceImpl @Inject constructor(
         return categories.sortedByDescending { it == "Forslag" }
     }
 
-    override suspend fun updateActivity(category: String, newCategory: String, activityId: String, updatedActivity: createActivity) {
+    override suspend fun updateActivity(category: String, newCategory: String, activityId: String, updatedActivity: CreateActivity) {
 
         if (category != newCategory) {
             firestore.collection("category")

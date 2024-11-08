@@ -1,4 +1,4 @@
-package com.example.soclub
+package com.example.soclub.utils
 
 import android.Manifest
 import android.content.Context

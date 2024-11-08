@@ -22,7 +22,7 @@ data class Activity(
     val lastUpdated: Timestamp = Timestamp.now()
 )
 
-data class createActivity(
+data class CreateActivity(
     val creatorId: String = "",
     val imageUrl: String = "",
     val title: String = "",
@@ -37,7 +37,7 @@ data class createActivity(
 )
 
 
-data class editActivity(
+data class EditActivity(
     val id: String = "",
     val creatorId: String = "",
     val imageUrl: String = "",
@@ -46,7 +46,7 @@ data class editActivity(
     val ageGroup: Int = 0,
     val maxParticipants: Int = 0,
     val location: String = "",
-    val date: Timestamp? = null,   // Keeping it as String for simplicity (conversion will happen later)
+    val date: Timestamp? = null,
     val startTime: String = "",
     val category: String = "",
     val createdAt: Timestamp = Timestamp.now(),

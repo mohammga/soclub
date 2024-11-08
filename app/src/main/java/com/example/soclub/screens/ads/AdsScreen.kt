@@ -14,11 +14,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.example.soclub.R
+import java.util.Locale
+import android.icu.text.SimpleDateFormat
+import com.google.firebase.Timestamp
+
 
 @Composable
 fun AdsScreen(
@@ -75,6 +81,7 @@ fun AdsScreen(
                         EntryItem(
                             imageUrl = activity.imageUrl,
                             title = activity.title,
+                            date = activity.date, // Add this line to pass the date
                             time = activity.startTime,
                             activityId = activity.creatorId,
                             category = activity.category,
@@ -91,6 +98,7 @@ fun AdsScreen(
 fun EntryItem(
     imageUrl: String?,
     title: String?,
+    date: Timestamp?,
     time: String?,
     activityId: String,
     category: String,
@@ -106,7 +114,7 @@ fun EntryItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        EventImage(imageUrl ?: "")
+        EventImage(imageUrl)
 
         Spacer(modifier = Modifier.width(16.dp))
 
@@ -117,14 +125,10 @@ fun EntryItem(
                 fontWeight = FontWeight.Bold
             )
 
-            Text(
-                text = time ?: "Ukjent tid",
-                style = MaterialTheme.typography.bodyMedium
-            )
+            DateDisplay(date = date, time = time)
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // "Endre annonse"-knappen plassert inne i kolonnen, justert for å matche layout
             Button(
                 onClick = {
                     navController.navigate("editActivity/$category/$activityId")
@@ -142,9 +146,38 @@ fun EntryItem(
 }
 
 @Composable
-fun EventImage(imageUrl: String) {
+fun DateDisplay(date: Timestamp?, time: String?) {
+    val formattedDateTime = date?.let {
+        val sdf = SimpleDateFormat("EEEE, d. MMMM yyyy", Locale("no", "NO"))
+        val dateStr = sdf.format(it.toDate())
+        dateStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+    } ?: "Ukjent dato"
+
+    // Concatenate the date and time if both are available
+    val displayText = if (time != null) {
+        "$formattedDateTime, $time"
+    } else {
+        formattedDateTime
+    }
+
+    Text(
+        text = displayText,
+        style = MaterialTheme.typography.bodyMedium,
+        modifier = Modifier.padding(vertical = 4.dp)
+    )
+}
+
+
+@Composable
+fun EventImage(imageUrl: String?) {
+    val imagePainter = if (imageUrl.isNullOrEmpty()) {
+        painterResource(id = R.drawable.placeholder) // Replace with the actual placeholder resource ID
+    } else {
+        rememberAsyncImagePainter(imageUrl)
+    }
+
     Image(
-        painter = rememberAsyncImagePainter(imageUrl),
+        painter = imagePainter,
         contentDescription = null,
         modifier = Modifier
             .width(100.dp)
@@ -153,5 +186,6 @@ fun EventImage(imageUrl: String) {
         contentScale = ContentScale.Crop
     )
 }
+
 
 

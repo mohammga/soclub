@@ -14,11 +14,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
+import com.example.soclub.R
 import com.google.firebase.Timestamp
 import java.util.Locale
 
@@ -85,6 +87,7 @@ fun ActiveEntriesList(navController: NavHostController, viewModel: EntriesScreen
                 ActiveEntryItem(
                     imageUrl = activity.imageUrl,
                     title = activity.title,
+                    time = activity.startTime,
                     date = activity.date,
                     onCancelClick = { viewModel.cancelRegistration(activity.id) },
                     onClick = {
@@ -124,6 +127,7 @@ fun CancelledEntriesList(navController: NavHostController, viewModel: EntriesScr
                     imageUrl = activity.imageUrl,
                     title = activity.title,
                     date = activity.date,
+                    time = activity.startTime,
                     onClick = {
                         activity.category?.let { category ->
                             activity.id.let { id ->
@@ -142,6 +146,7 @@ fun ActiveEntryItem(
     imageUrl: String?,
     title: String,
     date: Timestamp?,
+    time: String?,
     onCancelClick: () -> Unit,
     onClick: () -> Unit
 ) {
@@ -154,7 +159,7 @@ fun ActiveEntryItem(
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            DateDisplay(date = date)
+            DateDisplay(date = date, time = time)
             Spacer(modifier = Modifier.height(8.dp))
             CancelButton(onClick = onCancelClick)
             Spacer(modifier = Modifier.height(16.dp))
@@ -167,6 +172,7 @@ fun ActiveEntryItem(
 fun CancelledEntryItem(
     imageUrl: String?,
     title: String?,
+    time: String?,
     date: Timestamp?,
     onClick: () -> Unit
 ) {
@@ -179,7 +185,7 @@ fun CancelledEntryItem(
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(text = title ?: "Ukjent tittel", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            DateDisplay(date = date)
+            DateDisplay(date = date, time = time)
             Spacer(modifier = Modifier.height(16.dp))
             HorizontalDivider(thickness = 1.dp)
         }
@@ -189,7 +195,7 @@ fun CancelledEntryItem(
 @Composable
 fun EventImage(imageUrl: String?) {
     val imagePainter = if (imageUrl.isNullOrEmpty()) {
-        rememberAsyncImagePainter("defaultImageUrl")
+        painterResource(id = R.drawable.placeholder)
     } else {
         rememberAsyncImagePainter(imageUrl)
     }
@@ -205,20 +211,29 @@ fun EventImage(imageUrl: String?) {
     )
 }
 
+
 @Composable
-fun DateDisplay(date: Timestamp?) {
-    val formattedDate = date?.let { it ->
-        val sdf = SimpleDateFormat("EEEE, d. MMMM yyyy, HH:mm", Locale("no", "NO"))
+fun DateDisplay(date: Timestamp?, time: String?) {
+    val formattedDateTime = date?.let {
+        val sdf = SimpleDateFormat("EEEE, d. MMMM yyyy", Locale("no", "NO"))
         val dateStr = sdf.format(it.toDate())
         dateStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-    } ?: "Ukjent tid"
+    } ?: "Ukjent dato"
+
+    // Concatenate the date and time if both are available
+    val displayText = if (time != null) {
+        "$formattedDateTime, $time"
+    } else {
+        formattedDateTime
+    }
 
     Text(
-        text = formattedDate,
+        text = displayText,
         style = MaterialTheme.typography.bodyMedium,
         modifier = Modifier.padding(vertical = 4.dp)
     )
 }
+
 
 @Composable
 fun CancelButton(onClick: () -> Unit) {
