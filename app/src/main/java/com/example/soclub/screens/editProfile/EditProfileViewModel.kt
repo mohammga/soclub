@@ -113,22 +113,29 @@ class EditProfileViewModel @Inject constructor(
         val imageUri = uiState.value.imageUri
 
         if (imageUri != null) {
-            storageService.uploadImage(
-                imageUri = imageUri,
-                isActivity = false,
-                category = "",
-                onSuccess = { imageUrl ->
-                    updateUserInfoAndNavigate(navController, firstname, lastname, imageUrl, context)
-                },
-                onError = { error ->
-                    Log.e("EditProfileViewModel", "Error uploading image: ${error.message}")
-                    uiState.value = uiState.value.copy(firstnameError = R.string.error_profile_creation)
-                }
-            )
+            // Check if the URI is a local content URI
+            if (imageUri.toString().startsWith("content://")) {
+                storageService.uploadImage(
+                    imageUri = imageUri,
+                    isActivity = false,
+                    category = "",
+                    onSuccess = { imageUrl ->
+                        updateUserInfoAndNavigate(navController, firstname, lastname, imageUrl, context)
+                    },
+                    onError = { error ->
+                        Log.e("EditProfileViewModel", "Error uploading image: ${error.message}")
+                        uiState.value = uiState.value.copy(firstnameError = R.string.error_profile_creation)
+                    }
+                )
+            } else {
+                // Skip upload and use the existing URL if it's a remote URL
+                updateUserInfoAndNavigate(navController, firstname, lastname, imageUri.toString(), context)
+            }
         } else {
             updateUserInfoAndNavigate(navController, firstname, lastname, "", context)
         }
     }
+
 
     private fun updateUserInfoAndNavigate(navController: NavController, firstname: String, lastname: String, imageUrl: String, context: Context) {
         viewModelScope.launch {

@@ -46,7 +46,7 @@ data class EditActivity(
     val ageGroup: Int = 0,
     val maxParticipants: Int = 0,
     val location: String = "",
-    val date: Timestamp? = null,   // Keeping it as String for simplicity (conversion will happen later)
+    val date: Timestamp? = null,
     val startTime: String = "",
     val category: String = "",
     val createdAt: Timestamp = Timestamp.now(),
