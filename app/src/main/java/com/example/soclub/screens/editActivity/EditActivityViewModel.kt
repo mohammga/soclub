@@ -15,7 +15,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.example.soclub.R
 import android.util.Log
+import android.widget.Toast
 import com.example.soclub.models.CreateActivity
+import android.content.Context
 
 data class EditActivityState(
     val title: String = "",
@@ -279,7 +281,7 @@ class EditActivityViewModel @Inject constructor(
         uiState.value = uiState.value.copy(startTime = newValue, startTimeError = null)
     }
 
-    fun onSaveClick(navController: NavController, activityId: String, currentCategory: String) {
+    fun onSaveClick(navController: NavController, activityId: String, currentCategory: String, context: Context) {
         // Validation
         var hasError = false
         var titleError: String? = null
@@ -371,6 +373,7 @@ class EditActivityViewModel @Inject constructor(
                     onSuccess = { imageUrl ->
                         updateActivityAndNavigate(
                             navController,
+                            context,
                             imageUrl,
                             timestampDate,
                             startTime,
@@ -387,6 +390,7 @@ class EditActivityViewModel @Inject constructor(
                 // Skip upload and use the existing URL if it's a remote URL
                 updateActivityAndNavigate(
                     navController,
+                    context,
                     uiState.value.imageUrl,
                     timestampDate,
                     startTime,
@@ -398,6 +402,7 @@ class EditActivityViewModel @Inject constructor(
         } else {
             updateActivityAndNavigate(
                 navController,
+                context,
                 uiState.value.imageUrl,
                 timestampDate,
                 startTime,
@@ -410,6 +415,7 @@ class EditActivityViewModel @Inject constructor(
 
     private fun updateActivityAndNavigate(
         navController: NavController,
+        context: Context,
         imageUrl: String,
         date: Timestamp,
         startTime: String,
@@ -437,7 +443,7 @@ class EditActivityViewModel @Inject constructor(
                 )
 
                 activityService.updateActivity(oldCategoryValue, uiState.value.category, activityId, updatedActivity)
-
+                Toast.makeText(context, context.getString(R.string.activity_updated_success), Toast.LENGTH_LONG).show()
                 navController.navigate("home")
             } catch (e: Exception) {
                 uiState.value = uiState.value.copy(errorMessage = R.string.error_image_upload_failed)

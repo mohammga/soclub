@@ -42,7 +42,6 @@ import com.example.soclub.R
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.*
-
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
@@ -57,6 +56,7 @@ fun EditActivityScreen(
     category: String
 ) {
     val uiState by viewModel.uiState
+    val context = LocalContext.current
 
     val locationSuggestions by remember { derivedStateOf { uiState.locationSuggestions } }
     val addressSuggestions by remember { derivedStateOf { uiState.addressSuggestions } }
@@ -184,7 +184,7 @@ fun EditActivityScreen(
 
             item {
                 Button(
-                    onClick = { viewModel.onSaveClick(navController, activityId, category) },
+                    onClick = { viewModel.onSaveClick(navController, activityId, category, context) }, // Pass context here
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),

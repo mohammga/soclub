@@ -163,8 +163,10 @@ fun PasswordField(
 
 @Composable
 private fun SignInButton(navController: NavController, viewModel: SigninViewModel, context: Context) {
+    val context = LocalContext.current // Get the context
+
     Button(
-        onClick = { viewModel.onLoginClick(navController) },
+        onClick = { viewModel.onLoginClick(navController, context) }, // Pass context here
         modifier = Modifier
             .fillMaxWidth()
             .height(60.dp)

@@ -809,10 +809,13 @@ fun shouldShowRequestPermissionRationale(context: Context, permission: String): 
 }
 
 
+
 @Composable
 fun PublishButton(navController: NavController, viewModel: NewActivityViewModel) {
+    val context = LocalContext.current // Get the context
+
     Button(
-        onClick = { viewModel.onPublishClick(navController) },
+        onClick = { viewModel.onPublishClick(navController, context) }, // Pass context here
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp),
