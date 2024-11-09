@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -15,20 +16,15 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import com.example.soclub.R
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ChangePasswordScreen(viewModel: ChangePasswordViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState
-    val snackbarHostState = remember { SnackbarHostState() }
-    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         content = {
             LazyColumn(
                 modifier = Modifier
@@ -78,7 +74,7 @@ fun ChangePasswordScreen(viewModel: ChangePasswordViewModel = hiltViewModel()) {
                 item {
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    ChangePasswordButton(viewModel, snackbarHostState, coroutineScope)
+                    ChangePasswordButton(viewModel, context)
                 }
             }
         }
@@ -135,22 +131,11 @@ fun PasswordField(
 @Composable
 private fun ChangePasswordButton(
     viewModel: ChangePasswordViewModel,
-    snackbarHostState: SnackbarHostState,
-    coroutineScope: CoroutineScope
+    context: android.content.Context
 ) {
-    val successMessageText = stringResource(id = R.string.password_change)
-
     Button(
         onClick = {
-            viewModel.onChangePasswordClick()
-            coroutineScope.launch {
-                if (viewModel.uiState.value.generalError == null) {
-                    snackbarHostState.showSnackbar(
-                        message = successMessageText,
-                        duration = SnackbarDuration.Long
-                    )
-                }
-            }
+            viewModel.onChangePasswordClick(context)
         },
         modifier = Modifier
             .fillMaxWidth()

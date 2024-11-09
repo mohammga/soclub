@@ -1,5 +1,7 @@
 package com.example.soclub.screens.changePassword
 
+import android.content.Context
+import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -51,7 +53,7 @@ class ChangePasswordViewModel @Inject constructor(
         uiState.value = uiState.value.copy(confirmPassword = newValue, confirmPasswordError = null)
     }
 
-    fun onChangePasswordClick() {
+    fun onChangePasswordClick(context: Context) {
         var hasError = false
         var oldPasswordError: Int? = null
         var newPasswordError: Int? = null
@@ -103,6 +105,7 @@ class ChangePasswordViewModel @Inject constructor(
                 accountService.changePassword(oldPassword, newPassword) { error ->
                     if (error == null) {
                         uiState.value = ChangePasswordState() // Reset state after success
+                        Toast.makeText(context, context.getString(R.string.password_change), Toast.LENGTH_LONG).show()
                     } else {
                         uiState.value = uiState.value.copy(generalError = R.string.error_could_not_change_password)
                     }

@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,6 +25,7 @@ fun NotificationsScreen(
     val notifications by viewModel.notifications.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+    val context = LocalContext.current // Get the context
 
     LaunchedEffect(Unit) {
         viewModel.loadNotifications()
@@ -51,7 +53,6 @@ fun NotificationsScreen(
             }
             else -> {
                 if (notifications.isEmpty()) {
-                    // Display the message when there are no notifications
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -63,7 +64,6 @@ fun NotificationsScreen(
                         )
                     }
                 } else {
-                    // Display the list of notifications
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
@@ -71,7 +71,7 @@ fun NotificationsScreen(
                             NotificationItem(
                                 notification = notifications[index],
                                 onDelete = { notification ->
-                                    viewModel.deleteNotification(notification)
+                                    viewModel.deleteNotification(notification, context) // Pass context here
                                 }
                             )
                         }

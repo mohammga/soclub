@@ -1,48 +1,51 @@
 package com.example.soclub.screens.home
 
-
-import android.annotation.SuppressLint
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import com.example.soclub.models.Activity
+import coil.compose.rememberAsyncImagePainter
+import com.example.soclub.R
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.foundation.pager.HorizontalPager
-import coil.compose.rememberAsyncImagePainter
-import androidx.compose.foundation.pager.PagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import com.example.soclub.R
-import android.content.res.Configuration
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import com.example.soclub.models.Activity
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import java.text.SimpleDateFormat
 import java.util.*
+
 
 
 
@@ -53,7 +56,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { categories.size })
     var showBottomSheet by remember { mutableStateOf(false) }
     var isSelectingArea by remember { mutableStateOf(true) }
-    val selectedCities by viewModel.selectedCities.observeAsState(mutableListOf())
+    val selectedCities by viewModel.selectedCities.observeAsState(emptyList())
     val cities by viewModel.getCities().observeAsState(emptyList())
     LaunchedEffect(Unit) {
         viewModel.fetchUserLocation()
@@ -71,7 +74,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(end = 16.dp), // Fjern venstre padding her
+                .padding(end = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -81,7 +84,6 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(start = 16.dp)
             )
-
 
             if (selectedCategory != "Nærme Aktiviteter") {
                 Icon(
@@ -122,7 +124,6 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
             viewModel = viewModel,
             navController = navController
         )
-
     }
 
     if (showBottomSheet) {
@@ -135,7 +136,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
             onSelectArea = { isSelectingArea = it },
             onCitySelected = { city, isSelected -> viewModel.updateSelectedCities(city, isSelected) },
             onSearch = {
-                viewModel.fetchAndGroupActivitiesByCities(selectedCities)
+                // Med sanntidsoppdatering er denne funksjonen ikke lenger nødvendig
                 showBottomSheet = false
             },
             onResetFilter = {
@@ -145,7 +146,6 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
         )
     }
 }
-
 
 @Composable
 fun Chip(text: String, onRemove: () -> Unit) {
@@ -167,13 +167,11 @@ fun Chip(text: String, onRemove: () -> Unit) {
             imageVector = Icons.Default.Close,
             contentDescription = "Remove $text",
             modifier = Modifier
-                .size(16.dp)  // Mindre ikonstørrelse
+                .size(16.dp)
                 .clickable { onRemove() }
         )
     }
 }
-
-
 
 @Composable
 fun CategoryActivitiesPager(
@@ -187,6 +185,17 @@ fun CategoryActivitiesPager(
     val activities by viewModel.activities.observeAsState(emptyList())
     val hasLoaded by viewModel.hasLoadedActivities.observeAsState(false)
 
+    // Variabel som holder styr på om vi er på "Nærme Aktiviteter"-siden
+    val isNearestActivitiesSelected = pagerState.currentPage < categories.size &&
+            categories[pagerState.currentPage] == "Nærme Aktiviteter"
+
+    // Kall getNearestActivities() kun hvis "Nærme Aktiviteter" er valgt
+    LaunchedEffect(isNearestActivitiesSelected) {
+        if (isNearestActivitiesSelected) {
+            viewModel.getNearestActivities()
+        }
+    }
+
     HorizontalPager(
         state = pagerState,
         modifier = Modifier.fillMaxSize(),
@@ -194,18 +203,14 @@ fun CategoryActivitiesPager(
     ) { page ->
         val selectedCategory = categories[page]
         val activitiesToShow = if (selectedCategory == "Nærme Aktiviteter") {
-            if (!hasLoaded) {
-                LaunchedEffect(Unit) {
-                    viewModel.getNearestActivities()
-                }
-            }
-            activities
+            activities // Bruker nærme aktiviteter hvis "Nærme Aktiviteter" er valgt
         } else {
-            groupedActivities[selectedCategory] ?: emptyList()
+            groupedActivities[selectedCategory] ?: emptyList() // Ellers bruker vi grupperte aktiviteter
         }
 
         Column(modifier = Modifier.fillMaxSize()) {
             if (isLoading) {
+                // Viser en lastesirkel mens data lastes inn
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -216,12 +221,14 @@ fun CategoryActivitiesPager(
                 }
             } else {
                 if (activitiesToShow.isNotEmpty()) {
+                    // Vis liste over aktiviteter
                     ActivityList(
                         activities = activitiesToShow,
                         selectedCategory = selectedCategory,
                         navController = navController
                     )
                 } else {
+                    // Viser en melding dersom ingen aktiviteter er tilgjengelige for den valgte kategorien
                     Text(
                         text = "Ingen aktiviteter tilgjengelig for $selectedCategory.",
                         modifier = Modifier.padding(16.dp),
@@ -250,12 +257,10 @@ fun CitySelectionItem(city: String, isSelected: Boolean, onCitySelected: (Boolea
             text = city,
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
-
         )
         Checkbox(
             checked = isSelected,
             onCheckedChange = { onCitySelected(it) },
-
         )
     }
 }
@@ -282,10 +287,9 @@ fun FilterListItem(
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
             color = contentColor,
-
         )
         Icon(
-            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+            imageVector = Icons.Default.FilterList, // Du kan endre til riktig ikon
             contentDescription = "Arrow",
             tint = contentColor,
             modifier = Modifier.padding(end = 16.dp)
@@ -293,14 +297,12 @@ fun FilterListItem(
     }
 }
 
-@SuppressLint("SuspiciousIndentation")
 @Composable
 fun CategoryTabs(categories: List<String>, pagerState: PagerState) {
     val coroutineScope = rememberCoroutineScope()
     val isLandscape = isLandscape()
 
     if (isLandscape) {
-        // Use TabRow in landscape mode
         TabRow(
             selectedTabIndex = pagerState.currentPage,
             modifier = Modifier.fillMaxWidth(),
@@ -324,7 +326,6 @@ fun CategoryTabs(categories: List<String>, pagerState: PagerState) {
             }
         }
     } else {
-        // Use ScrollableTabRow in portrait mode
         ScrollableTabRow(
             selectedTabIndex = pagerState.currentPage,
             modifier = Modifier.fillMaxWidth(),
@@ -351,18 +352,6 @@ fun CategoryTabs(categories: List<String>, pagerState: PagerState) {
     }
 }
 
-
-
-@Composable
-fun CategoryTitle(category: String) {
-    Text(
-        text = category,
-        fontSize = 20.sp,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(start = 16.dp)
-    )
-}
-
 @Composable
 fun ActivityList(activities: List<Activity>, selectedCategory: String, navController: NavHostController) {
     LazyColumn(
@@ -371,9 +360,8 @@ fun ActivityList(activities: List<Activity>, selectedCategory: String, navContro
         modifier = Modifier.fillMaxSize()
     ) {
         items(activities) { activity ->
-            // Hvis vi er på "Forslag", bruk aktiviteten sin kategori til å navigere
             val categoryToUse = if (selectedCategory == "Nærme Aktiviteter") {
-                activity.category ?: "ukjent"  // Sørg for at aktiviteten har kategori
+                activity.category ?: "ukjent"
             } else {
                 selectedCategory
             }
@@ -384,17 +372,15 @@ fun ActivityList(activities: List<Activity>, selectedCategory: String, navContro
     }
 }
 
-
 @Composable
 fun ActivityItem(activity: Activity, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp) // Holder samme størrelse
+            .height(200.dp)
             .clip(RoundedCornerShape(16.dp))
             .clickable { onClick() }
     ) {
-        // Bakgrunnsbilde
         Image(
             painter = if (activity.imageUrl.isEmpty()) {
                 painterResource(id = R.drawable.placeholder)
@@ -408,7 +394,6 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
                 .clip(RoundedCornerShape(16.dp))
         )
 
-        // Overlay for å fremheve teksten
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -416,20 +401,19 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
                     brush = Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
-                            Color.Black.copy(alpha = 0.8f) // Økt opasitet for mørkere overlay
+                            Color.Black.copy(alpha = 0.8f)
                         ),
-                        startY = 100f // Justerer gradient-start for en mykere overgang
+                        startY = 100f
                     )
                 )
                 .clip(RoundedCornerShape(16.dp))
         )
 
-        // Tekst og lokasjon over overlay
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp), // Padding rundt tekst for bedre plassering
-            verticalArrangement = Arrangement.Bottom // Plasserer teksten nederst
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Bottom
         ) {
             Text(
                 text = activity.title ?: "Ingen tittel",
@@ -448,10 +432,9 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Formaterer dato og tid
             val activityDateTime = combineDateAndTime(activity.date, activity.startTime)
             val formattedDateTime = activityDateTime?.let {
-                val formatter = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
+                val formatter = java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
                 formatter.format(it)
             } ?: "Ukjent dato"
 
@@ -488,8 +471,6 @@ fun combineDateAndTime(date: com.google.firebase.Timestamp?, timeString: String)
     }
 }
 
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterBottomSheet(
@@ -514,12 +495,10 @@ fun FilterBottomSheet(
             ) {
                 Text(stringResource(R.string.filter_by_area), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(16.dp))
-
-                // Wrap LazyColumn in a Box with weight to make it scrollable within available space
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f) // Allows the LazyColumn to take remaining space
+                        .weight(1f)
                 ) {
                     LazyColumn(
                         modifier = Modifier.fillMaxWidth()
@@ -539,7 +518,6 @@ fun FilterBottomSheet(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Buttons outside the scrollable LazyColumn
                 Button(
                     onClick = { onSearch() },
                     modifier = Modifier
@@ -565,43 +543,7 @@ fun FilterBottomSheet(
 }
 
 
-
-
-@Composable
-fun NearActivities(viewModel: HomeViewModel, navController: NavHostController) {
-    val activities by viewModel.activities.observeAsState(emptyList())
-    val isLoading by viewModel.isLoading.observeAsState(false)
-    val hasLoaded by viewModel.hasLoadedActivities.observeAsState(false)
-
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        when {
-            isLoading || !hasLoaded -> {
-                CircularProgressIndicator()
-            }
-            activities.isNotEmpty() -> {
-                ActivityList(
-                    activities = activities,
-                    selectedCategory = "Nærme Aktiviteter",
-                    navController = navController
-                )
-            }
-            else -> {
-                Text(
-                    text = stringResource(R.string.No_Aktivirty_is_Near),
-                    modifier = Modifier.padding(16.dp),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-    }
-}
-
 @Composable
 fun isLandscape(): Boolean {
     return LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 }
-
-
-
-

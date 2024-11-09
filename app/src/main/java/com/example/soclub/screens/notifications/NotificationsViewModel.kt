@@ -1,11 +1,12 @@
 package com.example.soclub.screens.notifications
 
+import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soclub.models.Notification
 import com.example.soclub.service.NotificationService
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -37,7 +38,7 @@ class NotificationsViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             notificationService.getNotificationsStream().collect { notifications ->
-                _notifications.value = notifications
+                _notifications.value = notifications.sortedByDescending { it.timestamp }
             }
         }
     }
@@ -46,9 +47,6 @@ class NotificationsViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
-
-            // Simulate a delay of 2000 milliseconds (2 seconds)
-            delay(1000)
 
             try {
                 val notificationsFromDb = notificationService.getAllNotifications()
@@ -61,12 +59,12 @@ class NotificationsViewModel @Inject constructor(
         }
     }
 
-
-    fun deleteNotification(notification: Notification) {
+    fun deleteNotification(notification: Notification, context: Context) {
         viewModelScope.launch {
             try {
                 notificationService.deleteNotification(notification)
                 _notifications.value = _notifications.value.filter { it != notification }
+                Toast.makeText(context, "Varsling slettet", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 _errorMessage.value = "Feil ved sletting av varsling. Vennligst prøv igjen senere."
             }

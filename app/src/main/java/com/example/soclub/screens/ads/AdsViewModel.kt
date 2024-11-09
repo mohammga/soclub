@@ -2,7 +2,7 @@ package com.example.soclub.screens.ads
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.soclub.models.editActivity
+import com.example.soclub.models.EditActivity
 import com.example.soclub.service.AccountService
 import com.example.soclub.service.ActivityService
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,8 +23,8 @@ class AdsViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
-    private val _activities = MutableStateFlow<List<editActivity>>(emptyList())
-    val activities: StateFlow<List<editActivity>> = _activities
+    private val _activities = MutableStateFlow<List<EditActivity>>(emptyList())
+    val activities: StateFlow<List<EditActivity>> = _activities
 
     fun fetchActivitiesByCreator() {
         val creatorId = accountService.currentUserId
@@ -34,7 +34,7 @@ class AdsViewModel @Inject constructor(
 
             try {
                 val fetchedActivities = activityService.getAllActivitiesByCreator(creatorId).map {
-                    editActivity(
+                    EditActivity(
                         creatorId = it.id,
                         imageUrl = it.imageUrl,
                         title = it.title,
@@ -42,11 +42,12 @@ class AdsViewModel @Inject constructor(
                         ageGroup = it.ageGroup,
                         maxParticipants = it.maxParticipants,
                         location = it.location,
-                        date = it.date,
+                        date = it.date, // Add this if you haven't already
                         startTime = it.startTime,
                         category = it.category
                     )
                 }
+
                 _activities.value = fetchedActivities
             } catch (e: Exception) {
                 e.printStackTrace()

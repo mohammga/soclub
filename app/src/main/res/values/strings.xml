@@ -41,7 +41,8 @@
 
     <!--SignupScreen-->
     <string name="join_us">Bli SoClub-medlem.</string>
-    <string name="placeholder_name">Navn</string>
+    <string name="placeholder_firstname">Fornavn</string>
+    <string name="placeholder_lastname">Etternavn</string>
     <string name="placeholder_email">E-postadresse</string>
     <string name="placeholder_password">Passord</string>
     <string name="terms_and_conditions">Ved å fortsette, godtar du Vilkår for bruk og retningslinjer for personvern.</string>
@@ -50,7 +51,6 @@
     <string name="register">Registrer deg</string>
 
     <!--SignupViewModel-->
-    <string name="error_name_required">Navn er påkrevd</string>
     <string name="error_email_required">E-post er påkrevd</string>
     <string name="error_password_required">Passord er påkrevd</string>
     <string name="error_new_password_required">Det nye passordet er påkrevd</string>
@@ -90,7 +90,7 @@
     <string name="label_password">Passord</string>
     <string name="label_permissions">Tillatelser</string>
     <string name="logout_button">Logg ut</string>
-    <string name="loading">Laster...</string>
+    <string name="loading">Kunne ikke hente informasjon</string>
 
     <!-- EditProfileScreen -->
     <string name="edit_profile_screen_title">Rediger profil</string>
@@ -258,7 +258,8 @@
     <string name="password_supporting_text">Skriv inn passordet ditt.</string>
 
     //signup
-    <string name="name_supporting_text">Skriv inn ditt fulle navn.</string>
+    <string name="firstname_supporting_text">Skriv inn ditt fornavn.</string>
+    <string name="lastname_supporting_text">Skriv inn ditt etternavn.</string>
     <string name="age_label">Alder</string>
     <string name="age_supporting_text">Skriv inn din alder.</string>
     <string name="email_label">E-postadresse</string>
@@ -271,11 +272,19 @@
     <string name="email_error_required">E-postadresse er påkrevd</string>
 
 
-    <string name="name_label">Navn</string>
+    <string name="firstname_label">Fornavn</string>
+    <string name="lastname_label">Etternavn</string>
     <string name="error_user_already_registered">Det finnes allerede en bruker med denne e-postadressen</string>
     <string name="error_loading_kommuner">Kunne ikke laste inn kommuner. Vennligst prøv igjen senere.\n</string>
     <string name="error_image_upload_failed">Kunne ikke laste opp bilde</string>
     <string name="error_creating_activity">Kunne ikke lage aktiviteten</string>
+
+    <string name="registration_success_login">Registrering vellykket, logger inn som %1$s\n</string>
+    <string name="success_login">Logger inn som %1$s\n</string>
+    <string name="sign_out_success">Du har logget ut</string>
+    <string name="activity_created_success">Aktivitet opprettet vellykket</string>
+    <string name="activity_updated_success">Aktiviteten ble oppdatert vellykket</string>
+
     <string name="error_message">Det skjedde en feil. Vennligst prøv igjen senere</string>
     <string name="select_start_time">Velg starttidspunkt</string>
     <string name="choose_Dato">Velg dato</string>
@@ -303,5 +312,6 @@
     <string name="delete">Slett</string>
     <string name="unknown_eror">En ukjent feil oppsto</string>
     <string name="unknown_title">Ukjent titte</string>
+
 
 </resources>

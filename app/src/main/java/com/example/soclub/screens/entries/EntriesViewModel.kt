@@ -35,9 +35,6 @@ class EntriesScreenViewModel @Inject constructor(
     private val _isLoadingInactive = MutableStateFlow(false)
     val isLoadingInactive: StateFlow<Boolean> = _isLoadingInactive
 
-    private val _isLoadingExpired = MutableStateFlow(false)
-    val isLoadingExpired: StateFlow<Boolean> = _isLoadingExpired
-
     init {
         listenForActivityUpdates()
         listenForNotActiveActivityUpdates()
@@ -49,7 +46,6 @@ class EntriesScreenViewModel @Inject constructor(
             viewModelScope.launch {
                 _isLoadingActive.value = true
                 entriesService.getActiveActivitiesForUser(userId) { activities ->
-                    // Sorter aktiviteter etter 'createdAt' for å sikre nyeste øverst
                     _activeActivities.value = activities.sortedByDescending { it.createdAt }
                     _isLoadingActive.value = false
                 }
@@ -63,7 +59,6 @@ class EntriesScreenViewModel @Inject constructor(
             viewModelScope.launch {
                 _isLoadingInactive.value = true
                 entriesService.getNotActiveActivitiesForUser(userId) { activities ->
-                    // Sorter aktiviteter etter 'createdAt' for å sikre nyeste øverst
                     _notActiveActivities.value = activities.sortedByDescending { it.createdAt }
                     _isLoadingInactive.value = false
                 }
@@ -74,22 +69,20 @@ class EntriesScreenViewModel @Inject constructor(
     fun cancelRegistration(activityId: String) {
         viewModelScope.launch {
             val userId = accountService.currentUserId
+
+            val activityTitle = _activeActivities.value.find { it.id == activityId }?.title ?: "Aktivitet"
+
             val success = activityDetailService.updateRegistrationStatus(userId, activityId, "notAktiv")
 
             if (success) {
-                // Midlertidig fjern den kansellerte aktiviteten fra listen lokalt
                 _activeActivities.value = _activeActivities.value.filter { it.id != activityId }
 
-                // Send a cancellation notification to the user
-                val activityTitle = _activeActivities.value.find { it.id == activityId }?.title ?: "Aktivitet"
                 enqueueUnregistrationNotification(
-                    context = context, // Ensure context is passed correctly
+                    context = context,
                     activityTitle = activityTitle,
                     userId = userId
                 )
             }
-
-            // La SnapshotListener håndtere oppdateringen etterpå
         }
     }
 }

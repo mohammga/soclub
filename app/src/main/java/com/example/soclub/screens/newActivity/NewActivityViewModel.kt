@@ -8,15 +8,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.example.soclub.R
-import com.example.soclub.models.createActivity
+import com.example.soclub.models.CreateActivity
 import com.example.soclub.service.ActivityService
 import com.example.soclub.service.AccountService
 import com.example.soclub.service.LocationService
 import com.example.soclub.service.StorageService
 import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
+import android.content.Context
+import android.widget.Toast
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
 
 data class NewActivityState(
     val title: String = "",
@@ -228,7 +231,7 @@ class NewActivityViewModel @Inject constructor(
     }
 
     // Function to handle publish action
-    fun onPublishClick(navController: NavController) {
+    fun onPublishClick(navController: NavController, context: Context) {
         // Validation checks for each field
         var hasError = false
         var titleError: String? = null
@@ -317,7 +320,7 @@ class NewActivityViewModel @Inject constructor(
                 isActivity = true,  // Set to true for activity images
                 category = uiState.value.category, // Pass the activity category
                 onSuccess = { imageUrl ->
-                    createActivityAndNavigate(navController, imageUrl, combinedLocation, timestampDate, startTime, creatorId)
+                    createActivityAndNavigate(navController, context, imageUrl, combinedLocation, timestampDate, startTime, creatorId)
                 },
                 onError = { error ->
                     uiState.value = uiState.value.copy(errorMessage = R.string.error_image_upload_failed)
@@ -326,7 +329,7 @@ class NewActivityViewModel @Inject constructor(
             )
         }
         else {
-            createActivityAndNavigate(navController, "", combinedLocation, timestampDate, startTime, creatorId)
+            createActivityAndNavigate(navController, context, "", combinedLocation, timestampDate, startTime, creatorId)
         }
     }
 
@@ -335,6 +338,7 @@ class NewActivityViewModel @Inject constructor(
 
     private fun createActivityAndNavigate(
         navController: NavController,
+        context: Context,
         imageUrl: String,
         combinedLocation: String,
         date: Timestamp,
@@ -343,7 +347,7 @@ class NewActivityViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
-                val newActivity = createActivity(
+                val newActivity = CreateActivity(
                     createdAt = Timestamp.now(),
                     lastUpdated = Timestamp.now(),
                     creatorId = creatorId,
@@ -357,6 +361,7 @@ class NewActivityViewModel @Inject constructor(
                     startTime = startTime,
                 )
                 activityService.createActivity(uiState.value.category, newActivity)
+                Toast.makeText(context, context.getString(R.string.activity_created_success), Toast.LENGTH_LONG).show()
                 navController.navigate("home")
             } catch (e: Exception) {
                 uiState.value = uiState.value.copy(errorMessage = R.string.error_creating_activity)

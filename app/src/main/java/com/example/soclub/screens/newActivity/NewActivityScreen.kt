@@ -1,54 +1,62 @@
 package com.example.soclub.screens.newActivity
 
 import android.annotation.SuppressLint
-import android.app.DatePickerDialog
-import android.app.TimePickerDialog
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.*
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.*
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.*
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.soclub.R
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
 import com.google.firebase.Timestamp
-import java.util.Date
+import java.text.SimpleDateFormat
+import java.util.*
+
+
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import android.widget.Toast
+import androidx.activity.result.ActivityResultRegistryOwner
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.ActivityCompat
+import androidx.core.app.ComponentActivity
+import androidx.core.content.ContextCompat
 
 @Composable
-fun NewActivityScreen(navController: NavController, viewModel: NewActivityViewModel = hiltViewModel()) {
+fun NewActivityScreen(
+    navController: NavController,
+    viewModel: NewActivityViewModel = hiltViewModel()
+) {
     val uiState by viewModel.uiState
     val locationSuggestions by remember { derivedStateOf { uiState.locationSuggestions } }
     val addressSuggestions by remember { derivedStateOf { uiState.addressSuggestions } }
+
+    // Use a state that triggers recomposition when updated
+    var locationConfirmed by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -63,42 +71,59 @@ fun NewActivityScreen(navController: NavController, viewModel: NewActivityViewMo
                 )
             }
 
-            item { TitleField(value = uiState.title, onNewValue = viewModel::onTitleChange, error = uiState.titleError) }
+            item {
+                TitleField(
+                    value = uiState.title,
+                    onNewValue = viewModel::onTitleChange,
+                    error = uiState.titleError
+                )
+            }
 
-            item { DescriptionField(value = uiState.description, onNewValue = viewModel::onDescriptionChange, error = uiState.descriptionError) }
+            item {
+                DescriptionField(
+                    value = uiState.description,
+                    onNewValue = viewModel::onDescriptionChange,
+                    error = uiState.descriptionError
+                )
+            }
 
-            item { CategoryField(value = uiState.category, onNewValue = viewModel::onCategoryChange, error = uiState.categoryError) }
+            item {
+                CategoryField(
+                    value = uiState.category,
+                    onNewValue = viewModel::onCategoryChange,
+                    error = uiState.categoryError
+                )
+            }
 
             item {
                 LocationField(
-                    value = uiState.location,
+                    initialValue = uiState.location,
                     onNewValue = { location ->
                         viewModel.onLocationChange(location)
-                        viewModel.uiState.value = uiState.copy(locationConfirmed = false) // Reset confirmation
+                        locationConfirmed = false // Reset confirmation on new input
                     },
                     suggestions = locationSuggestions,
                     onSuggestionClick = { suggestion ->
                         viewModel.onLocationSelected(suggestion)
-                        viewModel.uiState.value = uiState.copy(locationConfirmed = true) // Confirm selection
+                        locationConfirmed = true // Confirm location selection
                     },
                     error = uiState.locationError
                 )
             }
 
-            if (uiState.locationConfirmed) {
+
+            if (locationConfirmed) {
                 item {
                     AddressField(
-                        value = uiState.address,
+                        initialValue = uiState.address,
                         onNewValue = { address ->
                             viewModel.onAddressChange(address)
-                            viewModel.uiState.value = uiState.copy(addressConfirmed = false) // Reset confirmation
                         },
                         suggestions = addressSuggestions,
                         onSuggestionClick = { suggestion ->
                             viewModel.onAddressSelected(suggestion)
-                            viewModel.uiState.value = uiState.copy(addressConfirmed = true) // Confirm selection
                         },
-                        isEnabled = uiState.locationConfirmed,
+                        isEnabled = locationConfirmed,
                         error = uiState.addressError
                     )
                 }
@@ -113,13 +138,37 @@ fun NewActivityScreen(navController: NavController, viewModel: NewActivityViewMo
                 }
             }
 
-            item { DateField(value = uiState.date?.toDate()?.time ?: 0L, onNewValue = viewModel::onDateChange, error = uiState.dateError) }
+            item {
+                DateField(
+                    value = uiState.date?.toDate()?.time ?: 0L,
+                    onNewValue = viewModel::onDateChange,
+                    error = uiState.dateError
+                )
+            }
 
-            item { StartTimeField(value = uiState.startTime, onNewValue = viewModel::onStartTimeChange, error = uiState.startTimeError) }
+            item {
+                StartTimeField(
+                    value = uiState.startTime,
+                    onNewValue = viewModel::onStartTimeChange,
+                    error = uiState.startTimeError
+                )
+            }
 
-            item { MaxParticipantsField(value = uiState.maxParticipants, onNewValue = viewModel::onMaxParticipantsChange, error = uiState.maxParticipantsError) }
+            item {
+                MaxParticipantsField(
+                    value = uiState.maxParticipants,
+                    onNewValue = viewModel::onMaxParticipantsChange,
+                    error = uiState.maxParticipantsError
+                )
+            }
 
-            item { AgeLimitField(value = uiState.ageLimit, onNewValue = viewModel::onAgeLimitChange, error = uiState.ageLimitError) }
+            item {
+                AgeLimitField(
+                    value = uiState.ageLimit,
+                    onNewValue = viewModel::onAgeLimitChange,
+                    error = uiState.ageLimitError
+                )
+            }
 
             item { Spacer(modifier = Modifier.height(5.dp)) }
 
@@ -128,7 +177,6 @@ fun NewActivityScreen(navController: NavController, viewModel: NewActivityViewMo
     }
 }
 
-
 @Composable
 fun TitleField(value: String, onNewValue: (String) -> Unit, error: String?) {
     OutlinedTextField(
@@ -136,7 +184,9 @@ fun TitleField(value: String, onNewValue: (String) -> Unit, error: String?) {
         onValueChange = { onNewValue(it) },
         label = { Text(stringResource(id = R.string.title_label)) },
         placeholder = { Text(stringResource(id = R.string.placeholder_title)) },
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
         singleLine = true,
         isError = error != null,
         supportingText = {
@@ -156,8 +206,11 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?
         onValueChange = { onNewValue(it) },
         label = { Text(stringResource(id = R.string.description_label)) },
         placeholder = { Text(stringResource(id = R.string.placeholder_description)) },
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-        maxLines = 5,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .height(150.dp), // Increase the height for a larger field
+        maxLines = 10,
         isError = error != null,
         supportingText = {
             if (error == null) {
@@ -182,12 +235,20 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?) {
     ) {
         OutlinedTextField(
             value = selectedText,
-            onValueChange = { onNewValue(it) },
+            onValueChange = {
+                selectedText = it
+                onNewValue(it)
+            },
             label = { Text(stringResource(id = R.string.category_label)) },
             placeholder = { Text(stringResource(id = R.string.placeholder_category)) },
-            modifier = Modifier.menuAnchor().fillMaxWidth().padding(vertical = 8.dp),
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
             readOnly = true,
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
             singleLine = true,
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
             isError = error != null,
@@ -199,7 +260,10 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?) {
                 }
             }
         )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
             categories.forEach { category ->
                 DropdownMenuItem(
                     text = { Text(text = category) },
@@ -214,20 +278,46 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LocationField(value: String, onNewValue: (String) -> Unit, suggestions: List<String>, onSuggestionClick: (String) -> Unit, error: String?) {
+fun LocationField(
+    initialValue: String,
+    onNewValue: (String) -> Unit,
+    suggestions: List<String>,
+    onSuggestionClick: (String) -> Unit,
+    error: String?
+) {
     var expanded by remember { mutableStateOf(false) }
-    Column(modifier = Modifier.fillMaxWidth()) {
+    var textFieldValue by remember { mutableStateOf(TextFieldValue(text = initialValue)) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded && suggestions.isNotEmpty(),
+        onExpandedChange = { expanded = it }
+    ) {
         OutlinedTextField(
-            value = value,
-            onValueChange = {
-                onNewValue(it)
-                expanded = it.isNotEmpty() && suggestions.isNotEmpty()
+            value = textFieldValue,
+            onValueChange = { newValue ->
+                textFieldValue = newValue
+                onNewValue(newValue.text)
+                expanded = newValue.text.isNotEmpty() && suggestions.isNotEmpty()
             },
             label = { Text(stringResource(id = R.string.location_label)) },
+            placeholder = { Text("Sted") },
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            trailingIcon = {
+                if (suggestions.isNotEmpty()) {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                }
+            },
+            singleLine = true,
+
             //placeholder = { Text("Sted") },
-            placeholder = { Text(stringResource(R.string.location_label)) },
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+           // placeholder = { Text(stringResource(R.string.location_label)) },
+            //modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+
             isError = error != null,
             supportingText = {
                 if (error == null) {
@@ -237,13 +327,20 @@ fun LocationField(value: String, onNewValue: (String) -> Unit, suggestions: List
                 }
             }
         )
-        if (expanded) {
-            LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp)) {
-                items(suggestions) { suggestion ->
+        if (suggestions.isNotEmpty()) {
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                suggestions.forEach { suggestion ->
                     DropdownMenuItem(
                         text = { Text(text = suggestion) },
                         onClick = {
-                            onSuggestionClick(suggestion)
+                            textFieldValue = TextFieldValue(
+                                text = suggestion,
+                                selection = TextRange(suggestion.length) // Move cursor to end
+                            )
+                            onSuggestionClick(suggestion) // Call onSuggestionClick here
                             expanded = false
                         }
                     )
@@ -253,23 +350,48 @@ fun LocationField(value: String, onNewValue: (String) -> Unit, suggestions: List
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddressField(value: String, onNewValue: (String) -> Unit, suggestions: List<String>, onSuggestionClick: (String) -> Unit, isEnabled: Boolean, error: String?) {
+fun AddressField(
+    initialValue: String,
+    onNewValue: (String) -> Unit,
+    suggestions: List<String>,
+    onSuggestionClick: (String) -> Unit,
+    isEnabled: Boolean,
+    error: String?
+) {
     var expanded by remember { mutableStateOf(false) }
-    Column(modifier = Modifier.fillMaxWidth()) {
+    var textFieldValue by remember { mutableStateOf(TextFieldValue(text = initialValue)) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded && suggestions.isNotEmpty(),
+        onExpandedChange = { expanded = it }
+    ) {
         OutlinedTextField(
-            value = value,
-            onValueChange = {
+            value = textFieldValue,
+            onValueChange = { newValue ->
                 if (isEnabled) {
-                    onNewValue(it)
-                    expanded = it.isNotEmpty() && suggestions.isNotEmpty()
+                    textFieldValue = newValue
+                    onNewValue(newValue.text)
+                    expanded = newValue.text.isNotEmpty() && suggestions.isNotEmpty()
                 }
             },
             label = { Text(stringResource(id = R.string.address_label)) },
-            placeholder = { Text(stringResource(id = R.string.address_label)) },
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-            singleLine = true,
+            placeholder = { Text("Adresse") },
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            //placeholder = { Text(stringResource(id = R.string.address_label)) },
+            //modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            //singleLine = true,
             enabled = isEnabled,
+            trailingIcon = {
+                if (suggestions.isNotEmpty()) {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                }
+            },
+            singleLine = true,
             isError = error != null,
             supportingText = {
                 if (error == null) {
@@ -279,13 +401,20 @@ fun AddressField(value: String, onNewValue: (String) -> Unit, suggestions: List<
                 }
             }
         )
-        if (expanded) {
-            LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp)) {
-                items(suggestions) { suggestion ->
+        if (suggestions.isNotEmpty()) {
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                suggestions.forEach { suggestion ->
                     DropdownMenuItem(
                         text = { Text(text = suggestion) },
                         onClick = {
-                            onSuggestionClick(suggestion)
+                            textFieldValue = TextFieldValue(
+                                text = suggestion,
+                                selection = TextRange(suggestion.length) // Move cursor to end
+                            )
+                            onSuggestionClick(suggestion) // Call onSuggestionClick here
                             expanded = false
                         }
                     )
@@ -301,8 +430,12 @@ fun PostalCodeField(value: String, error: String?) {
         value = value,
         onValueChange = {},
         label = { Text(stringResource(id = R.string.postal_code_label)) },
-        placeholder = { Text(stringResource(id = R.string.postal_code_label)) },
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        placeholder = { Text("Postnummer") },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        //placeholder = { Text(stringResource(id = R.string.postal_code_label)) },
+        //modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         singleLine = true,
         readOnly = true,
@@ -317,24 +450,13 @@ fun PostalCodeField(value: String, error: String?) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
-    val context = LocalContext.current
-    val datePickerDialog = remember {
-        DatePickerDialog(
-            context,
-            { _, year, month, dayOfMonth ->
-                val newDate = Calendar.getInstance().apply { set(year, month, dayOfMonth) }
-                onNewValue(Timestamp(Date(newDate.timeInMillis)))
-            },
-            Calendar.getInstance().get(Calendar.YEAR),
-            Calendar.getInstance().get(Calendar.MONTH),
-            Calendar.getInstance().get(Calendar.DAY_OF_MONTH)
-        )
-    }
+    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = value)
+    val isDatePickerVisible = remember { mutableStateOf(false) }
 
-    // Display the formatted date or a default placeholder
-    val dateText = if (value != 0L) {
+    val formattedDate = if (value != 0L) {
         SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
     } else {
         "Velg dato"
@@ -342,9 +464,9 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
 
     Box {
         OutlinedTextField(
-            value = dateText,
+            value = formattedDate,
             onValueChange = {},
-            label = { Text(stringResource(id = R.string.date_label)) },
+            label = { Text("Dato") },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
@@ -352,59 +474,64 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
             isError = error != null,
             supportingText = {
                 if (error == null) {
-                    Text(stringResource(id = R.string.date_supporting_text))
+                    Text("Velg dato for aktiviteten")
                 } else {
                     Text(text = error, color = MaterialTheme.colorScheme.error)
                 }
             }
         )
 
-        // Invisible box overlay to handle clicks
         Box(
             modifier = Modifier
-                .matchParentSize()  // Matches size of OutlinedTextField
-                .alpha(0f)           // Makes the box invisible
-                .clickable { datePickerDialog.show() }  // Opens DatePickerDialog on click
+                .matchParentSize()
+                .alpha(0f)
+                .clickable { isDatePickerVisible.value = true }
         )
+
+        if (isDatePickerVisible.value) {
+            DatePickerDialog(
+                onDismissRequest = { isDatePickerVisible.value = false },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            datePickerState.selectedDateMillis?.let {
+                                onNewValue(Timestamp(Date(it)))
+                            }
+                            isDatePickerVisible.value = false
+                        }
+                    ) {
+                        Text("OK")
+                    }
+                }
+            ) {
+                DatePicker(state = datePickerState)
+            }
+        }
     }
 }
 
-
-
 @SuppressLint("DefaultLocale")
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) {
-    val context = LocalContext.current
-    val timePickerDialog = remember {
-        TimePickerDialog(
-            context,
-            { _, hour, minute ->
-                onNewValue(String.format("%02d:%02d", hour, minute))
-            },
-            Calendar.getInstance().get(Calendar.HOUR_OF_DAY),
-            Calendar.getInstance().get(Calendar.MINUTE),
-            true
-        )
-    }
-
-    // State to handle focus
-    val focusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
+    val isTimePickerVisible = remember { mutableStateOf(false) }
+    val timePickerState = rememberTimePickerState()
 
     Box {
         OutlinedTextField(
-            value = if (value.isNotEmpty()) value else stringResource(R.string.choose_start_time),
+            value = value,
+            //value = if (value.isNotEmpty()) value else stringResource(R.string.choose_start_time),
             onValueChange = {},
-            label = { Text(stringResource(id = R.string.start_time_label)) },
+            placeholder = { Text("Starttidspunkt") },
+            label = { Text("Starttidspunkt") },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp)
-                .focusRequester(focusRequester), // Set focus requester
+                .padding(vertical = 8.dp),
             readOnly = true,
             isError = error != null,
             supportingText = {
                 if (error == null) {
-                    Text(stringResource(id = R.string.start_time_supporting_text))
+                    Text("Velg starttid for aktiviteten")
                 } else {
                     Text(text = error, color = MaterialTheme.colorScheme.error)
                 }
@@ -417,15 +544,43 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
                 .matchParentSize()
                 .alpha(0f)
                 .clickable {
-                    // Clear focus to prevent keyboard from appearing
-                    focusManager.clearFocus()
-                    // Show the TimePickerDialog
-                    timePickerDialog.show()
+                    isTimePickerVisible.value = true
                 }
         )
+
+        if (isTimePickerVisible.value) {
+            Dialog(onDismissRequest = { isTimePickerVisible.value = false }) {
+                Surface(
+                    shape = MaterialTheme.shapes.medium,
+                    tonalElevation = 8.dp
+                ) {
+                    Column {
+                        TimePicker(
+                            state = timePickerState,
+                            colors = TimePickerDefaults.colors()
+                        )
+                        Row(
+                            modifier = Modifier.padding(8.dp),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            TextButton(onClick = { isTimePickerVisible.value = false }) {
+                                Text("Avbryt")
+                            }
+                            TextButton(onClick = {
+                                val hour = timePickerState.hour
+                                val minute = timePickerState.minute
+                                onNewValue(String.format("%02d:%02d", hour, minute))
+                                isTimePickerVisible.value = false
+                            }) {
+                                Text("OK")
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
-
 
 @Composable
 fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: String?) {
@@ -434,7 +589,9 @@ fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: Str
         onValueChange = { onNewValue(it) },
         label = { Text(stringResource(id = R.string.max_participants_label)) },
         placeholder = { Text(stringResource(id = R.string.placeholder_max_participants)) },
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         singleLine = true,
         isError = error != null,
@@ -455,7 +612,9 @@ fun AgeLimitField(value: String, onNewValue: (String) -> Unit, error: String?) {
         onValueChange = { onNewValue(it) },
         label = { Text(stringResource(id = R.string.age_limit_label)) },
         placeholder = { Text(stringResource(id = R.string.placeholder_age_limit)) },
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         singleLine = true,
         isError = error != null,
@@ -475,6 +634,19 @@ fun ImageUploadSection(
     onImageSelected: (Uri?) -> Unit,
     error: String? = null
 ) {
+    val context = LocalContext.current
+
+    // Determine the appropriate permission for the Android version
+    val galleryPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        Manifest.permission.READ_MEDIA_IMAGES
+    } else {
+        Manifest.permission.READ_EXTERNAL_STORAGE
+    }
+
+    // State to track permission request dialog
+    var showPermissionDialog by remember { mutableStateOf(false) }
+
+    // Launcher to open the gallery
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -483,13 +655,73 @@ fun ImageUploadSection(
         }
     }
 
+    // Launcher to request permission
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Permission granted, open the gallery
+            galleryLauncher.launch("image/*")
+        } else {
+            // Permission denied, show a message or handle accordingly
+            Toast.makeText(
+                context,
+                "Tillatelse er nødvendig for å velge et bilde.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    // Function to handle image click
+    val handleImageClick = {
+        when {
+            ContextCompat.checkSelfPermission(context, galleryPermission) == PackageManager.PERMISSION_GRANTED -> {
+                // Permission granted, open the gallery
+                galleryLauncher.launch("image/*")
+            }
+            shouldShowRequestPermissionRationale(context, galleryPermission) -> {
+                // Show rationale dialog
+                showPermissionDialog = true
+            }
+            else -> {
+                // Directly request permission
+                permissionLauncher.launch(galleryPermission)
+            }
+        }
+    }
+
+    // Show rationale dialog if needed
+    if (showPermissionDialog) {
+        AlertDialog(
+            onDismissRequest = { showPermissionDialog = false },
+            title = { Text("Tillat tilgang til galleri") },
+            text = { Text("Denne appen trenger tilgang til galleriet ditt for å velge et bilde.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showPermissionDialog = false
+                        permissionLauncher.launch(galleryPermission)
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPermissionDialog = false }) {
+                    Text("Avbryt")
+                }
+            }
+        )
+    }
+
+    // UI for the ImageUploadSection
     Column(modifier = Modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(300.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .clickable { galleryLauncher.launch("image/*") }
+                .clickable { handleImageClick() }
                 .padding(vertical = 8.dp)
         ) {
             if (selectedImageUri != null) {
@@ -521,7 +753,7 @@ fun ImageUploadSection(
             text = stringResource(id = R.string.change_ad_picture),
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
-            modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
+            modifier = Modifier.clickable { handleImageClick() }
         )
 
         if (selectedImageUri != null) {
@@ -558,14 +790,14 @@ fun ImageUploadSection(
                         color = Color.Gray,
                         fontSize = 14.sp
                     ),
-                    modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
+                    modifier = Modifier.clickable { handleImageClick() }
                 )
 
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = stringResource(id = R.string.upload_new_picture),
                     tint = Color.Gray,
-                    modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
+                    modifier = Modifier.clickable { handleImageClick() }
                 )
             }
         }
@@ -577,10 +809,24 @@ fun ImageUploadSection(
     }
 }
 
+// Helper function to check if rationale should be shown
+@SuppressLint("RestrictedApi")
+fun shouldShowRequestPermissionRationale(context: Context, permission: String): Boolean {
+    return if (context is ActivityResultRegistryOwner) {
+        ActivityCompat.shouldShowRequestPermissionRationale(context as ComponentActivity, permission)
+    } else {
+        false
+    }
+}
+
+
+
 @Composable
 fun PublishButton(navController: NavController, viewModel: NewActivityViewModel) {
+    val context = LocalContext.current // Get the context
+
     Button(
-        onClick = { viewModel.onPublishClick(navController) },
+        onClick = { viewModel.onPublishClick(navController, context) }, // Pass context here
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp),

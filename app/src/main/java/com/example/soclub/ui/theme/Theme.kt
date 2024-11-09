@@ -84,7 +84,7 @@ private val DarkColorScheme = darkColorScheme(
 
 
 @Composable
-fun SoclubTheme(
+fun SoClubTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {

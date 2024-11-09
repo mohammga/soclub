@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -29,6 +30,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.soclub.R
 import com.example.soclub.components.navigation.AppScreens
 import com.example.soclub.models.UserInfo
+
 
 @Composable
 fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel = hiltViewModel()) {
@@ -51,7 +53,7 @@ fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel 
                 ProfileImage(imageUrl = userInfo?.imageUrl)
                 Spacer(modifier = Modifier.height(8.dp))
 
-                ProfileName(name = userInfo?.name ?: "Laster...")
+                ProfileName(firstname = userInfo?.firstname ?: "", lastname = userInfo?.lastname ?: "")
                 Spacer(modifier = Modifier.height(8.dp))
 
                 EditProfileButton(navController)
@@ -96,14 +98,19 @@ fun ProfileImage(imageUrl: String?) {
 }
 
 @Composable
-fun ProfileName(name: String) {
+fun ProfileName(firstname: String, lastname: String) {
+    val fullName = if (firstname.isNotEmpty() && lastname.isNotEmpty()) {
+        "$firstname $lastname"
+    } else {
+        stringResource(id = R.string.loading)
+    }
+
     Text(
-        text = name,
+        text = fullName,
         style = MaterialTheme.typography.titleLarge,
         fontWeight = FontWeight.Bold
     )
 }
-
 @Composable
 fun EditProfileButton(navController: NavHostController) {
     Button(
@@ -130,7 +137,8 @@ fun AccountInfoSection(navController: NavHostController, userInfo: UserInfo?) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        ProfileInfoRow(label = stringResource(id = R.string.label_name), value = userInfo?.name ?: stringResource(id = R.string.loading))
+        val fullName = "${userInfo?.firstname} ${userInfo?.lastname}"
+        ProfileInfoRow(label = stringResource(id = R.string.label_name), value = fullName)
         ProfileInfoRow(label = stringResource(id = R.string.label_age), value = (userInfo?.age ?: stringResource(id = R.string.loading)).toString())
         ProfileInfoRow(label = stringResource(id = R.string.label_email), value = userInfo?.email ?: stringResource(id = R.string.loading))
         ProfileInfoRow(label = stringResource(id = R.string.label_ads), onClick = {
@@ -147,8 +155,10 @@ fun AccountInfoSection(navController: NavHostController, userInfo: UserInfo?) {
 
 @Composable
 fun LogoutButton(navController: NavHostController, viewModel: ProfileViewModel) {
+    val context = LocalContext.current // Get the context
+
     TextButton(
-        onClick = { viewModel.onSignOut(navController) },
+        onClick = { viewModel.onSignOut(navController, context) }, // Pass context here
         shape = RoundedCornerShape(50),
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
         modifier = Modifier

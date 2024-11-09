@@ -7,6 +7,7 @@ import android.content.Context
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import com.example.soclub.R
 import com.example.soclub.models.Notification
@@ -22,6 +23,8 @@ class NotificationWorker(
     }
 
     override suspend fun doWork(): Result {
+        setForegroundAsync(createForegroundInfo("Sender varsling..."))
+
         val message = inputData.getString("message") ?: return Result.failure()
         val userId = inputData.getString("userId") ?: return Result.failure()
         val activityId = inputData.getString("activityId") ?: return Result.failure()
@@ -30,7 +33,7 @@ class NotificationWorker(
         val channelId = getChannelId(activityId)
         showNotification(message, channelId)
 
-        // Lagre varsel i databasen
+        // Save notification to the database
         notificationService.saveNotification(
             Notification(userId = userId, activityId = activityId, timestamp = timestamp, message = message)
         )
@@ -74,7 +77,7 @@ class NotificationWorker(
         }
 
         val notification = NotificationCompat.Builder(applicationContext, channelId)
-            .setSmallIcon(R.drawable.user)
+            .setSmallIcon(R.drawable.ic_stat_name)
             .setContentTitle(notificationTitle)
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -90,5 +93,26 @@ class NotificationWorker(
             activityId.contains("signup") -> "SIGNUP_CHANNEL"
             else -> "REMINDER_CHANNEL"
         }
+    }
+
+    private fun createForegroundInfo(notificationText: String): ForegroundInfo {
+        val channelId = "PROCESSING_CHANNEL"
+        val channel = NotificationChannel(
+            channelId,
+            "Processing",
+            NotificationManager.IMPORTANCE_HIGH
+        )
+        val manager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        manager.createNotificationChannel(channel)
+
+        val notification = NotificationCompat.Builder(applicationContext, channelId)
+            .setContentTitle("Processing Notification")
+            .setTicker(notificationText)
+            .setContentText(notificationText)
+            .setSmallIcon(R.drawable.ic_stat_name)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .build()
+
+        return ForegroundInfo(System.currentTimeMillis().toInt(), notification)
     }
 }

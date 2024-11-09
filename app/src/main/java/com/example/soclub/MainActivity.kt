@@ -7,12 +7,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
 import androidx.navigation.compose.rememberNavController
 import com.example.soclub.components.navigation.AppNavigation
 import com.example.soclub.screens.noInternet.NoInternetScreen
 import com.example.soclub.service.ActivityService
-import com.example.soclub.ui.theme.SoclubTheme
+import com.example.soclub.ui.theme.SoClubTheme
 import com.example.soclub.utils.NetworkHelper
+import com.example.soclub.utils.PermissionHelper
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -40,18 +42,14 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            SoclubTheme {
+            SoClubTheme {
                 val navController = rememberNavController()
                 val hasInternetConnection by remember { networkHelper::hasInternetConnection }
 
                 if (hasInternetConnection) {
                     AppNavigation(navController)
                 } else {
-                    NoInternetScreen(onRetryClick = {
-                        if (networkHelper.hasInternetConnection) {
-                            // Retry only if the network status has changed
-                        }
-                    })
+                    NoInternetScreen()
                 }
             }
         }

@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -40,10 +41,18 @@ fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hilt
         }
 
         item {
-            NameField(
-                value = uiState.name,
-                onNewValue = viewModel::onNameChange,
-                error = uiState.nameError?.let { stringResource(id = it) }
+            FirstNameField(
+                value = uiState.firstname,
+                onNewValue = viewModel::onFirstNameChange,
+                error = uiState.firstNameError?.let { stringResource(id = it) }
+            )
+        }
+
+        item {
+            LastNameField(
+                value = uiState.lastname,
+                onNewValue = viewModel::onLastNameChange,
+                error = uiState.lastNameError?.let { stringResource(id = it) }
             )
         }
 
@@ -94,12 +103,12 @@ fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hilt
 }
 
 @Composable
-fun NameField(value: String, onNewValue: (String) -> Unit, error: String?) {
+fun FirstNameField(value: String, onNewValue: (String) -> Unit, error: String?) {
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
-        label = { Text(stringResource(id = R.string.name_label)) },
-        placeholder = { Text(stringResource(id = R.string.placeholder_name)) },
+        label = { Text(stringResource(id = R.string.firstname_label)) },
+        placeholder = { Text(stringResource(id = R.string.placeholder_firstname)) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
@@ -107,7 +116,29 @@ fun NameField(value: String, onNewValue: (String) -> Unit, error: String?) {
         isError = error != null,
         supportingText = {
             if (error == null) {
-                Text(text = stringResource(id = R.string.name_supporting_text))
+                Text(text = stringResource(id = R.string.firstname_supporting_text))
+            } else {
+                Text(text = error, color = MaterialTheme.colorScheme.error)
+            }
+        }
+    )
+}
+
+@Composable
+fun LastNameField(value: String, onNewValue: (String) -> Unit, error: String?) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = { onNewValue(it) },
+        label = { Text(stringResource(id = R.string.lastname_label)) },
+        placeholder = { Text(stringResource(id = R.string.placeholder_lastname)) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        singleLine = true,
+        isError = error != null,
+        supportingText = {
+            if (error == null) {
+                Text(text = stringResource(id = R.string.lastname_supporting_text))
             } else {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
@@ -203,8 +234,10 @@ fun PasswordField(value: String, onNewValue: (String) -> Unit, error: String?) {
 
 @Composable
 private fun SignUpButton(navController: NavController, viewModel: SignupViewModel) {
+    val context = LocalContext.current // Get the context
+
     Button(
-        onClick = { viewModel.onSignUpClick(navController) },
+        onClick = { viewModel.onSignUpClick(navController, context) }, // Pass context here
         modifier = Modifier
             .fillMaxWidth()
             .height(60.dp)
@@ -212,7 +245,6 @@ private fun SignUpButton(navController: NavController, viewModel: SignupViewMode
         Text(text = stringResource(id = R.string.register))
     }
 }
-
 @Composable
 fun SignInButton(navController: NavController) {
     OutlinedButton(

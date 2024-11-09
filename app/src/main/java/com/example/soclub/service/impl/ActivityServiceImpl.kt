@@ -1,24 +1,38 @@
 package com.example.soclub.service.impl
 
 import com.example.soclub.models.Activity
-import com.example.soclub.models.createActivity
-import com.example.soclub.models.editActivity
+import com.example.soclub.models.CreateActivity
+import com.example.soclub.models.EditActivity
 import com.example.soclub.service.ActivityService
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
+import com.google.firebase.firestore.ListenerRegistration
 
 class ActivityServiceImpl @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : ActivityService {
 
-    // Opprett ny aktivitet
-    override suspend fun createActivity(category: String, activity: createActivity) {
+    override fun listenForActivities(onUpdate: (List<Activity>) -> Unit): ListenerRegistration {
+        return firestore.collectionGroup("activities")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    onUpdate(emptyList())
+                    return@addSnapshotListener
+                }
+                val activities = snapshot.documents.mapNotNull { doc ->
+                    val category = doc.reference.parent.parent?.id
+                    doc.toObject(Activity::class.java)?.copy(id = doc.id, category = category)
+                }
+                onUpdate(activities)
+            }
+    }
+
+    override suspend fun createActivity(category: String, activity: CreateActivity) {
         firestore.collection("category").document(category)
             .collection("activities").add(activity).await()
     }
 
-    // Hent en aktivitet basert på ID
     override suspend fun getActivityById(category: String, activityId: String): Activity? {
         val documentSnapshot = firestore.collection("category")
             .document(category)
@@ -35,11 +49,10 @@ class ActivityServiceImpl @Inject constructor(
 
         return activity?.copy(
             location = lastWord,
-            restOfAddress = restOfAddress  // Fyll inn resten av adressen her
+            restOfAddress = restOfAddress
         )
     }
 
-    // Hent alle aktiviteter i en kategori
     override suspend fun getActivities(category: String): List<Activity> {
         val snapshot = firestore.collection("category").document(category)
             .collection("activities").get().await()
@@ -59,24 +72,24 @@ class ActivityServiceImpl @Inject constructor(
         }
     }
 
-    // Hent alle aktiviteter opprettet av en bestemt bruker
-    override suspend fun getAllActivitiesByCreator(creatorId: String): List<editActivity> {
-        val categoriesSnapshot = firestore.collection("category").get().await()
-        val allActivities = mutableListOf<editActivity>()
 
-        // Gå gjennom hver kategori (dokument)
+    override suspend fun getAllActivitiesByCreator(creatorId: String): List<EditActivity> {
+        val categoriesSnapshot = firestore.collection("category").get().await()
+        val allActivities = mutableListOf<EditActivity>()
+
+
         for (categoryDocument in categoriesSnapshot.documents) {
             val categoryName = categoryDocument.id
 
-            // Hent alle aktiviteter i denne kategorien som matcher creatorId
+
             val activitiesSnapshot = firestore.collection("category").document(categoryName)
                 .collection("activities")
                 .whereEqualTo("creatorId", creatorId)
                 .get().await()
 
-            // Mapper aktivitetene og legger til dem i listen
+
             activitiesSnapshot.documents.mapNotNullTo(allActivities) { document ->
-                val activity = document.toObject(editActivity::class.java)
+                val activity = document.toObject(EditActivity::class.java)
 
                 val fullLocation = activity?.location ?: "Ukjent"
                 val lastWord = fullLocation.substringAfterLast(" ")
@@ -86,7 +99,7 @@ class ActivityServiceImpl @Inject constructor(
                     id = document.id,
                     location = lastWord,
                     description = restOfAddress,
-                    category = categoryName  // Bruker kategoriens navn
+                    category = categoryName
                 )
             }
         }
@@ -94,7 +107,7 @@ class ActivityServiceImpl @Inject constructor(
         return allActivities
     }
 
-    // Hent alle kategorier
+
     override suspend fun getCategories(): List<String> {
         val snapshot = firestore.collection("category").get().await()
         val categories = snapshot.documents.map { document ->
@@ -103,10 +116,9 @@ class ActivityServiceImpl @Inject constructor(
         return categories.sortedByDescending { it == "Forslag" }
     }
 
-    override suspend fun updateActivity(category: String, newCategory: String, activityId: String, updatedActivity: createActivity) {
-        // Check if the category has changed
+    override suspend fun updateActivity(category: String, newCategory: String, activityId: String, updatedActivity: CreateActivity) {
+
         if (category != newCategory) {
-            // Delete the activity from the old category
             firestore.collection("category")
                 .document(category)
                 .collection("activities")
@@ -114,10 +126,8 @@ class ActivityServiceImpl @Inject constructor(
                 .delete()
                 .await()
 
-            // Use the createActivity function to add the updated activity to the new category
             createActivity(newCategory, updatedActivity)
         } else {
-            // If the category hasn't changed, just update the activity in the current category
             firestore.collection("category")
                 .document(newCategory)
                 .collection("activities")
@@ -153,13 +163,10 @@ class ActivityServiceImpl @Inject constructor(
     }
 
 
-
-    // Hent alle kategorier og deres aktiviteter
     override suspend fun getActivitiesGroupedByCategory(): Map<String, List<Activity>> {
         val categoriesSnapshot = firestore.collection("category").get().await()
         val activitiesByCategory = mutableMapOf<String, List<Activity>>()
 
-        // Iterer over hver kategori, og hent aktiviteter
         for (categoryDoc in categoriesSnapshot.documents) {
             val categoryName = categoryDoc.id
             val activitiesSnapshot = firestore.collection("category")
@@ -183,8 +190,4 @@ class ActivityServiceImpl @Inject constructor(
             .delete()
             .await()
     }
-
-
-
-
 }
