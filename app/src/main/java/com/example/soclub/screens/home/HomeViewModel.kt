@@ -175,6 +175,9 @@ class HomeViewModel @Inject constructor(
     @SuppressLint("MissingPermission")
 
     fun getNearestActivities() {
+        // Sjekk om aktivitetene allerede er lastet inn for å unngå flere lastinger
+        if (hasLoadedNearestActivities) return
+
         _isLoading.value = true
         viewModelScope.launch {
             try {
@@ -208,7 +211,7 @@ class HomeViewModel @Inject constructor(
                 val nearestActivities = activitiesWithDistance.sortedBy { it.second }.take(10).map { it.first }
 
                 _activities.postValue(nearestActivities)
-                hasLoadedNearestActivities = true
+                hasLoadedNearestActivities = true // Oppdater variabelen for å markere at data er lastet
                 _hasLoadedActivities.postValue(true)
             } catch (e: Exception) {
                 _activities.postValue(emptyList())
@@ -218,6 +221,7 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
 
     private fun combineDateAndTime(date: com.google.firebase.Timestamp?, timeString: String): Date? {
         if (date == null || timeString.isEmpty()) return null
