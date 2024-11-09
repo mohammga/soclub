@@ -144,12 +144,20 @@
     <string name="unregister">Meld deg ut</string>
 
 
+
+
     <!-- aktivityDetalierscreen  -->
     <string name="own_activity">Egen aktivitet</string>
 
-
-
     <string name="error_age_required">Alder er påkrevd</string>
+
+    <!-- AdsScreen  -->
+    <string name="ingen_publiserte_annonser">Du har ingen publiserte annonser</string>
+    <string name="Endre_annonse">Endre annonse</string>
+
+
+
+
 
     <!-- newaktiviti  -->
     <string name="create_activity">Opprett Aktivitet</string>
@@ -270,10 +278,40 @@
     <string name="error_loading_kommuner">Kunne ikke laste inn kommuner. Vennligst prøv igjen senere.\n</string>
     <string name="error_image_upload_failed">Kunne ikke laste opp bilde</string>
     <string name="error_creating_activity">Kunne ikke lage aktiviteten</string>
+
     <string name="registration_success_login">Registrering vellykket, logger inn som %1$s\n</string>
     <string name="success_login">Logger inn som %1$s\n</string>
     <string name="sign_out_success">Du har logget ut</string>
     <string name="activity_created_success">Aktivitet opprettet vellykket</string>
     <string name="activity_updated_success">Aktiviteten ble oppdatert vellykket</string>
+
+    <string name="error_message">Det skjedde en feil. Vennligst prøv igjen senere</string>
+    <string name="select_start_time">Velg starttidspunkt</string>
+    <string name="choose_Dato">Velg dato</string>
+    <string name="Aktive">Aktive</string>
+    <string name="Kansellerte">Kansellerte</string>
+    <string name="No_Aktivirty_is_activ">Det er ingen aktiviteter som er aktive</string>
+    <string name="No_Aktivirty_is_cancelled">Det er ingen aktiviteter som er kansellerte</string>
+    <string name="kanseller">Kanseller</string>
+    <string name="filter_by_area">Filtrer etter område</string>
+    <string name="Show_hits">Vis treff</string>
+    <string name="Reset">Nullstill</string>
+    <string name="No_Aktivirty_is_Near">Ingen aktiviteter tilgjengelig for Nærme Aktiviteter</string>
+    <string name="choose_start_time">Velg starttidspunkt</string>
+    <string name="you_must_fyll_the_titel">Du må fylle inn tittel</string>
+    <string name="no_connection">Ingen internett forbindelse</string>
+    <string name="try_again">Prøv igjen</string>
+    <string name="no_notifications">Ingen varslinger</string>
+    <string name="delete_Notification">Delete Notification</string>
+    <string name="no_title">Ingen tittel</string>
+
+
+    <string name="registration_successful">Påmeldingen var vellykket.</string>
+    <string name="registration_successful_filled">Påmeldingen var vellykket. Alle plasser er nå fylt opp.</string>
+    <string name="unregistered_successful">Du har nå meldt deg ut av aktiviteten.</string>
+    <string name="delete">Slett</string>
+    <string name="unknown_eror">En ukjent feil oppsto</string>
+    <string name="unknown_title">Ukjent titte</string>
+
 
 </resources>

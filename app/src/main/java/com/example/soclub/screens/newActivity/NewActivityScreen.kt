@@ -313,6 +313,11 @@ fun LocationField(
                 }
             },
             singleLine = true,
+
+            //placeholder = { Text("Sted") },
+           // placeholder = { Text(stringResource(R.string.location_label)) },
+            //modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+
             isError = error != null,
             supportingText = {
                 if (error == null) {
@@ -377,6 +382,9 @@ fun AddressField(
                 .menuAnchor()
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
+            //placeholder = { Text(stringResource(id = R.string.address_label)) },
+            //modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            //singleLine = true,
             enabled = isEnabled,
             trailingIcon = {
                 if (suggestions.isNotEmpty()) {
@@ -426,6 +434,8 @@ fun PostalCodeField(value: String, error: String?) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
+        //placeholder = { Text(stringResource(id = R.string.postal_code_label)) },
+        //modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         singleLine = true,
         readOnly = true,
@@ -510,6 +520,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
     Box {
         OutlinedTextField(
             value = value,
+            //value = if (value.isNotEmpty()) value else stringResource(R.string.choose_start_time),
             onValueChange = {},
             placeholder = { Text("Starttidspunkt") },
             label = { Text("Starttidspunkt") },

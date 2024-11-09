@@ -63,6 +63,7 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
                             text = errorMessage ?: "An unknown error occurred",
+                            //text = errorMessage ?: stringResource(R.string.unknown_eror),
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -111,7 +112,19 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
 
                             SaveButton(
                                 onClick = {
+
                                     viewModel.onSaveProfileClick(navController, context)
+
+                                    //viewModel.onSaveProfileClick(navController)
+                                    if (uiState.firstnameError == null && uiState.lastnameError == null) {
+                                        coroutineScope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                message = "Personlig info endret"
+
+                                            )
+                                        }
+                                    }
+
                                 },
                                 enabled = uiState.isDirty
                             )

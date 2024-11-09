@@ -197,10 +197,25 @@ fun EditActivityScreen(
     }
 
 
+@Composable
+fun SaveChangesButton(navController: NavController, viewModel: EditActivityViewModel, category: String, activityId: String) {
+    Button(
+        onClick = { viewModel.onSaveClick(navController, category, activityId) },
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(stringResource(R.string.save_changes_button))
+    }
+}
 
-
-
-
+@Composable
+fun DeleteButton(navController: NavController, viewModel: EditActivityViewModel, category: String, activityId: String) {
+    Button(
+        onClick = { viewModel.onDeleteClick(navController, category, activityId) },
+        modifier = Modifier.fillMaxWidth(1f),
+        colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.error)
+    ) {
+        Text(stringResource(R.string.delete))
+    }
 }
 
 @Composable
@@ -296,6 +311,7 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+
 fun LocationField(
     initialValue: String,
     onNewValue: (String) -> Unit,
@@ -359,10 +375,23 @@ fun LocationField(
             }
         }
     }
-}
+
+//fun LocationField(value: String, onNewValue: (String) -> Unit) {
+    //OutlinedTextField(
+        //value = value,
+        //onValueChange = { onNewValue(it) },
+        //placeholder = { Text(stringResource(R.string.location_label)) },
+        //modifier = Modifier
+            //.fillMaxWidth()
+            //.padding(vertical = 8.dp),
+        //singleLine = true
+   // )
+
+//}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+
 fun AddressField(
     initialValue: String,
     onNewValue: (String) -> Unit,
@@ -430,7 +459,18 @@ fun AddressField(
             }
         }
     }
-}
+
+//fun AddressField(value: String, onNewValue: (String) -> Unit) {
+    //OutlinedTextField(
+        //value = value,
+        //onValueChange = { onNewValue(it) },
+        //placeholder = { Text(stringResource(R.string.address_label)) },
+        //modifier = Modifier
+            //.fillMaxWidth()
+            //.padding(vertical = 8.dp),
+        //singleLine = true
+    //)
+//}
 
 @Composable
 fun PostalCodeField(value: String, error: String?) {
@@ -439,6 +479,9 @@ fun PostalCodeField(value: String, error: String?) {
         onValueChange = {},
         label = { Text(stringResource(id = R.string.postal_code_label)) },
         placeholder = { Text("Postnummer") },
+       // onValueChange = { onNewValue(it) },
+        //placeholder = { Text(stringResource(R.string.postal_code_label)) },
+
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
@@ -461,7 +504,6 @@ fun PostalCodeField(value: String, error: String?) {
 fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = value)
     val isDatePickerVisible = remember { mutableStateOf(false) }
-
     val formattedDate = if (value != 0L) {
         SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
     } else {
@@ -512,9 +554,23 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
             ) {
                 DatePicker(state = datePickerState)
             }
-        }
-    }
-}
+    //Box(
+        //modifier = Modifier
+            //.fillMaxWidth()
+            //.padding(vertical = 8.dp)
+            //.clickable { datePickerDialog.show() }
+            //.border(1.dp, MaterialTheme.colorScheme.primary)
+            //.padding(16.dp),
+        //contentAlignment = Alignment.Center
+    //) {
+        //val formattedDate = if (value != 0L) {
+            //SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
+        //} else {
+            //stringResource(id = R.string.choose_Dato)
+
+        //}
+    //}
+//}
 
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -522,7 +578,6 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
 fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) {
     val isTimePickerVisible = remember { mutableStateOf(false) }
     val timePickerState = rememberTimePickerState()
-
     Box {
         OutlinedTextField(
             value = value,
@@ -583,9 +638,22 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
                     }
                 }
             }
-        }
-    }
-}
+
+    //Box(
+        //modifier = Modifier
+            //.fillMaxWidth()
+            //.padding(vertical = 8.dp)
+            //.clickable { timePickerDialog.show() }
+            //.border(1.dp, MaterialTheme.colorScheme.primary)
+            //.padding(16.dp),
+        //contentAlignment = Alignment.Center
+    //) {
+        //val formattedTime = if (value.isNotEmpty()) {
+            //value
+        //} else {
+            //stringResource(id = R.string.choose_start_time)
+
+        //}}}
 
 @Composable
 fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: String?) {

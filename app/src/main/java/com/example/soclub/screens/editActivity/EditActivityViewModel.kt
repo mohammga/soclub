@@ -123,6 +123,7 @@ class EditActivityViewModel @Inject constructor(
 
 
     // Functions to handle input changes
+
     fun onTitleChange(newValue: String) {
         uiState.value = uiState.value.copy(title = newValue, titleError = null)
     }

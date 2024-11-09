@@ -458,6 +458,7 @@ fun ElevatedCardExample(icon: androidx.compose.ui.graphics.vector.ImageVector) {
             contentAlignment = Alignment.Center
         ) {
             Icon(
+
                 imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(30.dp)
