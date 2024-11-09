@@ -75,10 +75,9 @@ fun ActivityDetailScreen(
     val isLoading = viewModel.isLoading.collectAsState().value
     val errorMessage = viewModel.errorMessage.collectAsState().value
     val context = LocalContext.current
-
-    // Collect isCreator from ViewModel
     val isCreator = viewModel.isCreator.collectAsState().value
 
+    // Sanntidsoppdatering: Laster aktiviteten hver gang `activityId` eller `category` endres
     LaunchedEffect(activityId, category) {
         if (activityId != null && category != null) {
             viewModel.loadActivityWithStatus(category, activityId)
@@ -89,19 +88,18 @@ fun ActivityDetailScreen(
         content = {
             when {
                 isLoading -> {
-                    // Display loading indicator
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
                 }
                 errorMessage != null -> {
-                    // Display error message
+                    // Viser feilmelding hvis noe går galt
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(text = errorMessage, color = Color.Red, fontSize = 16.sp)
                     }
                 }
                 else -> {
-                    // Display content when loaded without errors
+                    // Innhold når data er lastet uten feil
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.Start
@@ -137,6 +135,7 @@ fun ActivityDetailScreen(
         }
     )
 }
+
 
 fun showToast(context: Context, isRegistering: Boolean, activity: Activity?, currentParticipants: Int) {
     val maxParticipants = activity?.maxParticipants ?: 0
@@ -205,10 +204,8 @@ fun ActivityDetailsContent(
 
         ActivityDescription(activity?.description ?: stringResource(R.string.unknown_description))
 
-        // Send location and context to ActivityGPSImage
         ActivityGPSImage(context = context, destinationLocation = fullLocation)
 
-        // **Pass isCreator to ActivityRegisterButton**
         ActivityRegisterButton(
             isRegistered = isRegistered,
             isCreator = isCreator,
