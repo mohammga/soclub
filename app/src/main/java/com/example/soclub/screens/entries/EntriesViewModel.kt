@@ -1,6 +1,7 @@
 package com.example.soclub.screens.entries
 
 import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soclub.models.Activity
@@ -82,6 +83,9 @@ class EntriesScreenViewModel @Inject constructor(
                     activityTitle = activityTitle,
                     userId = userId
                 )
+
+                // Vis Toast-melding
+                Toast.makeText(context, "Aktivitet kansellert", Toast.LENGTH_LONG).show()
             }
         }
     }
