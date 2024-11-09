@@ -144,7 +144,7 @@ class EditProfileViewModel @Inject constructor(
             try {
                 accountService.updateProfile(firstname = firstname, lastname = lastname, imageUrl = imageUrl) { error ->
                     if (error == null) {
-                        Toast.makeText(context, "Profilinformasjon ble endret", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, R.string.profile_han_been_changed, Toast.LENGTH_SHORT).show()
                         viewModelScope.launch {
                             delay(2000)
                             navController.navigate("profile") {

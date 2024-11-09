@@ -52,13 +52,13 @@ fun Tabs(selectedTab: Int, setSelectedTab: (Int) -> Unit) {
         }
     ) {
         Tab(
-            text = { stringResource(R.string.Aktive) },
+            text = { Text(stringResource(R.string.Aktive)) },
             selected = selectedTab == 0,
             onClick = { setSelectedTab(0) }
         )
 
         Tab(
-            text = { stringResource(R.string.Kansellerte) },
+            text = { Text(stringResource(R.string.cancelled)) },
             selected = selectedTab == 1,
             onClick = { setSelectedTab(1) }
         )
@@ -115,6 +115,7 @@ fun CancelledEntriesList(navController: NavHostController, viewModel: EntriesScr
         }
     } else if (cancelledActivities.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            //Text(text = "Det er ingen aktiviteter som er kansellerte", modifier = Modifier.padding(16.dp))
             Text(stringResource(R.string.No_Aktivirty_is_cancelled),modifier = Modifier.padding(16.dp))
         }
     } else {
@@ -185,10 +186,8 @@ fun CancelledEntryItem(
         EventImage(imageUrl)
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title ?: "Ukjent tittel", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(text = title ?: stringResource(R.string.unknown_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             DateDisplay(date = date, time = time)
-            //Text(text = title ?: stringResource(R.string.unknown_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            //DateDisplay(date = date)
             Spacer(modifier = Modifier.height(16.dp))
             HorizontalDivider(thickness = 1.dp)
         }
@@ -221,7 +220,7 @@ fun DateDisplay(date: Timestamp?, time: String?) {
         val sdf = SimpleDateFormat("EEEE, d. MMMM yyyy", Locale("no", "NO"))
         val dateStr = sdf.format(it.toDate())
         dateStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-    } ?: "Ukjent dato"
+    } ?: stringResource(R.string.unknown_dato)
 
     // Concatenate the date and time if both are available
     val displayText = if (time != null) {
@@ -247,6 +246,6 @@ fun CancelButton(onClick: () -> Unit) {
             .fillMaxWidth()
             .height(32.dp)
     ) {
-        Text(stringResource(R.string.kanseller))
+        Text(text = stringResource(R.string.kanseller))
     }
 }

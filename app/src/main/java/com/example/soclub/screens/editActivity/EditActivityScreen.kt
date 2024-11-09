@@ -189,7 +189,7 @@ fun EditActivityScreen(
                         .fillMaxWidth()
                         .height(48.dp),
                 ) {
-                    Text(text = "Lagre endringer")
+                    Text(text = stringResource(R.string.save_changes_button))
                 }
             }
 
@@ -197,25 +197,10 @@ fun EditActivityScreen(
     }
 
 
-@Composable
-fun SaveChangesButton(navController: NavController, viewModel: EditActivityViewModel, category: String, activityId: String) {
-    Button(
-        onClick = { viewModel.onSaveClick(navController, category, activityId) },
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(stringResource(R.string.save_changes_button))
-    }
-}
 
-@Composable
-fun DeleteButton(navController: NavController, viewModel: EditActivityViewModel, category: String, activityId: String) {
-    Button(
-        onClick = { viewModel.onDeleteClick(navController, category, activityId) },
-        modifier = Modifier.fillMaxWidth(1f),
-        colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.error)
-    ) {
-        Text(stringResource(R.string.delete))
-    }
+
+
+
 }
 
 @Composable
@@ -311,7 +296,6 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-
 fun LocationField(
     initialValue: String,
     onNewValue: (String) -> Unit,
@@ -334,7 +318,7 @@ fun LocationField(
                 expanded = newValue.text.isNotEmpty() && suggestions.isNotEmpty()
             },
             label = { Text(stringResource(id = R.string.location_label)) },
-            placeholder = { Text("Sted") },
+            placeholder = { Text(stringResource(R.string.location_label)) },
             modifier = Modifier
                 .menuAnchor()
                 .fillMaxWidth()
@@ -375,23 +359,10 @@ fun LocationField(
             }
         }
     }
-
-//fun LocationField(value: String, onNewValue: (String) -> Unit) {
-    //OutlinedTextField(
-        //value = value,
-        //onValueChange = { onNewValue(it) },
-        //placeholder = { Text(stringResource(R.string.location_label)) },
-        //modifier = Modifier
-            //.fillMaxWidth()
-            //.padding(vertical = 8.dp),
-        //singleLine = true
-   // )
-
-//}
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-
 fun AddressField(
     initialValue: String,
     onNewValue: (String) -> Unit,
@@ -417,7 +388,7 @@ fun AddressField(
                 }
             },
             label = { Text(stringResource(id = R.string.address_label)) },
-            placeholder = { Text("Adresse") },
+            placeholder = { Text(stringResource(id = R.string.address_label)) },
             modifier = Modifier
                 .menuAnchor()
                 .fillMaxWidth()
@@ -459,18 +430,7 @@ fun AddressField(
             }
         }
     }
-
-//fun AddressField(value: String, onNewValue: (String) -> Unit) {
-    //OutlinedTextField(
-        //value = value,
-        //onValueChange = { onNewValue(it) },
-        //placeholder = { Text(stringResource(R.string.address_label)) },
-        //modifier = Modifier
-            //.fillMaxWidth()
-            //.padding(vertical = 8.dp),
-        //singleLine = true
-    //)
-//}
+}
 
 @Composable
 fun PostalCodeField(value: String, error: String?) {
@@ -478,10 +438,7 @@ fun PostalCodeField(value: String, error: String?) {
         value = value,
         onValueChange = {},
         label = { Text(stringResource(id = R.string.postal_code_label)) },
-        placeholder = { Text("Postnummer") },
-       // onValueChange = { onNewValue(it) },
-        //placeholder = { Text(stringResource(R.string.postal_code_label)) },
-
+        placeholder = { Text (stringResource(id = R.string.postal_code_label)) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
@@ -504,6 +461,7 @@ fun PostalCodeField(value: String, error: String?) {
 fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = value)
     val isDatePickerVisible = remember { mutableStateOf(false) }
+
     val formattedDate = if (value != 0L) {
         SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
     } else {
@@ -514,7 +472,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
         OutlinedTextField(
             value = formattedDate,
             onValueChange = {},
-            label = { Text("Dato") },
+            label = { Text(stringResource(R.string.date_label)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
@@ -522,7 +480,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
             isError = error != null,
             supportingText = {
                 if (error == null) {
-                    Text("Velg dato for aktiviteten")
+                    Text(stringResource(R.string.choose_activity_Dato))
                 } else {
                     Text(text = error, color = MaterialTheme.colorScheme.error)
                 }
@@ -548,29 +506,15 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
                             isDatePickerVisible.value = false
                         }
                     ) {
-                        Text("OK")
+                        Text(text = stringResource(R.string.ok))
                     }
                 }
             ) {
                 DatePicker(state = datePickerState)
             }
-    //Box(
-        //modifier = Modifier
-            //.fillMaxWidth()
-            //.padding(vertical = 8.dp)
-            //.clickable { datePickerDialog.show() }
-            //.border(1.dp, MaterialTheme.colorScheme.primary)
-            //.padding(16.dp),
-        //contentAlignment = Alignment.Center
-    //) {
-        //val formattedDate = if (value != 0L) {
-            //SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
-        //} else {
-            //stringResource(id = R.string.choose_Dato)
-
-        //}
-    //}
-//}
+        }
+    }
+}
 
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -578,12 +522,13 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
 fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) {
     val isTimePickerVisible = remember { mutableStateOf(false) }
     val timePickerState = rememberTimePickerState()
+
     Box {
         OutlinedTextField(
             value = value,
             onValueChange = {},
-            placeholder = { Text("Starttidspunkt") },
-            label = { Text("Starttidspunkt") },
+            placeholder = { Text(stringResource(R.string.start_time_label)) },
+            label = { Text(stringResource(R.string.start_time_label)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
@@ -591,7 +536,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
             isError = error != null,
             supportingText = {
                 if (error == null) {
-                    Text("Velg starttid for aktiviteten")
+                    Text(stringResource(R.string.choose_activity_starttime))
                 } else {
                     Text(text = error, color = MaterialTheme.colorScheme.error)
                 }
@@ -624,7 +569,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
                             horizontalArrangement = Arrangement.End
                         ) {
                             TextButton(onClick = { isTimePickerVisible.value = false }) {
-                                Text("Avbryt")
+                                Text(stringResource(R.string.cancel))
                             }
                             TextButton(onClick = {
                                 val hour = timePickerState.hour
@@ -632,28 +577,15 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
                                 onNewValue(String.format("%02d:%02d", hour, minute))
                                 isTimePickerVisible.value = false
                             }) {
-                                Text("OK")
+                                Text(stringResource(R.string.ok))
                             }
                         }
                     }
                 }
             }
-
-    //Box(
-        //modifier = Modifier
-            //.fillMaxWidth()
-            //.padding(vertical = 8.dp)
-            //.clickable { timePickerDialog.show() }
-            //.border(1.dp, MaterialTheme.colorScheme.primary)
-            //.padding(16.dp),
-        //contentAlignment = Alignment.Center
-    //) {
-        //val formattedTime = if (value.isNotEmpty()) {
-            //value
-        //} else {
-            //stringResource(id = R.string.choose_start_time)
-
-        //}}}
+        }
+    }
+}
 
 @Composable
 fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: String?) {
@@ -739,7 +671,8 @@ fun ImageUploadSection(
             // Permission denied, show a message or handle accordingly
             Toast.makeText(
                 context,
-                "Tillatelse er nødvendig for å velge et bilde.",
+
+                R.string.galleriPermissionisrequired,
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -767,8 +700,8 @@ fun ImageUploadSection(
     if (showPermissionDialog) {
         AlertDialog(
             onDismissRequest = { showPermissionDialog = false },
-            title = { Text("Tillat tilgang til galleri") },
-            text = { Text("Denne appen trenger tilgang til galleriet ditt for å velge et bilde.") },
+            title = { Text(stringResource(R.string.allow_premision_gallery)) },
+            text = { Text(stringResource(R.string.this_app_need_gallery_premision))},
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -776,12 +709,12 @@ fun ImageUploadSection(
                         permissionLauncher.launch(galleryPermission)
                     }
                 ) {
-                    Text("OK")
+                    Text(stringResource(R.string.ok))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showPermissionDialog = false }) {
-                    Text("Avbryt")
+                    Text(stringResource( R.string.cancel))
                 }
             }
         )

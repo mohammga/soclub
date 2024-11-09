@@ -32,7 +32,7 @@ fun NoInternetScreen() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Ingen internett forbindelse",
+                text = stringResource(R.string.no_connection),
                 style = MaterialTheme.typography.headlineSmall
             )
             Spacer(modifier = Modifier.height(16.dp))

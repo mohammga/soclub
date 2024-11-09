@@ -18,6 +18,7 @@ import android.util.Log
 import android.widget.Toast
 import com.example.soclub.models.CreateActivity
 import android.content.Context
+import androidx.compose.material.Text
 
 data class EditActivityState(
     val title: String = "",
@@ -297,7 +298,7 @@ class EditActivityViewModel @Inject constructor(
         var startTimeError: String? = null
 
         if (uiState.value.title.isBlank()) {
-            titleError = "Du må fylle inn tittel"
+            titleError ="Du må fylle inn tittel"
             hasError = true
         }
         if (uiState.value.description.isBlank()) {
