@@ -1,15 +1,16 @@
 package com.example.soclub.screens.signin
 
+import android.content.Context
+import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.example.soclub.common.ext.isValidEmail
-
-import com.example.soclub.service.AccountService
-import com.example.soclub.components.navigation.AppScreens
 import com.example.soclub.R
+import com.example.soclub.common.ext.isValidEmail
+import com.example.soclub.components.navigation.AppScreens
+import com.example.soclub.service.AccountService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -39,7 +40,7 @@ class SigninViewModel @Inject constructor(private val accountService: AccountSer
         uiState.value = uiState.value.copy(password = newValue, passwordError = null)
     }
 
-    fun onLoginClick(navController: NavController) {
+    fun onLoginClick(navController: NavController, context: Context) {
         var hasError = false
         var emailError: Int? = null
         var passwordError: Int? = null
@@ -68,6 +69,12 @@ class SigninViewModel @Inject constructor(private val accountService: AccountSer
             try {
                 accountService.authenticateWithEmail(email, password) { error ->
                     if (error == null) {
+                        // Show personalized success toast and navigate to HOME screen
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.success_login, email),
+                            Toast.LENGTH_LONG
+                        ).show()
                         navController.navigate(AppScreens.HOME.name) {
                             popUpTo(AppScreens.SIGNIN.name) { inclusive = true }
                         }
@@ -80,7 +87,4 @@ class SigninViewModel @Inject constructor(private val accountService: AccountSer
             }
         }
     }
-
 }
-
-

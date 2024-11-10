@@ -1,26 +1,19 @@
 package com.example.soclub.screens.signup
 
+import android.content.Context
+import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.example.soclub.R
-import com.example.soclub.common.ext.containsDigit
-import com.example.soclub.common.ext.containsLowerCase
-import com.example.soclub.common.ext.containsNoWhitespace
-import com.example.soclub.common.ext.containsUpperCase
-import com.example.soclub.common.ext.isAgeNumeric
-import com.example.soclub.common.ext.isAgeValid
-import com.example.soclub.common.ext.isPasswordLongEnough
-import com.example.soclub.common.ext.isValidEmail
-import com.example.soclub.common.ext.isValidName
+import com.example.soclub.common.ext.*
 import com.example.soclub.service.AccountService
 import com.example.soclub.components.navigation.AppScreens
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
 
 data class RegistrationNewUserState(
     val email: String = "",
@@ -62,7 +55,7 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
         uiState.value = uiState.value.copy(age = newValue, ageError = null)
     }
 
-    fun onSignUpClick(navController: NavController) {
+    fun onSignUpClick(navController: NavController, context: Context) {
         var hasError = false
         var firstNameError: Int? = null
         var lastNameError: Int? = null
@@ -139,8 +132,20 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
         viewModelScope.launch {
             try {
                 val convertedAge = uiState.value.age.toIntOrNull() ?: 0
-                accountService.createEmailAccount(uiState.value.email, uiState.value.password, uiState.value.firstname, uiState.value.lastname, convertedAge) { error ->
+                accountService.createEmailAccount(
+                    uiState.value.email,
+                    uiState.value.password,
+                    uiState.value.firstname,
+                    uiState.value.lastname,
+                    convertedAge
+                ) { error ->
                     if (error == null) {
+                        // Show success toast and navigate to HOME screen
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.registration_success_login, uiState.value.email),
+                            Toast.LENGTH_LONG
+                        ).show()
                         navController.navigate(AppScreens.HOME.name)
                     } else if (error.message == "User already registered") {
                         uiState.value = uiState.value.copy(generalError = R.string.error_user_already_registered)
@@ -153,6 +158,4 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
             }
         }
     }
-
-
 }

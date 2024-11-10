@@ -1,6 +1,7 @@
 package com.example.soclub.screens.resetPassword
 
 import android.content.Context
+import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -30,7 +31,7 @@ class ResetPasswordViewModel @Inject constructor(private val accountService: Acc
         uiState.value = uiState.value.copy(email = newValue, emailError = null)
     }
 
-    fun onForgotPasswordClick() {
+    fun onForgotPasswordClick(context: Context) {
         var emailError: Int? = null
 
         if (email.isBlank()) {
@@ -47,10 +48,12 @@ class ResetPasswordViewModel @Inject constructor(private val accountService: Acc
         viewModelScope.launch {
             try {
                 accountService.sendPasswordResetEmail(email) { error ->
-                    uiState.value = if (error == null) {
-                        uiState.value.copy(statusMessage = R.string.password_reset_email_sent)
+                    if (error == null) {
+                        // Show success toast and reset email input
+                        Toast.makeText(context, context.getString(R.string.password_reset_email_sent), Toast.LENGTH_LONG).show()
+                        uiState.value = ResetPasswordUiState(statusMessage = R.string.password_reset_email_sent)
                     } else {
-                        uiState.value.copy(statusMessage = R.string.error_could_not_send_reset_email)
+                        uiState.value = uiState.value.copy(statusMessage = R.string.error_could_not_send_reset_email)
                     }
                 }
             } catch (e: Exception) {

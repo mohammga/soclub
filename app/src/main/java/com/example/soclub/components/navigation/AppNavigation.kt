@@ -35,6 +35,7 @@ import com.example.soclub.screens.resetPassword.ResetPasswordScreen
 import com.example.soclub.screens.signin.SigninScreen
 import com.example.soclub.screens.start.StartScreen
 import com.example.soclub.screens.signup.SignupScreen
+import com.example.soclub.screens.termsPrivacy.TermsPrivacyScreen
 import com.example.soclub.service.impl.AccountServiceImpl
 import com.example.soclub.service.module.FirebaseModule
 
@@ -74,6 +75,10 @@ fun AppNavigation(navController: NavHostController, notificationsViewModel: Noti
                 }
                 currentScreen == AppScreens.SIGNUP.name -> {
                     TopBar(navController, title = "", showBackButton = true)
+                }
+
+                currentScreen == AppScreens.TERMS_PRIVACY.name -> {
+                    TopBar(navController, title = "Vilkår for bruk og personvern", showBackButton = true)
                 }
                 currentScreen == AppScreens.SIGNIN.name -> {
                     TopBar(navController, title = "", showBackButton = true)
@@ -119,7 +124,8 @@ fun AppNavigation(navController: NavHostController, notificationsViewModel: Noti
                 AppScreens.SIGNIN.name,
                 AppScreens.SIGNUP.name,
                 AppScreens.START.name,
-                AppScreens.RESET_PASSWORD.name
+                AppScreens.RESET_PASSWORD.name,
+                AppScreens.TERMS_PRIVACY.name
             )
 
             if (currentScreen !in screensWithoutBottomBar) {
@@ -165,7 +171,7 @@ fun AppNavigation(navController: NavHostController, notificationsViewModel: Noti
             composable(AppScreens.NOTIFICATIONS.name) { NotificationsScreen(navController) }
             composable(AppScreens.NEW_ACTIVITY.name) { NewActivityScreen(navController) }
             composable(AppScreens.ADS.name) { AdsScreen(navController) }
-
+            composable(AppScreens.TERMS_PRIVACY.name) { TermsPrivacyScreen(navController) }
             composable(
                 route = "editActivity/{category}/{activityId}",
                 arguments = listOf(

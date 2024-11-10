@@ -1,8 +1,10 @@
 package com.example.soclub.screens.editActivity
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResultRegistryOwner
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -21,6 +23,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
@@ -30,6 +33,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.core.app.ActivityCompat
+import androidx.core.app.ComponentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -37,6 +42,11 @@ import com.example.soclub.R
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.*
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import android.widget.Toast
+import androidx.core.content.ContextCompat
 
 @Composable
 fun EditActivityScreen(
@@ -46,6 +56,7 @@ fun EditActivityScreen(
     category: String
 ) {
     val uiState by viewModel.uiState
+    val context = LocalContext.current
 
     val locationSuggestions by remember { derivedStateOf { uiState.locationSuggestions } }
     val addressSuggestions by remember { derivedStateOf { uiState.addressSuggestions } }
@@ -172,7 +183,7 @@ fun EditActivityScreen(
 
             item {
                 Button(
-                    onClick = { viewModel.onSaveClick(navController, activityId, category) },
+                    onClick = { viewModel.onSaveClick(navController, activityId, category, context) }, // Pass context here
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
@@ -627,6 +638,19 @@ fun ImageUploadSection(
     onImageSelected: (Uri?) -> Unit,
     error: String? = null
 ) {
+    val context = LocalContext.current
+
+    // Determine the appropriate permission for the Android version
+    val galleryPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        Manifest.permission.READ_MEDIA_IMAGES
+    } else {
+        Manifest.permission.READ_EXTERNAL_STORAGE
+    }
+
+    // State to track permission request dialog
+    var showPermissionDialog by remember { mutableStateOf(false) }
+
+    // Launcher to open the gallery
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -635,13 +659,73 @@ fun ImageUploadSection(
         }
     }
 
+    // Launcher to request permission
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Permission granted, open the gallery
+            galleryLauncher.launch("image/*")
+        } else {
+            // Permission denied, show a message or handle accordingly
+            Toast.makeText(
+                context,
+                "Tillatelse er nødvendig for å velge et bilde.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    // Function to handle image click
+    val handleImageClick = {
+        when {
+            ContextCompat.checkSelfPermission(context, galleryPermission) == PackageManager.PERMISSION_GRANTED -> {
+                // Permission granted, open the gallery
+                galleryLauncher.launch("image/*")
+            }
+            shouldShowRequestPermissionRationale(context, galleryPermission) -> {
+                // Show rationale dialog
+                showPermissionDialog = true
+            }
+            else -> {
+                // Directly request permission
+                permissionLauncher.launch(galleryPermission)
+            }
+        }
+    }
+
+    // Show rationale dialog if needed
+    if (showPermissionDialog) {
+        AlertDialog(
+            onDismissRequest = { showPermissionDialog = false },
+            title = { Text("Tillat tilgang til galleri") },
+            text = { Text("Denne appen trenger tilgang til galleriet ditt for å velge et bilde.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showPermissionDialog = false
+                        permissionLauncher.launch(galleryPermission)
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPermissionDialog = false }) {
+                    Text("Avbryt")
+                }
+            }
+        )
+    }
+
+    // UI for the ImageUploadSection
     Column(modifier = Modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(300.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .clickable { galleryLauncher.launch("image/*") }
+                .clickable { handleImageClick() }
                 .padding(vertical = 8.dp)
         ) {
             if (selectedImageUri != null) {
@@ -673,7 +757,7 @@ fun ImageUploadSection(
             text = stringResource(id = R.string.change_ad_picture),
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
-            modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
+            modifier = Modifier.clickable { handleImageClick() }
         )
 
         if (selectedImageUri != null) {
@@ -710,14 +794,14 @@ fun ImageUploadSection(
                         color = Color.Gray,
                         fontSize = 14.sp
                     ),
-                    modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
+                    modifier = Modifier.clickable { handleImageClick() }
                 )
 
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = stringResource(id = R.string.upload_new_picture),
                     tint = Color.Gray,
-                    modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
+                    modifier = Modifier.clickable { handleImageClick() }
                 )
             }
         }
@@ -726,5 +810,15 @@ fun ImageUploadSection(
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = it, color = MaterialTheme.colorScheme.error)
         }
+    }
+}
+
+// Helper function to check if rationale should be shown
+@SuppressLint("RestrictedApi")
+fun shouldShowRequestPermissionRationale(context: Context, permission: String): Boolean {
+    return if (context is ActivityResultRegistryOwner) {
+        ActivityCompat.shouldShowRequestPermissionRationale(context as ComponentActivity, permission)
+    } else {
+        false
     }
 }
