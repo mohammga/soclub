@@ -61,7 +61,6 @@ fun EditActivityScreen(
     val locationSuggestions by remember { derivedStateOf { uiState.locationSuggestions } }
     val addressSuggestions by remember { derivedStateOf { uiState.addressSuggestions } }
 
-// Ensure locationConfirmed is managed based on UI state changes
     var locationConfirmed by remember { mutableStateOf(uiState.locationConfirmed) }
 
 

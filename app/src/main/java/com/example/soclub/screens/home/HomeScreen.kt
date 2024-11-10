@@ -176,11 +176,9 @@ fun CategoryActivitiesPager(
     val activities by viewModel.activities.observeAsState(emptyList())
     val hasLoaded by viewModel.hasLoadedActivities.observeAsState(false)
 
-    // Variabel som holder styr på om vi er på "Nærme Aktiviteter"-siden
     val isNearestActivitiesSelected = pagerState.currentPage < categories.size &&
             categories[pagerState.currentPage] == "Nærme Aktiviteter"
 
-    // Kall getNearestActivities() kun hvis "Nærme Aktiviteter" er valgt
     LaunchedEffect(isNearestActivitiesSelected) {
         if (isNearestActivitiesSelected) {
             viewModel.getNearestActivities()

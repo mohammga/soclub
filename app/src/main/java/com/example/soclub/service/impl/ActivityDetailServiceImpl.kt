@@ -7,6 +7,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 import javax.inject.Inject
+import com.google.firebase.firestore.ListenerRegistration
+
 
 class ActivityDetailServiceImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
@@ -40,9 +42,6 @@ class ActivityDetailServiceImpl @Inject constructor(
             creatorId = creatorId // Sett 'creatorId' her
         )
     }
-
-
-
 
 
     override suspend fun isUserRegisteredForActivity(userId: String, activityId: String): Boolean {
@@ -103,8 +102,8 @@ class ActivityDetailServiceImpl @Inject constructor(
         return registrationRef.size()
     }
 
-    override fun listenToRegistrationUpdates(activityId: String, onUpdate: (Int) -> Unit) {
-        firestore.collection("registrations")
+    override fun listenToRegistrationUpdates(activityId: String, onUpdate: (Int) -> Unit): ListenerRegistration {
+        return firestore.collection("registrations")
             .whereEqualTo("activityId", activityId)
             .whereEqualTo("status", "aktiv")
             .addSnapshotListener { snapshot, error ->
@@ -118,6 +117,24 @@ class ActivityDetailServiceImpl @Inject constructor(
                 }
             }
     }
+
+    override fun listenForActivityUpdates(category: String, activityId: String, onUpdate: (Activity) -> Unit): ListenerRegistration {
+        return firestore.collection("category")
+            .document(category)
+            .collection("activities")
+            .document(activityId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    return@addSnapshotListener
+                }
+
+                val activity = snapshot.toObject(Activity::class.java)
+                if (activity != null) {
+                    onUpdate(activity)
+                }
+            }
+    }
+
 
 
 

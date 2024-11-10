@@ -13,11 +13,14 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.content.Context
 import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.example.soclub.utils.cancelNotificationForActivity
 import com.example.soclub.utils.enqueueSignUpNotification
 import com.example.soclub.utils.enqueueUnregistrationNotification
 import dagger.hilt.android.qualifiers.ApplicationContext
 import com.example.soclub.utils.scheduleNotificationForActivity
+import com.google.firebase.firestore.ListenerRegistration
 import java.util.Calendar
 
 
@@ -28,8 +31,13 @@ class ActivityDetailViewModel @Inject constructor(
     private val activityDetailService: ActivityDetailService
 ) : ViewModel() {
 
-    private val _activity = MutableStateFlow<Activity?>(null)
-    val activity: StateFlow<Activity?> = _activity
+    private val _activities = MutableLiveData<List<Activity>>()
+    val activities: LiveData<List<Activity>> = _activities
+
+    private val _currentParticipantsMap = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val currentParticipantsMap: StateFlow<Map<String, Int>> = _currentParticipantsMap
+
+    private var activitiesListener: ListenerRegistration? = null
 
     private val _isRegistered = MutableStateFlow(false)
     val isRegistered: StateFlow<Boolean> = _isRegistered
@@ -46,15 +54,38 @@ class ActivityDetailViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
-    // **Added StateFlow to indicate if the user is the creator**
     private val _isCreator = MutableStateFlow(false)
     val isCreator: StateFlow<Boolean> = _isCreator
+
+    // Listener for sanntidsoppdateringer av registreringer
+    private var registrationListener: ListenerRegistration? = null
+
+    private val _activity = MutableStateFlow<Activity?>(null)
+    val activity: StateFlow<Activity?> = _activity
+
+    private var activityListener: ListenerRegistration? = null
+
+
+
+    private suspend fun updateCurrentParticipantsMap(activities: List<Activity>) {
+        val participantsMap = mutableMapOf<String, Int>()
+        for (activity in activities) {
+            val count = activityDetailService.getRegisteredParticipantsCount(activity.id)
+            participantsMap[activity.id] = count
+        }
+        _currentParticipantsMap.value = participantsMap
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        registrationListener?.remove()
+        activityListener?.remove()  // Fjern aktivitetens lytter
+    }
 
     fun loadActivityWithStatus(category: String, activityId: String) {
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
-            delay(1000)
             try {
                 val loadedActivity = activityDetailService.getActivityById(category, activityId)
                 _activity.value = loadedActivity
@@ -64,15 +95,21 @@ class ActivityDetailViewModel @Inject constructor(
                 _isRegistered.value = registered
 
                 val userInfo = accountService.getUserInfo()
-
                 if (loadedActivity != null) {
-                    // Bruk 'creatorId' i stedet for 'createdBy'
                     _isCreator.value = loadedActivity.creatorId == userId
                     _canRegister.value = userInfo.age >= loadedActivity.ageGroup && !_isCreator.value
                 }
 
                 loadRegisteredParticipants(activityId)
-                activityDetailService.listenToRegistrationUpdates(activityId) { count ->
+
+                // Sett opp sanntidslytting på aktivitetens data
+                activityListener?.remove()  // Fjern eventuell tidligere lytter for å unngå duplikater
+                activityListener = activityDetailService.listenForActivityUpdates(category, activityId) { updatedActivity ->
+                    _activity.value = updatedActivity
+                }
+
+                // Sett opp sanntidslytting på antall deltakere
+                registrationListener = activityDetailService.listenToRegistrationUpdates(activityId) { count ->
                     _currentParticipants.value = count
                 }
 
@@ -83,14 +120,13 @@ class ActivityDetailViewModel @Inject constructor(
             }
         }
     }
-
-
     private fun loadRegisteredParticipants(activityId: String) {
         viewModelScope.launch {
             val count = activityDetailService.getRegisteredParticipantsCount(activityId)
             _currentParticipants.value = count
         }
     }
+
 
     fun updateRegistrationForActivity(activityId: String, isRegistering: Boolean) {
         viewModelScope.launch {
@@ -105,11 +141,8 @@ class ActivityDetailViewModel @Inject constructor(
                 if (currentActivity != null) {
                     loadRegisteredParticipants(activityId)
 
-                    // Convert date and time to milliseconds
                     val startTimeMillis = getActivityStartTimeInMillis(currentActivity)
-
                     if (isRegistering && startTimeMillis != null) {
-                        // Schedule notifications only for registration
                         scheduleNotificationForActivity(
                             context = context,
                             activityTitle = currentActivity.title,
@@ -117,25 +150,10 @@ class ActivityDetailViewModel @Inject constructor(
                             startTimeMillis = startTimeMillis,
                             userId = userId
                         )
-
-                        enqueueSignUpNotification(
-                            context = context,
-                            activityTitle = currentActivity.title,
-                            userId = userId
-                        )
-
+                        enqueueSignUpNotification(context, currentActivity.title, userId)
                     } else if (!isRegistering) {
-                        // Cancel existing notifications and send unregistration notification
-                        cancelNotificationForActivity(
-                            context = context,
-                            userId = userId,
-                            activityId = activityId
-                        )
-                        enqueueUnregistrationNotification(
-                            context = context,
-                            activityTitle = currentActivity.title,
-                            userId = userId
-                        )
+                        cancelNotificationForActivity(context, userId, activityId)
+                        enqueueUnregistrationNotification(context, currentActivity.title, userId)
                     }
                 }
             }
@@ -144,13 +162,11 @@ class ActivityDetailViewModel @Inject constructor(
 
 
 
-
     private fun getActivityStartTimeInMillis(activity: Activity): Long? {
-        val activityDate = activity.date?.toDate() ?: return null // Convert Timestamp to Date
+        val activityDate = activity.date?.toDate() ?: return null
         val startTime = activity.startTime
 
         return try {
-            // Assuming startTime is in "HH:mm" format
             val timeParts = startTime.split(":")
             val calendar = Calendar.getInstance().apply {
                 time = activityDate
@@ -159,7 +175,7 @@ class ActivityDetailViewModel @Inject constructor(
                 set(Calendar.SECOND, 0)
                 set(Calendar.MILLISECOND, 0)
             }
-            calendar.timeInMillis // Return combined date and time in milliseconds
+            calendar.timeInMillis
         } catch (e: Exception) {
             Log.e("ActivityDetailViewModel", "Invalid start time format: $startTime", e)
             null
