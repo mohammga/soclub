@@ -1,5 +1,8 @@
 package com.example.soclub.service.impl
 
+import android.app.Application
+import android.health.connect.datatypes.ExerciseRoute
+import android.location.Geocoder
 import com.example.soclub.models.Activity
 import com.example.soclub.models.CreateActivity
 import com.example.soclub.models.EditActivity
@@ -8,9 +11,17 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import com.google.firebase.firestore.ListenerRegistration
+import dagger.hilt.android.internal.Contexts.getApplication
+
+
+import android.location.Location
+
+import java.util.Locale
+
 
 class ActivityServiceImpl @Inject constructor(
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val application: Application
 ) : ActivityService {
 
     override fun listenForActivities(onUpdate: (List<Activity>) -> Unit): ListenerRegistration {
@@ -71,6 +82,39 @@ class ActivityServiceImpl @Inject constructor(
             )
         }
     }
+
+
+    override fun listenForNearestActivities(userLocation: Location, maxDistance: Float, onUpdate: (List<Activity>) -> Unit): ListenerRegistration {
+        return firestore.collectionGroup("activities")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    onUpdate(emptyList())
+                    return@addSnapshotListener
+                }
+
+                val activities = snapshot.documents.mapNotNull { doc ->
+                    val activity = doc.toObject(Activity::class.java)
+                    val location = Geocoder(application.applicationContext, Locale.getDefault())
+                        .getFromLocationName(activity?.location ?: "", 1)
+                        ?.firstOrNull()
+                        ?.let {
+                            Location("").apply {
+                                latitude = it.latitude
+                                longitude = it.longitude
+                            }
+                        }
+
+                    if (activity != null && location != null) {
+                        val distance = userLocation.distanceTo(location)
+                        if (distance <= maxDistance) {
+                            activity.copy(id = doc.id) // Legger til ID
+                        } else null
+                    } else null
+                }
+                onUpdate(activities)
+            }
+    }
+
 
 
     override suspend fun getAllActivitiesByCreator(creatorId: String): List<EditActivity> {

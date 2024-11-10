@@ -1,6 +1,7 @@
 // FirebaseModule.kt
 package com.example.soclub.service.module
 
+import android.app.Application
 import com.example.soclub.service.AccountService
 import com.example.soclub.service.ActivityService
 import com.example.soclub.service.ActivityDetailService
@@ -40,8 +41,11 @@ object FirebaseModule {
 
     @Provides
     @Singleton
-    fun provideActivityService(firestore: FirebaseFirestore): ActivityService {
-        return ActivityServiceImpl(firestore)
+    fun provideActivityService(
+        firestore: FirebaseFirestore,
+        application: Application
+    ): ActivityService {
+        return ActivityServiceImpl(firestore, application)
     }
 
     @Provides
