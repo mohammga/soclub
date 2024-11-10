@@ -14,4 +14,5 @@ enum class AppScreens {
     NOTIFICATIONS,
     RESET_PASSWORD,
     ADS,
+    TERMS_PRIVACY
 }

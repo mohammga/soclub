@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -233,8 +234,10 @@ fun PasswordField(value: String, onNewValue: (String) -> Unit, error: String?) {
 
 @Composable
 private fun SignUpButton(navController: NavController, viewModel: SignupViewModel) {
+    val context = LocalContext.current // Get the context
+
     Button(
-        onClick = { viewModel.onSignUpClick(navController) },
+        onClick = { viewModel.onSignUpClick(navController, context) }, // Pass context here
         modifier = Modifier
             .fillMaxWidth()
             .height(60.dp)
@@ -242,7 +245,6 @@ private fun SignUpButton(navController: NavController, viewModel: SignupViewMode
         Text(text = stringResource(id = R.string.register))
     }
 }
-
 @Composable
 fun SignInButton(navController: NavController) {
     OutlinedButton(

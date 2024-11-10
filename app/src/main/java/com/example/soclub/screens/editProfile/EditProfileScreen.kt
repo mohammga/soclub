@@ -1,8 +1,15 @@
 package com.example.soclub.screens.editProfile
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
+import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResultRegistryOwner
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -25,6 +32,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
@@ -53,7 +62,7 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                 errorMessage != null -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = errorMessage ?: "En ukjent feil oppsto",
+                            text = errorMessage ?: "An unknown error occurred",
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -147,6 +156,19 @@ fun ImageUploadSection(
     onImageSelected: (Uri?) -> Unit,
     error: String? = null
 ) {
+    val context = LocalContext.current
+
+    // Determine the appropriate permission for the Android version
+    val galleryPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        Manifest.permission.READ_MEDIA_IMAGES
+    } else {
+        Manifest.permission.READ_EXTERNAL_STORAGE
+    }
+
+    // State to track if the permission dialog should be shown
+    var showPermissionDialog by remember { mutableStateOf(false) }
+
+    // Launcher to open gallery
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -155,13 +177,77 @@ fun ImageUploadSection(
         }
     }
 
+    // Launcher to request permission
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // Permission granted, open gallery
+            galleryLauncher.launch("image/*")
+        } else {
+            // Permission denied, show a message or handle accordingly
+            Toast.makeText(
+                context,
+                "Tillatelse er nødvendig for å velge et bilde.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    // Function to handle click events
+    val handleImageClick = {
+        when {
+            ContextCompat.checkSelfPermission(
+                context,
+                galleryPermission
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                // Permission granted, open gallery
+                galleryLauncher.launch("image/*")
+            }
+            shouldShowRequestPermissionRationale(context, galleryPermission) -> {
+                // Show rationale dialog
+                showPermissionDialog = true
+            }
+            else -> {
+                // Directly request permission
+                permissionLauncher.launch(galleryPermission)
+            }
+        }
+    }
+
+    // Rationale Dialog
+    if (showPermissionDialog) {
+        AlertDialog(
+            onDismissRequest = { showPermissionDialog = false },
+            title = { Text("Tillat tilgang til galleri") },
+            text = { Text("Denne appen trenger tilgang til galleriet ditt for å velge et profilbilde.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showPermissionDialog = false
+                        permissionLauncher.launch(galleryPermission)
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showPermissionDialog = false }
+                ) {
+                    Text("Avbryt")
+                }
+            }
+        )
+    }
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(300.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .clickable { galleryLauncher.launch("image/*") }
+                .clickable { handleImageClick() }
                 .padding(vertical = 8.dp)
         ) {
             if (imageUri != null) {
@@ -193,7 +279,7 @@ fun ImageUploadSection(
             text = stringResource(id = R.string.change_profile_picture),
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
-            modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
+            modifier = Modifier.clickable { handleImageClick() }
         )
 
         if (imageUri != null) {
@@ -232,14 +318,14 @@ fun ImageUploadSection(
                         color = Color.Gray,
                         fontSize = 14.sp
                     ),
-                    modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
+                    modifier = Modifier.clickable { handleImageClick() }
                 )
 
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = stringResource(id = R.string.upload_new_picture),
                     tint = Color.Gray,
-                    modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
+                    modifier = Modifier.clickable { handleImageClick() }
                 )
             }
         }
@@ -248,6 +334,15 @@ fun ImageUploadSection(
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = it, color = MaterialTheme.colorScheme.error)
         }
+    }
+}
+
+// Helper function to check if we should show rationale
+fun shouldShowRequestPermissionRationale(context: Context, permission: String): Boolean {
+    return if (context is ActivityResultRegistryOwner) {
+        ActivityCompat.shouldShowRequestPermissionRationale(context as ComponentActivity, permission)
+    } else {
+        false
     }
 }
 

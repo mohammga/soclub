@@ -1,26 +1,24 @@
 package com.example.soclub.screens.resetPassword
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import com.example.soclub.R
 
 @Composable
 fun ResetPasswordScreen(viewModel: ResetPasswordViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState
+    val context = LocalContext.current
 
     LazyColumn(
         modifier = Modifier
@@ -45,18 +43,21 @@ fun ResetPasswordScreen(viewModel: ResetPasswordViewModel = hiltViewModel()) {
             Spacer(modifier = Modifier.height(16.dp))
         }
 
+        // Display error message in the UI if it's not a success
         uiState.statusMessage?.let { messageId ->
-            item {
-                Text(
-                    text = stringResource(id = messageId),
-                    color = if (messageId == R.string.password_reset_email_sent) Color.Green else Color.Red
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+            if (messageId != R.string.password_reset_email_sent) {
+                item {
+                    Text(
+                        text = stringResource(id = messageId),
+                        color = Color.Red
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
             }
         }
 
         item {
-            ResetPasswordButton(viewModel)
+            ResetPasswordButton(viewModel, context)
             Spacer(modifier = Modifier.height(32.dp))
         }
 
@@ -89,9 +90,9 @@ fun EmailField(value: String, onNewValue: (String) -> Unit, error: String?) {
 }
 
 @Composable
-private fun ResetPasswordButton(viewModel: ResetPasswordViewModel) {
+private fun ResetPasswordButton(viewModel: ResetPasswordViewModel, context: Context) {
     Button(
-        onClick = { viewModel.onForgotPasswordClick() },
+        onClick = { viewModel.onForgotPasswordClick(context) },
         modifier = Modifier
             .fillMaxWidth()
             .height(60.dp)
@@ -99,7 +100,6 @@ private fun ResetPasswordButton(viewModel: ResetPasswordViewModel) {
         Text(text = stringResource(id = R.string.send_email))
     }
 }
-
 @Composable
 fun ResetPasswordInfo() {
     Row(
