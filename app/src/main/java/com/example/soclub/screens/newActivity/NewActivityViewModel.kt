@@ -17,6 +17,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import android.content.Context
 import android.widget.Toast
 import kotlinx.coroutines.launch
+import java.util.Date
 import javax.inject.Inject
 
 
@@ -69,7 +70,7 @@ class NewActivityViewModel @Inject constructor(
         loadMunicipalities()
     }
 
-    // Function to load municipalities from LocationService
+    // Funksjon for å laste inn kommuner
     private fun loadMunicipalities() {
         viewModelScope.launch {
             locationService.fetchMunicipalities().collect { fetchedMunicipalities ->
@@ -79,39 +80,39 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Function to handle title change
+    // Funksjon for å håndtere endring av tittel
     fun onTitleChange(newValue: String) {
         uiState.value = uiState.value.copy(title = newValue, titleError = null)
     }
 
-    // Function to handle description change
+    // Funksjon for å håndtere endring av beskrivelse
     fun onDescriptionChange(newValue: String) {
         uiState.value = uiState.value.copy(description = newValue, descriptionError = null)
     }
 
-    // Function to handle image selection
+    // Funksjon for å håndtere bildevalg
     fun onImageSelected(uri: Uri?) {
         uiState.value = uiState.value.copy(selectedImageUri = uri, imageUrl = uri?.toString() ?: "")
     }
 
-    // Function to handle category change
+    // Funksjon for å håndtere kategoriendring
     fun onCategoryChange(newValue: String) {
         uiState.value = uiState.value.copy(category = newValue, categoryError = null)
     }
 
-    // Function to handle location (city) input change and show suggestions
+    // Funksjon for å håndtere endring av sted og vise forslag
     fun onLocationChange(newValue: String) {
         uiState.value = uiState.value.copy(
             location = newValue,
-            address = "",          // Reset address when location changes
-            postalCode = "",      // Reset postal code when location changes
-            locationConfirmed = false, // Reset confirmation flag
-            addressConfirmed = false,  // Reset address confirmation flag
+            address = "",          // Tilbakestill adresse når sted endres
+            postalCode = "",      // Tilbakestill postnummer når sted endres
+            locationConfirmed = false, // Tilbakestill bekreftelsesflagget
+            addressConfirmed = false,  // Tilbakestill adressebekreftelsesflagget
             locationError = null,
             addressSuggestions = emptyList()
         )
 
-        // Show suggestions only when two or more characters are entered
+        // Vis forslag bare når to eller flere tegn er angitt
         if (newValue.length >= 2) {
             val suggestions = municipalities.filter { it.startsWith(newValue, ignoreCase = true) }
             uiState.value = uiState.value.copy(locationSuggestions = suggestions)
@@ -120,21 +121,21 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Function to confirm location selection from dropdown
+    // Funksjon for å bekrefte stedsvalg fra dropdown
     fun onLocationSelected(selectedLocation: String) {
         uiState.value = uiState.value.copy(
             location = selectedLocation,
             locationSuggestions = emptyList(),
-            locationConfirmed = true  // Mark location as confirmed
+            locationConfirmed = true  // Marker sted som bekreftet
         )
     }
 
-    // Function to handle address input change and show suggestions
+    // Funksjon for å håndtere endring av adresse og vise forslag
     fun onAddressChange(newValue: String) {
         uiState.value = uiState.value.copy(
             address = newValue,
-            postalCode = "",          // Reset postal code when address changes
-            addressConfirmed = false, // Reset confirmation flag
+            postalCode = "",          // Tilbakestill postnummer når adresse endres
+            addressConfirmed = false, // Tilbakestill bekreftelsesflagget
             addressError = null
         )
 
@@ -145,21 +146,21 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Function to confirm address selection from dropdown
+    // Funksjon for å bekrefte adressevalg fra dropdown
     fun onAddressSelected(selectedAddress: String) {
         uiState.value = uiState.value.copy(
             address = selectedAddress,
             addressSuggestions = emptyList(),
-            addressConfirmed = true  // Mark address as confirmed
+            addressConfirmed = true  // Marker adresse som bekreftet
         )
         fetchPostalCodeForAddress(selectedAddress, uiState.value.location)
     }
 
-    // Fetch address suggestions, handling house number extraction
+    // Hent adresseforslag, håndterer husnummeruttrekking
     private fun fetchAddressSuggestions(query: String) {
         val (streetName, houseNumber) = extractStreetAndHouseNumber(query)
 
-        // Only fetch suggestions if location is confirmed
+        // Hent forslag bare hvis sted er bekreftet
         if (!uiState.value.locationConfirmed) {
             return
         }
@@ -175,7 +176,7 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Helper function to extract street name and house number
+    // Hjelpefunksjon for å trekke ut gatenavn og husnummer
     private fun extractStreetAndHouseNumber(query: String): Pair<String, String?> {
         val regex = Regex("^(.*?)(\\d+)?$")
         val matchResult = regex.find(query.trim())
@@ -184,7 +185,7 @@ class NewActivityViewModel @Inject constructor(
         return streetName to houseNumber
     }
 
-    // Fetch postal code for the selected address
+    // Hent postnummer for den valgte adressen
     private fun fetchPostalCodeForAddress(address: String, municipality: String) {
         viewModelScope.launch {
             locationService.fetchPostalCodeForAddress(address, municipality).collect { postalCode ->
@@ -197,12 +198,12 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Function to handle max participants input change
+    // Funksjon for å håndtere endring av maks antall deltakere
     fun onMaxParticipantsChange(newValue: String) {
         uiState.value = uiState.value.copy(maxParticipants = newValue, maxParticipantsError = null)
     }
 
-    // Function to handle age limit input change and validate
+    // Funksjon for å håndtere aldersgrenseendring og validere
     fun onAgeLimitChange(newValue: String) {
         val age = newValue.toIntOrNull()
         if (age != null && age > 100) {
@@ -219,12 +220,12 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Function to handle date input change
+    // Funksjon for å håndtere datoendring
     fun onDateChange(newValue: Timestamp) {
         uiState.value = uiState.value.copy(date = newValue, dateError = null)
     }
 
-    // Function to handle start time input change
+    // Funksjon for å håndtere starttidspunktendring
     fun onStartTimeChange(newValue: String) {
         uiState.value = uiState.value.copy(startTime = newValue, startTimeError = null)
     }
@@ -282,10 +283,21 @@ class NewActivityViewModel @Inject constructor(
             ageLimitError = "Må være et tall"
             hasError = true
         }
-        if (uiState.value.date == null) {
+
+        val selectedDate = uiState.value.date
+        if (selectedDate == null) {
             dateError = "Du må velge dato"
             hasError = true
+        } else {
+            val currentTimeMillis = System.currentTimeMillis()
+            val selectedDateMillis = selectedDate.toDate().time
+            val diff = selectedDateMillis - currentTimeMillis
+            if (diff < 48 * 60 * 60 * 1000) {
+                dateError = "Datoen må være minst 48 timer fra nå"
+                hasError = true
+            }
         }
+
         if (uiState.value.startTime.isBlank()) {
             startTimeError = "Du må velge starttidspunkt"
             hasError = true
@@ -331,9 +343,6 @@ class NewActivityViewModel @Inject constructor(
             createActivityAndNavigate(navController, context, "", combinedLocation, timestampDate, startTime, creatorId)
         }
     }
-
-
-
 
     private fun createActivityAndNavigate(
         navController: NavController,

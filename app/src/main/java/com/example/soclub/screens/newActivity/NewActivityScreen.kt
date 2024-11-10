@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext // Importer dette
 import androidx.compose.ui.res.*
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
@@ -55,7 +56,7 @@ fun NewActivityScreen(
     val locationSuggestions by remember { derivedStateOf { uiState.locationSuggestions } }
     val addressSuggestions by remember { derivedStateOf { uiState.addressSuggestions } }
 
-    // Use a state that triggers recomposition when updated
+    // Bruk en state som trigger recomposition når den oppdateres
     var locationConfirmed by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -100,17 +101,16 @@ fun NewActivityScreen(
                     initialValue = uiState.location,
                     onNewValue = { location ->
                         viewModel.onLocationChange(location)
-                        locationConfirmed = false // Reset confirmation on new input
+                        locationConfirmed = false // Tilbakestill bekreftelse ved ny input
                     },
                     suggestions = locationSuggestions,
                     onSuggestionClick = { suggestion ->
                         viewModel.onLocationSelected(suggestion)
-                        locationConfirmed = true // Confirm location selection
+                        locationConfirmed = true // Bekreft sted
                     },
                     error = uiState.locationError
                 )
             }
-
 
             if (locationConfirmed) {
                 item {
@@ -209,7 +209,7 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .height(150.dp), // Increase the height for a larger field
+            .height(150.dp), // Øk høyden for et større felt
         maxLines = 10,
         isError = error != null,
         supportingText = {
@@ -333,9 +333,9 @@ fun LocationField(
                         onClick = {
                             textFieldValue = TextFieldValue(
                                 text = suggestion,
-                                selection = TextRange(suggestion.length) // Move cursor to end
+                                selection = TextRange(suggestion.length) // Flytt markøren til slutten
                             )
-                            onSuggestionClick(suggestion) // Call onSuggestionClick here
+                            onSuggestionClick(suggestion)
                             expanded = false
                         }
                     )
@@ -404,9 +404,9 @@ fun AddressField(
                         onClick = {
                             textFieldValue = TextFieldValue(
                                 text = suggestion,
-                                selection = TextRange(suggestion.length) // Move cursor to end
+                                selection = TextRange(suggestion.length)
                             )
-                            onSuggestionClick(suggestion) // Call onSuggestionClick here
+                            onSuggestionClick(suggestion)
                             expanded = false
                         }
                     )
@@ -443,8 +443,10 @@ fun PostalCodeField(value: String, error: String?) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
+    val context = LocalContext.current
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = value)
     val isDatePickerVisible = remember { mutableStateOf(false) }
+    var internalError by remember { mutableStateOf<String?>(null) }
 
     val formattedDate = if (value != 0L) {
         SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
@@ -461,12 +463,13 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             readOnly = true,
-            isError = error != null,
+            isError = error != null || internalError != null,
             supportingText = {
-                if (error == null) {
-                    Text("Velg dato for aktiviteten")
+                val errorMessage = error ?: internalError
+                if (errorMessage == null) {
+                    Text("Velg dato for aktiviteten (minst 48 timer fra nå)")
                 } else {
-                    Text(text = error, color = MaterialTheme.colorScheme.error)
+                    Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
                 }
             }
         )
@@ -484,13 +487,27 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            datePickerState.selectedDateMillis?.let {
-                                onNewValue(Timestamp(Date(it)))
+                            datePickerState.selectedDateMillis?.let { selectedMillis ->
+                                val currentTimeMillis = System.currentTimeMillis()
+                                val diff = selectedMillis - currentTimeMillis
+                                if (diff >= 48 * 60 * 60 * 1000) {
+                                    onNewValue(Timestamp(Date(selectedMillis)))
+                                    internalError = null
+                                    isDatePickerVisible.value = false
+                                } else {
+                                    internalError = "Datoen må være minst 48 timer fra nå"
+                                }
+                            } ?: run {
+                                internalError = "Du må velge en dato"
                             }
-                            isDatePickerVisible.value = false
                         }
                     ) {
                         Text("OK")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { isDatePickerVisible.value = false }) {
+                        Text("Avbryt")
                     }
                 }
             ) {
@@ -499,6 +516,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
         }
     }
 }
+
 
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -527,7 +545,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
             }
         )
 
-        // Invisible overlay box to intercept clicks
+        // Usynlig overlay-boks for å fange klikk
         Box(
             modifier = Modifier
                 .matchParentSize()
