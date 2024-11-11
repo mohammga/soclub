@@ -19,7 +19,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext // Importer dette
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.*
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
@@ -35,18 +35,6 @@ import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.*
 
-
-import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
-import android.widget.Toast
-import androidx.activity.result.ActivityResultRegistryOwner
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.app.ActivityCompat
-import androidx.core.app.ComponentActivity
-import androidx.core.content.ContextCompat
-
 @Composable
 fun NewActivityScreen(
     navController: NavController,
@@ -56,7 +44,7 @@ fun NewActivityScreen(
     val locationSuggestions by remember { derivedStateOf { uiState.locationSuggestions } }
     val addressSuggestions by remember { derivedStateOf { uiState.addressSuggestions } }
 
-    // Bruk en state som trigger recomposition når den oppdateres
+    // State to trigger recomposition when updated
     var locationConfirmed by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -101,12 +89,12 @@ fun NewActivityScreen(
                     initialValue = uiState.location,
                     onNewValue = { location ->
                         viewModel.onLocationChange(location)
-                        locationConfirmed = false // Tilbakestill bekreftelse ved ny input
+                        locationConfirmed = false // Reset confirmation on new input
                     },
                     suggestions = locationSuggestions,
                     onSuggestionClick = { suggestion ->
                         viewModel.onLocationSelected(suggestion)
-                        locationConfirmed = true // Bekreft sted
+                        locationConfirmed = true // Confirm location
                     },
                     error = uiState.locationError
                 )
@@ -209,7 +197,7 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .height(150.dp), // Øk høyden for et større felt
+            .height(150.dp), // Increase the height for a larger field
         maxLines = 10,
         isError = error != null,
         supportingText = {
@@ -333,7 +321,7 @@ fun LocationField(
                         onClick = {
                             textFieldValue = TextFieldValue(
                                 text = suggestion,
-                                selection = TextRange(suggestion.length) // Flytt markøren til slutten
+                                selection = TextRange(suggestion.length) // Move cursor to end
                             )
                             onSuggestionClick(suggestion)
                             expanded = false
@@ -490,7 +478,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
                             datePickerState.selectedDateMillis?.let { selectedMillis ->
                                 val currentTimeMillis = System.currentTimeMillis()
                                 val diff = selectedMillis - currentTimeMillis
-                                if (diff >= 48 * 60 * 60 * 1000) {
+                                if (diff >= 48 * 60 * 60 * 1000) { // 48 hours in milliseconds
                                     onNewValue(Timestamp(Date(selectedMillis)))
                                     internalError = null
                                     isDatePickerVisible.value = false
@@ -516,7 +504,6 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
         }
     }
 }
-
 
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -545,7 +532,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
             }
         )
 
-        // Usynlig overlay-boks for å fange klikk
+        // Invisible overlay box to intercept clicks
         Box(
             modifier = Modifier
                 .matchParentSize()
@@ -641,94 +628,19 @@ fun ImageUploadSection(
     onImageSelected: (Uri?) -> Unit,
     error: String? = null
 ) {
-    val context = LocalContext.current
-
-    // Determine the appropriate permission for the Android version
-    val galleryPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        Manifest.permission.READ_MEDIA_IMAGES
-    } else {
-        Manifest.permission.READ_EXTERNAL_STORAGE
-    }
-
-    // State to track permission request dialog
-    var showPermissionDialog by remember { mutableStateOf(false) }
-
-    // Launcher to open the gallery
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        if (uri != null) {
-            onImageSelected(uri)
-        }
+        onImageSelected(uri)
     }
 
-    // Launcher to request permission
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            // Permission granted, open the gallery
-            galleryLauncher.launch("image/*")
-        } else {
-            // Permission denied, show a message or handle accordingly
-            Toast.makeText(
-                context,
-                "Tillatelse er nødvendig for å velge et bilde.",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-    }
-
-    // Function to handle image click
-    val handleImageClick = {
-        when {
-            ContextCompat.checkSelfPermission(context, galleryPermission) == PackageManager.PERMISSION_GRANTED -> {
-                // Permission granted, open the gallery
-                galleryLauncher.launch("image/*")
-            }
-            shouldShowRequestPermissionRationale(context, galleryPermission) -> {
-                // Show rationale dialog
-                showPermissionDialog = true
-            }
-            else -> {
-                // Directly request permission
-                permissionLauncher.launch(galleryPermission)
-            }
-        }
-    }
-
-    // Show rationale dialog if needed
-    if (showPermissionDialog) {
-        AlertDialog(
-            onDismissRequest = { showPermissionDialog = false },
-            title = { Text("Tillat tilgang til galleri") },
-            text = { Text("Denne appen trenger tilgang til galleriet ditt for å velge et bilde.") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showPermissionDialog = false
-                        permissionLauncher.launch(galleryPermission)
-                    }
-                ) {
-                    Text("OK")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showPermissionDialog = false }) {
-                    Text("Avbryt")
-                }
-            }
-        )
-    }
-
-    // UI for the ImageUploadSection
     Column(modifier = Modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(300.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .clickable { handleImageClick() }
+                .clickable { galleryLauncher.launch("image/*") }
                 .padding(vertical = 8.dp)
         ) {
             if (selectedImageUri != null) {
@@ -760,7 +672,7 @@ fun ImageUploadSection(
             text = stringResource(id = R.string.change_ad_picture),
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
-            modifier = Modifier.clickable { handleImageClick() }
+            modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
         )
 
         if (selectedImageUri != null) {
@@ -797,14 +709,14 @@ fun ImageUploadSection(
                         color = Color.Gray,
                         fontSize = 14.sp
                     ),
-                    modifier = Modifier.clickable { handleImageClick() }
+                    modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
                 )
 
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = stringResource(id = R.string.upload_new_picture),
                     tint = Color.Gray,
-                    modifier = Modifier.clickable { handleImageClick() }
+                    modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
                 )
             }
         }
@@ -816,24 +728,10 @@ fun ImageUploadSection(
     }
 }
 
-// Helper function to check if rationale should be shown
-@SuppressLint("RestrictedApi")
-fun shouldShowRequestPermissionRationale(context: Context, permission: String): Boolean {
-    return if (context is ActivityResultRegistryOwner) {
-        ActivityCompat.shouldShowRequestPermissionRationale(context as ComponentActivity, permission)
-    } else {
-        false
-    }
-}
-
-
-
 @Composable
 fun PublishButton(navController: NavController, viewModel: NewActivityViewModel) {
-    val context = LocalContext.current // Get the context
-
     Button(
-        onClick = { viewModel.onPublishClick(navController, context) }, // Pass context here
+        onClick = { viewModel.onPublishClick(navController) },
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp),

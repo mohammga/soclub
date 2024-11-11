@@ -1,10 +1,13 @@
 package com.example.soclub.screens.editActivity
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.example.soclub.R
+import com.example.soclub.models.CreateActivity
 import com.example.soclub.service.ActivityService
 import com.example.soclub.service.AccountService
 import com.example.soclub.service.LocationService
@@ -12,12 +15,8 @@ import com.example.soclub.service.StorageService
 import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import java.util.Date
 import javax.inject.Inject
-import com.example.soclub.R
-import android.util.Log
-import android.widget.Toast
-import com.example.soclub.models.CreateActivity
-import android.content.Context
 
 data class EditActivityState(
     val title: String = "",
@@ -69,7 +68,7 @@ class EditActivityViewModel @Inject constructor(
         loadMunicipalities()
     }
 
-    // Function to load municipalities
+    // Funksjon for å laste inn kommuner
     private fun loadMunicipalities() {
         viewModelScope.launch {
             locationService.fetchMunicipalities().collect { fetchedMunicipalities ->
@@ -79,6 +78,7 @@ class EditActivityViewModel @Inject constructor(
         }
     }
 
+    // Funksjon for å laste inn aktivitet
     fun loadActivity(category: String, activityId: String) {
         viewModelScope.launch {
             try {
@@ -90,7 +90,7 @@ class EditActivityViewModel @Inject constructor(
                     val address = addressParts.getOrNull(0)?.trim() ?: ""
                     val postalCode = addressParts.getOrNull(1)?.trim() ?: ""
 
-                    // Ensure `locationConfirmed` is set based on data presence
+                    // Sikre at `locationConfirmed` er satt basert på datatilgjengelighet
                     val isLocationConfirmed = location.isNotBlank()
                     val isAddressConfirmed = address.isNotBlank()
 
@@ -107,8 +107,8 @@ class EditActivityViewModel @Inject constructor(
                         startTime = activity.startTime,
                         category = category,
                         selectedImageUri = if (activity.imageUrl.isNotEmpty()) Uri.parse(activity.imageUrl) else null,
-                        locationConfirmed = isLocationConfirmed, // Confirm location
-                        addressConfirmed = isAddressConfirmed // Confirm address
+                        locationConfirmed = isLocationConfirmed, // Bekreft sted
+                        addressConfirmed = isAddressConfirmed // Bekreft adresse
                     )
                     oldCategory = category
                 } else {
@@ -121,8 +121,7 @@ class EditActivityViewModel @Inject constructor(
         }
     }
 
-
-    // Functions to handle input changes
+    // Funksjoner for å håndtere inputendringer
     fun onTitleChange(newValue: String) {
         uiState.value = uiState.value.copy(title = newValue, titleError = null)
     }
@@ -139,10 +138,9 @@ class EditActivityViewModel @Inject constructor(
         uiState.value = uiState.value.copy(category = newValue, categoryError = null)
     }
 
-
     fun onLocationChange(newValue: String) {
         if (newValue.isBlank()) {
-            // Reset fields if location is cleared
+            // Tilbakestill feltene hvis sted er tømt
             uiState.value = uiState.value.copy(
                 location = newValue,
                 address = "",
@@ -162,7 +160,7 @@ class EditActivityViewModel @Inject constructor(
             )
 
             if (matchesSuggestion) {
-                // When the location matches, reset dependent fields
+                // Når stedet matcher, tilbakestill avhengige felter
                 uiState.value = uiState.value.copy(address = "", postalCode = "")
             } else if (newValue.length >= 2) {
                 val suggestions = municipalities.filter { it.startsWith(newValue, ignoreCase = true) }
@@ -173,13 +171,12 @@ class EditActivityViewModel @Inject constructor(
         }
     }
 
-
     fun onLocationSelected(selectedLocation: String) {
         uiState.value = uiState.value.copy(
             location = selectedLocation,
             locationSuggestions = emptyList(),
             locationConfirmed = true,
-            // Reset address and postal code when a new location is selected
+            // Tilbakestill adresse og postnummer når et nytt sted er valgt
             address = "",
             postalCode = "",
             addressConfirmed = false,
@@ -188,21 +185,20 @@ class EditActivityViewModel @Inject constructor(
     }
 
     fun onAddressChange(newValue: String) {
-        // Reset the postal code and address confirmation if the user types manually
+        // Tilbakestill postnummer og adressebekreftelse hvis brukeren skriver manuelt
         uiState.value = uiState.value.copy(
             address = newValue,
             addressConfirmed = false,
             postalCode = ""
         )
 
-        // Show address suggestions if location is confirmed
+        // Vis adresseforslag hvis sted er bekreftet
         if (newValue.isNotBlank() && uiState.value.locationConfirmed) {
             fetchAddressSuggestions(newValue)
         } else {
             uiState.value = uiState.value.copy(addressSuggestions = emptyList())
         }
     }
-
 
     fun onAddressSelected(selectedAddress: String) {
         uiState.value = uiState.value.copy(
@@ -211,7 +207,7 @@ class EditActivityViewModel @Inject constructor(
             addressSuggestions = emptyList()
         )
 
-        // Fetch postal code only when an address is selected from the list
+        // Hent postnummer kun når en adresse er valgt fra listen
         fetchPostalCodeForAddress(selectedAddress, uiState.value.location)
     }
 
@@ -281,8 +277,8 @@ class EditActivityViewModel @Inject constructor(
         uiState.value = uiState.value.copy(startTime = newValue, startTimeError = null)
     }
 
-    fun onSaveClick(navController: NavController, activityId: String, currentCategory: String, context: Context) {
-        // Validation
+    fun onSaveClick(navController: NavController, activityId: String, currentCategory: String) {
+        // Validering
         var hasError = false
         var titleError: String? = null
         var descriptionError: String? = null
@@ -333,15 +329,27 @@ class EditActivityViewModel @Inject constructor(
             ageLimitError = "Må være et tall"
             hasError = true
         }
-        if (uiState.value.date == null) {
+
+        val selectedDate = uiState.value.date
+        if (selectedDate == null) {
             dateError = "Du må velge dato"
             hasError = true
+        } else {
+            val currentTimeMillis = System.currentTimeMillis()
+            val selectedDateMillis = selectedDate.toDate().time
+            val diff = selectedDateMillis - currentTimeMillis
+            if (diff < 48 * 60 * 60 * 1000) { // 48 hours in milliseconds
+                dateError = "Datoen må være minst 48 timer fra nå"
+                hasError = true
+            }
         }
+
         if (uiState.value.startTime.isBlank()) {
             startTimeError = "Du må velge starttidspunkt"
             hasError = true
         }
 
+        // Oppdater UI-state med feilmeldinger
         uiState.value = uiState.value.copy(
             titleError = titleError,
             descriptionError = descriptionError,
@@ -364,16 +372,15 @@ class EditActivityViewModel @Inject constructor(
         val startTime = uiState.value.startTime
 
         if (uiState.value.imageUrl.isNotBlank() && uiState.value.selectedImageUri != null) {
-            // Check if the URI is a local content URI
+            // Sjekk om URI er en lokal content URI
             if (uiState.value.selectedImageUri.toString().startsWith("content://")) {
                 storageService.uploadImage(
                     imageUri = uiState.value.selectedImageUri!!,
-                    isActivity = true,
-                    category = uiState.value.category,
+                    isActivity = true,  // Sett til true for aktivitetsbilder
+                    category = uiState.value.category, // Passér aktivitetskategorien
                     onSuccess = { imageUrl ->
                         updateActivityAndNavigate(
                             navController,
-                            context,
                             imageUrl,
                             timestampDate,
                             startTime,
@@ -384,13 +391,13 @@ class EditActivityViewModel @Inject constructor(
                     },
                     onError = { error ->
                         uiState.value = uiState.value.copy(errorMessage = R.string.error_image_upload_failed)
+                        Log.e("EditActivityViewModel", "Error uploading image: ${error.message}")
                     }
                 )
             } else {
-                // Skip upload and use the existing URL if it's a remote URL
+                // Hopp over opplasting og bruk eksisterende URL hvis det er en ekstern URL
                 updateActivityAndNavigate(
                     navController,
-                    context,
                     uiState.value.imageUrl,
                     timestampDate,
                     startTime,
@@ -402,7 +409,6 @@ class EditActivityViewModel @Inject constructor(
         } else {
             updateActivityAndNavigate(
                 navController,
-                context,
                 uiState.value.imageUrl,
                 timestampDate,
                 startTime,
@@ -413,9 +419,23 @@ class EditActivityViewModel @Inject constructor(
         }
     }
 
+    fun onDeleteClick(navController: NavController, category: String, activityId: String) {
+        viewModelScope.launch {
+            try {
+                activityService.deleteActivity(category, activityId)
+                // Naviger tilbake til hjem eller vis en bekreftelse
+                navController.navigate("home") {
+                    popUpTo("editActivity") { inclusive = true }
+                }
+            } catch (e: Exception) {
+                uiState.value = uiState.value.copy(errorMessage = R.string.error_creating_activity)
+                Log.e("EditActivityViewModel", "Error deleting activity: ${e.message}")
+            }
+        }
+    }
+
     private fun updateActivityAndNavigate(
         navController: NavController,
-        context: Context,
         imageUrl: String,
         date: Timestamp,
         startTime: String,
@@ -434,7 +454,7 @@ class EditActivityViewModel @Inject constructor(
                     creatorId = creatorId,
                     title = uiState.value.title,
                     description = uiState.value.description,
-                    location = combinedLocation, // Combined address
+                    location = combinedLocation, // Kombinert adresse
                     maxParticipants = uiState.value.maxParticipants.toIntOrNull() ?: 0,
                     ageGroup = uiState.value.ageLimit.toIntOrNull() ?: 0,
                     imageUrl = imageUrl,
@@ -443,13 +463,12 @@ class EditActivityViewModel @Inject constructor(
                 )
 
                 activityService.updateActivity(oldCategoryValue, uiState.value.category, activityId, updatedActivity)
-                Toast.makeText(context, context.getString(R.string.activity_updated_success), Toast.LENGTH_LONG).show()
+
                 navController.navigate("home")
             } catch (e: Exception) {
-                uiState.value = uiState.value.copy(errorMessage = R.string.error_image_upload_failed)
+                uiState.value = uiState.value.copy(errorMessage = R.string.error_creating_activity)
                 Log.e("EditActivityViewModel", "Error updating activity: ${e.message}")
             }
         }
     }
-
 }
