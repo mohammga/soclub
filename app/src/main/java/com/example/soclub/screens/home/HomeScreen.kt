@@ -49,18 +49,27 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
     var isSelectingArea by remember { mutableStateOf(true) }
     val selectedCities by viewModel.selectedCities.observeAsState(emptyList())
     val cities by viewModel.getCities().observeAsState(emptyList())
+    val hasLocationPermission by viewModel.hasLocationPermission.observeAsState(false)
+
+    val visibleCategories = if (hasLocationPermission) {
+        categories
+    } else {
+        categories.filter { it != "Nærme Aktiviteter" }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.fetchUserLocation()
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        if (categories.isNotEmpty()) {
-            CategoryTabs(categories = categories, pagerState = pagerState)
+        if (visibleCategories.isNotEmpty()) {
+            CategoryTabs(categories = visibleCategories, pagerState = pagerState)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        val selectedCategory = categories.getOrNull(pagerState.currentPage) ?: ""
+        // Velg aktuell kategori basert på hvilken side som er valgt i pageren
+        val selectedCategory = visibleCategories.getOrNull(pagerState.currentPage) ?: ""
 
         Row(
             modifier = Modifier
@@ -80,11 +89,10 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                 Icon(
                     imageVector = Icons.Default.FilterList,
                     contentDescription = "Filter",
-                    modifier = Modifier
-                        .clickable {
-                            showBottomSheet = true
-                            isSelectingArea = true
-                        }
+                    modifier = Modifier.clickable {
+                        showBottomSheet = true
+                        isSelectingArea = true
+                    }
                 )
             }
         }
@@ -109,14 +117,17 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Viser aktiviteter basert på valgt kategori
         CategoryActivitiesPager(
-            categories = categories,
+            categories = visibleCategories,
             pagerState = pagerState,
             viewModel = viewModel,
-            navController = navController
+            navController = navController,
+            hasLocationPermission = hasLocationPermission
         )
     }
 
+    // Filterbunnark for byvalg og områdeinnstillinger
     if (showBottomSheet) {
         FilterBottomSheet(
             showBottomSheet = showBottomSheet,
@@ -127,7 +138,6 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
             onSelectArea = { isSelectingArea = it },
             onCitySelected = { city, isSelected -> viewModel.updateSelectedCities(city, isSelected) },
             onSearch = {
-                // Med sanntidsoppdatering er denne funksjonen ikke lenger nødvendig
                 showBottomSheet = false
             },
             onResetFilter = {
@@ -137,6 +147,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
         )
     }
 }
+
 
 @Composable
 fun Chip(text: String, onRemove: () -> Unit) {
@@ -169,16 +180,18 @@ fun CategoryActivitiesPager(
     categories: List<String>,
     pagerState: PagerState,
     viewModel: HomeViewModel,
-    navController: NavHostController
+    navController: NavHostController,
+    hasLocationPermission: Boolean
 ) {
     val groupedActivities by viewModel.groupedActivities.observeAsState(emptyMap())
     val isLoading by viewModel.isLoading.observeAsState(false)
     val activities by viewModel.activities.observeAsState(emptyList())
-    val hasLoaded by viewModel.hasLoadedActivities.observeAsState(false)
 
+    // Dette kontrollerer om "Nærme Aktiviteter" er valgt, og om GPS-tilgang er gitt
     val isNearestActivitiesSelected = pagerState.currentPage < categories.size &&
-            categories[pagerState.currentPage] == "Nærme Aktiviteter"
+            categories[pagerState.currentPage] == "Nærme Aktiviteter" && hasLocationPermission
 
+    // Henter nærmeste aktiviteter når GPS er aktivert og "Nærme Aktiviteter" er valgt
     LaunchedEffect(isNearestActivitiesSelected) {
         if (isNearestActivitiesSelected) {
             viewModel.getNearestActivities()
@@ -191,8 +204,10 @@ fun CategoryActivitiesPager(
         userScrollEnabled = true
     ) { page ->
         val selectedCategory = categories[page]
-        val activitiesToShow = if (selectedCategory == "Nærme Aktiviteter") {
-            activities // Bruker nærme aktiviteter hvis "Nærme Aktiviteter" er valgt
+
+        // Velger aktiviteter basert på valgt kategori og GPS-tilgang
+        val activitiesToShow = if (selectedCategory == "Nærme Aktiviteter" && hasLocationPermission) {
+            activities // Bruker nærme aktiviteter hvis GPS-tilgang er gitt
         } else {
             groupedActivities[selectedCategory] ?: emptyList() // Ellers bruker vi grupperte aktiviteter
         }
@@ -210,14 +225,14 @@ fun CategoryActivitiesPager(
                 }
             } else {
                 if (activitiesToShow.isNotEmpty()) {
-                    // Vis liste over aktiviteter
+                    // Viser liste over aktiviteter
                     ActivityList(
                         activities = activitiesToShow,
                         selectedCategory = selectedCategory,
                         navController = navController
                     )
                 } else {
-                    // Viser en melding dersom ingen aktiviteter er tilgjengelige for den valgte kategorien
+                    // Viser en melding hvis ingen aktiviteter er tilgjengelige
                     Text(
                         text = "Ingen aktiviteter tilgjengelig for $selectedCategory.",
                         modifier = Modifier.padding(16.dp),
@@ -229,8 +244,6 @@ fun CategoryActivitiesPager(
         }
     }
 }
-
-
 
 @Composable
 fun CitySelectionItem(city: String, isSelected: Boolean, onCitySelected: (Boolean) -> Unit) {
@@ -341,21 +354,21 @@ fun CategoryTabs(categories: List<String>, pagerState: PagerState) {
     }
 }
 
+
 @Composable
-fun ActivityList(activities: List<Activity>, selectedCategory: String, navController: NavHostController) {
+fun ActivityList(
+    activities: List<Activity>,
+    selectedCategory: String,
+    navController: NavHostController
+) {
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.fillMaxSize()
     ) {
         items(activities) { activity ->
-            val categoryToUse = if (selectedCategory == "Nærme Aktiviteter") {
-                activity.category ?: "ukjent"
-            } else {
-                selectedCategory
-            }
             ActivityItem(activity = activity) {
-                navController.navigate("detail/${categoryToUse}/${activity.id}")
+                navController.navigate("detail/$selectedCategory/${activity.id}")
             }
         }
     }

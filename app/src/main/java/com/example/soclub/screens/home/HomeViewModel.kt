@@ -7,6 +7,7 @@ import android.location.Location
 import android.util.Log
 import androidx.lifecycle.*
 import com.example.soclub.models.Activity
+import com.example.soclub.service.ActivityDetailService
 import com.example.soclub.service.ActivityService
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.firebase.firestore.ListenerRegistration
@@ -21,11 +22,16 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     application: Application,
     private val activityService: ActivityService,
-    private val fusedLocationClient: FusedLocationProviderClient
+    private val fusedLocationClient: FusedLocationProviderClient,
 ) : AndroidViewModel(application) {
+
 
     private val _userCity = MutableLiveData<String?>()
     val userCity: LiveData<String?> get() = _userCity
+
+    // LiveData for å holde styr på GPS-tillatelsen
+    private val _hasLocationPermission = MutableLiveData(false)
+    val hasLocationPermission: LiveData<Boolean> get() = _hasLocationPermission
 
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
@@ -48,6 +54,29 @@ class HomeViewModel @Inject constructor(
     private var activitiesListener: ListenerRegistration? = null
     private var nearestActivitiesListener: ListenerRegistration? = null
 
+
+
+    @SuppressLint("MissingPermission")
+    fun fetchUserLocation() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val location: Location? = fusedLocationClient.lastLocation.await()
+                _hasLocationPermission.postValue(location != null) // Setter tillatelse basert på lokasjonsdata
+                location?.let {
+                    val city = getCityFromLocation(it)
+                    _userCity.postValue(city)
+                }
+            } catch (e: SecurityException) {
+                Log.e("HomeViewModel", "Location permission not granted: ${e.message}")
+                _hasLocationPermission.postValue(false) // Setter tillatelse til false hvis tilgang ikke er gitt
+            } catch (e: Exception) {
+                Log.e("HomeViewModel", "Error fetching location: ${e.message}")
+                _hasLocationPermission.postValue(false)
+            }
+        }
+    }
+
+
     init {
         listenForActivityUpdates()
     }
@@ -58,6 +87,8 @@ class HomeViewModel @Inject constructor(
             applyFilters()
         }
     }
+
+
 
     private fun applyFilters() {
         viewModelScope.launch(Dispatchers.Default) {
@@ -91,21 +122,6 @@ class HomeViewModel @Inject constructor(
         super.onCleared()
         activitiesListener?.remove()
         nearestActivitiesListener?.remove()
-    }
-
-    @SuppressLint("MissingPermission")
-    fun fetchUserLocation() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val location: Location? = fusedLocationClient.lastLocation.await()
-                location?.let {
-                    val city = getCityFromLocation(it)
-                    _userCity.postValue(city)
-                }
-            } catch (e: Exception) {
-                Log.e("HomeViewModel", "Error fetching location: ${e.message}")
-            }
-        }
     }
 
     fun getCategories(): LiveData<List<String>> = liveData {
