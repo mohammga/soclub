@@ -14,12 +14,9 @@ import com.example.soclub.service.LocationService
 import com.example.soclub.service.StorageService
 import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
-import android.content.Context
-import android.widget.Toast
 import kotlinx.coroutines.launch
 import java.util.Date
 import javax.inject.Inject
-
 
 data class NewActivityState(
     val title: String = "",
@@ -70,7 +67,7 @@ class NewActivityViewModel @Inject constructor(
         loadMunicipalities()
     }
 
-    // Funksjon for å laste inn kommuner
+    // Function to load municipalities from LocationService
     private fun loadMunicipalities() {
         viewModelScope.launch {
             locationService.fetchMunicipalities().collect { fetchedMunicipalities ->
@@ -80,39 +77,39 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Funksjon for å håndtere endring av tittel
+    // Function to handle title change
     fun onTitleChange(newValue: String) {
         uiState.value = uiState.value.copy(title = newValue, titleError = null)
     }
 
-    // Funksjon for å håndtere endring av beskrivelse
+    // Function to handle description change
     fun onDescriptionChange(newValue: String) {
         uiState.value = uiState.value.copy(description = newValue, descriptionError = null)
     }
 
-    // Funksjon for å håndtere bildevalg
+    // Function to handle image selection
     fun onImageSelected(uri: Uri?) {
         uiState.value = uiState.value.copy(selectedImageUri = uri, imageUrl = uri?.toString() ?: "")
     }
 
-    // Funksjon for å håndtere kategoriendring
+    // Function to handle category change
     fun onCategoryChange(newValue: String) {
         uiState.value = uiState.value.copy(category = newValue, categoryError = null)
     }
 
-    // Funksjon for å håndtere endring av sted og vise forslag
+    // Function to handle location (city) input change and show suggestions
     fun onLocationChange(newValue: String) {
         uiState.value = uiState.value.copy(
             location = newValue,
-            address = "",          // Tilbakestill adresse når sted endres
-            postalCode = "",      // Tilbakestill postnummer når sted endres
-            locationConfirmed = false, // Tilbakestill bekreftelsesflagget
-            addressConfirmed = false,  // Tilbakestill adressebekreftelsesflagget
+            address = "",          // Reset address when location changes
+            postalCode = "",      // Reset postal code when location changes
+            locationConfirmed = false, // Reset confirmation flag
+            addressConfirmed = false,  // Reset address confirmation flag
             locationError = null,
             addressSuggestions = emptyList()
         )
 
-        // Vis forslag bare når to eller flere tegn er angitt
+        // Show suggestions only when two or more characters are entered
         if (newValue.length >= 2) {
             val suggestions = municipalities.filter { it.startsWith(newValue, ignoreCase = true) }
             uiState.value = uiState.value.copy(locationSuggestions = suggestions)
@@ -121,21 +118,21 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Funksjon for å bekrefte stedsvalg fra dropdown
+    // Function to confirm location selection from dropdown
     fun onLocationSelected(selectedLocation: String) {
         uiState.value = uiState.value.copy(
             location = selectedLocation,
             locationSuggestions = emptyList(),
-            locationConfirmed = true  // Marker sted som bekreftet
+            locationConfirmed = true  // Mark location as confirmed
         )
     }
 
-    // Funksjon for å håndtere endring av adresse og vise forslag
+    // Function to handle address input change and show suggestions
     fun onAddressChange(newValue: String) {
         uiState.value = uiState.value.copy(
             address = newValue,
-            postalCode = "",          // Tilbakestill postnummer når adresse endres
-            addressConfirmed = false, // Tilbakestill bekreftelsesflagget
+            postalCode = "",          // Reset postal code when address changes
+            addressConfirmed = false, // Reset confirmation flag
             addressError = null
         )
 
@@ -146,21 +143,21 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Funksjon for å bekrefte adressevalg fra dropdown
+    // Function to confirm address selection from dropdown
     fun onAddressSelected(selectedAddress: String) {
         uiState.value = uiState.value.copy(
             address = selectedAddress,
             addressSuggestions = emptyList(),
-            addressConfirmed = true  // Marker adresse som bekreftet
+            addressConfirmed = true  // Mark address as confirmed
         )
         fetchPostalCodeForAddress(selectedAddress, uiState.value.location)
     }
 
-    // Hent adresseforslag, håndterer husnummeruttrekking
+    // Fetch address suggestions, handling house number extraction
     private fun fetchAddressSuggestions(query: String) {
         val (streetName, houseNumber) = extractStreetAndHouseNumber(query)
 
-        // Hent forslag bare hvis sted er bekreftet
+        // Only fetch suggestions if location is confirmed
         if (!uiState.value.locationConfirmed) {
             return
         }
@@ -176,7 +173,7 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Hjelpefunksjon for å trekke ut gatenavn og husnummer
+    // Helper function to extract street name and house number
     private fun extractStreetAndHouseNumber(query: String): Pair<String, String?> {
         val regex = Regex("^(.*?)(\\d+)?$")
         val matchResult = regex.find(query.trim())
@@ -185,7 +182,7 @@ class NewActivityViewModel @Inject constructor(
         return streetName to houseNumber
     }
 
-    // Hent postnummer for den valgte adressen
+    // Fetch postal code for the selected address
     private fun fetchPostalCodeForAddress(address: String, municipality: String) {
         viewModelScope.launch {
             locationService.fetchPostalCodeForAddress(address, municipality).collect { postalCode ->
@@ -198,12 +195,12 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Funksjon for å håndtere endring av maks antall deltakere
+    // Function to handle max participants input change
     fun onMaxParticipantsChange(newValue: String) {
         uiState.value = uiState.value.copy(maxParticipants = newValue, maxParticipantsError = null)
     }
 
-    // Funksjon for å håndtere aldersgrenseendring og validere
+    // Function to handle age limit input change and validate
     fun onAgeLimitChange(newValue: String) {
         val age = newValue.toIntOrNull()
         if (age != null && age > 100) {
@@ -220,19 +217,19 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Funksjon for å håndtere datoendring
+    // Function to handle date input change
     fun onDateChange(newValue: Timestamp) {
         uiState.value = uiState.value.copy(date = newValue, dateError = null)
     }
 
-    // Funksjon for å håndtere starttidspunktendring
+    // Function to handle start time input change
     fun onStartTimeChange(newValue: String) {
         uiState.value = uiState.value.copy(startTime = newValue, startTimeError = null)
     }
 
     // Function to handle publish action
-    fun onPublishClick(navController: NavController, context: Context) {
-        // Validation checks for each field
+    fun onPublishClick(navController: NavController) {
+        // Validation
         var hasError = false
         var titleError: String? = null
         var descriptionError: String? = null
@@ -292,7 +289,7 @@ class NewActivityViewModel @Inject constructor(
             val currentTimeMillis = System.currentTimeMillis()
             val selectedDateMillis = selectedDate.toDate().time
             val diff = selectedDateMillis - currentTimeMillis
-            if (diff < 48 * 60 * 60 * 1000) {
+            if (diff < 48 * 60 * 60 * 1000) { // 48 hours in milliseconds
                 dateError = "Datoen må være minst 48 timer fra nå"
                 hasError = true
             }
@@ -303,6 +300,7 @@ class NewActivityViewModel @Inject constructor(
             hasError = true
         }
 
+        // Update UI-state with error messages
         uiState.value = uiState.value.copy(
             titleError = titleError,
             descriptionError = descriptionError,
@@ -331,7 +329,7 @@ class NewActivityViewModel @Inject constructor(
                 isActivity = true,  // Set to true for activity images
                 category = uiState.value.category, // Pass the activity category
                 onSuccess = { imageUrl ->
-                    createActivityAndNavigate(navController, context, imageUrl, combinedLocation, timestampDate, startTime, creatorId)
+                    createActivityAndNavigate(navController, imageUrl, combinedLocation, timestampDate, startTime, creatorId)
                 },
                 onError = { error ->
                     uiState.value = uiState.value.copy(errorMessage = R.string.error_image_upload_failed)
@@ -340,13 +338,12 @@ class NewActivityViewModel @Inject constructor(
             )
         }
         else {
-            createActivityAndNavigate(navController, context, "", combinedLocation, timestampDate, startTime, creatorId)
+            createActivityAndNavigate(navController, "", combinedLocation, timestampDate, startTime, creatorId)
         }
     }
 
     private fun createActivityAndNavigate(
         navController: NavController,
-        context: Context,
         imageUrl: String,
         combinedLocation: String,
         date: Timestamp,
@@ -369,7 +366,6 @@ class NewActivityViewModel @Inject constructor(
                     startTime = startTime,
                 )
                 activityService.createActivity(uiState.value.category, newActivity)
-                Toast.makeText(context, context.getString(R.string.activity_created_success), Toast.LENGTH_LONG).show()
                 navController.navigate("home")
             } catch (e: Exception) {
                 uiState.value = uiState.value.copy(errorMessage = R.string.error_creating_activity)

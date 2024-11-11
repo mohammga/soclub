@@ -183,7 +183,7 @@ fun EditActivityScreen(
 
             item {
                 Button(
-                    onClick = { viewModel.onSaveClick(navController, activityId, category, context) }, // Pass context here
+                    onClick = { viewModel.onSaveClick(navController, activityId, category) }, // Pass context here
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
