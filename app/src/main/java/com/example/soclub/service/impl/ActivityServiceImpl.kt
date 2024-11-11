@@ -15,6 +15,7 @@ import dagger.hilt.android.internal.Contexts.getApplication
 
 
 import android.location.Location
+import com.google.firebase.Timestamp
 
 import java.util.Locale
 
@@ -57,10 +58,12 @@ class ActivityServiceImpl @Inject constructor(
         val fullLocation = activity?.location ?: "Ukjent"
         val lastWord = fullLocation.substringAfterLast(" ")
         val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
+        val lastUpdated = documentSnapshot.getTimestamp("lastUpdated") ?: Timestamp.now()
 
         return activity?.copy(
             location = lastWord,
-            restOfAddress = restOfAddress
+            restOfAddress = restOfAddress,
+            lastUpdated = lastUpdated
         )
     }
 
