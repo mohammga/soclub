@@ -25,6 +25,9 @@ class ResetPasswordViewModel @Inject constructor(private val accountService: Acc
     var uiState = mutableStateOf(ResetPasswordUiState())
         private set
 
+    var isLoading = mutableStateOf(false)
+        private set
+
     private val email get() = uiState.value.email
 
     fun onEmailChange(newValue: String) {
@@ -45,11 +48,13 @@ class ResetPasswordViewModel @Inject constructor(private val accountService: Acc
             return
         }
 
+        isLoading.value = true
+
         viewModelScope.launch {
             try {
                 accountService.sendPasswordResetEmail(email) { error ->
+                    isLoading.value = false
                     if (error == null) {
-                        // Show success toast and reset email input
                         Toast.makeText(context, context.getString(R.string.password_reset_email_sent), Toast.LENGTH_LONG).show()
                         uiState.value = ResetPasswordUiState(statusMessage = R.string.password_reset_email_sent)
                     } else {
@@ -57,6 +62,7 @@ class ResetPasswordViewModel @Inject constructor(private val accountService: Acc
                     }
                 }
             } catch (e: Exception) {
+                isLoading.value = false
                 uiState.value = uiState.value.copy(statusMessage = R.string.error_could_not_send_reset_email)
             }
         }

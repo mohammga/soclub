@@ -39,9 +39,44 @@ fun StartScreen(navController: NavController) {
 
         item {
             ContinueWithEmailButton(navController)
+            Spacer(modifier = Modifier.height(16.dp))
+            OrDivider()
+            Spacer(modifier = Modifier.height(16.dp))
+            SignInButton(navController)
         }
     }
 }
+
+@Composable
+fun OrDivider() {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        HorizontalDivider(modifier = Modifier.weight(1f))
+        Text(
+            text = stringResource(id = R.string.or_text), // legg til denne strengen i resources
+            modifier = Modifier.padding(horizontal = 8.dp),
+            style = MaterialTheme.typography.bodyMedium
+        )
+        HorizontalDivider(modifier = Modifier.weight(1f))
+    }
+}
+
+@Composable
+fun SignInButton(navController: NavController) {
+    Button(
+        onClick = {
+            navController.navigate("signin")
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp)
+    ) {
+        Text(text = stringResource(id = R.string.sign_in_button))
+    }
+}
+
 
 @Composable
 fun WelcomeMessage(navController: NavController) {

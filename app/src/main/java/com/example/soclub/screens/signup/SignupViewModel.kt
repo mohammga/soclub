@@ -35,6 +35,9 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
     var uiState = mutableStateOf(RegistrationNewUserState())
         private set
 
+    var isLoading = mutableStateOf(false) // Ny tilstand for å spore registreringsstatus
+        private set
+
     fun onEmailChange(newValue: String) {
         uiState.value = uiState.value.copy(email = newValue, emailError = null)
     }
@@ -127,7 +130,8 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
             generalError = null // Reset general error on each new attempt
         )
 
-        if (hasError) return
+        // Start registreringsprosessen
+        isLoading.value = true
 
         viewModelScope.launch {
             try {
@@ -139,21 +143,28 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
                     uiState.value.lastname,
                     convertedAge
                 ) { error ->
+                    isLoading.value = false // Fullfør registreringsprosessen
+
                     if (error == null) {
-                        // Show success toast and navigate to HOME screen
+                        // Sucessmelding, naviger til Hjem
                         Toast.makeText(
                             context,
-                            context.getString(R.string.registration_success_login, uiState.value.email),
+                            context.getString(
+                                R.string.registration_success_login,
+                                uiState.value.email
+                            ),
                             Toast.LENGTH_LONG
                         ).show()
+                        // Tilbakestill inputfeltene etter suksessfull registrering
+                        uiState.value = RegistrationNewUserState()
                         navController.navigate(AppScreens.HOME.name)
-                    } else if (error.message == "User already registered") {
-                        uiState.value = uiState.value.copy(generalError = R.string.error_user_already_registered)
                     } else {
-                        uiState.value = uiState.value.copy(generalError = R.string.error_account_creation)
+                        uiState.value =
+                            uiState.value.copy(generalError = R.string.error_account_creation)
                     }
                 }
             } catch (e: Exception) {
+                isLoading.value = false
                 uiState.value = uiState.value.copy(generalError = R.string.error_account_creation)
             }
         }
