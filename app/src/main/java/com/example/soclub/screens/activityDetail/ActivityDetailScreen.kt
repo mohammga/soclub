@@ -1,6 +1,5 @@
 package com.example.soclub.screens.activityDetail
 
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -48,6 +47,8 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.icu.text.SimpleDateFormat
 import android.widget.Toast
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.ui.res.painterResource
 import com.google.firebase.Timestamp
 import java.util.Locale
@@ -77,7 +78,6 @@ fun ActivityDetailScreen(
     val context = LocalContext.current
     val isCreator = viewModel.isCreator.collectAsState().value
 
-    // Sanntidsoppdatering: Laster aktiviteten hver gang `activityId` eller `category` endres
     LaunchedEffect(activityId, category) {
         if (activityId != null && category != null) {
             viewModel.loadActivityWithStatus(category, activityId)
@@ -93,13 +93,11 @@ fun ActivityDetailScreen(
                     }
                 }
                 errorMessage != null -> {
-                    // Viser feilmelding hvis noe går galt
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(text = errorMessage, color = Color.Red, fontSize = 16.sp)
                     }
                 }
                 else -> {
-                    // Innhold når data er lastet uten feil
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.Start
@@ -168,43 +166,71 @@ fun ActivityDetailsContent(
 ) {
     val context = LocalContext.current
     val fullLocation = activity?.location ?: stringResource(R.string.unknown_location)
-    val lastWord = fullLocation.substringAfterLast(" ")
-    val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
+    //val lastWord = fullLocation.substringAfterLast(" ")
+    //val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
 
     Column(modifier = Modifier.padding(16.dp)) {
         ActivityTitle(activity?.title ?: stringResource(R.string.activity_no_title))
-        ActivityDate(date = activity?.date)
-        if (activity?.startTime?.isNotEmpty() == true) {
-            Text(
-                text = "Starttid: ${activity.startTime}",
-                modifier = Modifier.padding(vertical = 4.dp)
-            )
-        }
 
-        InfoRow(
-            icon = Icons.Default.LocationOn,
-            mainText = lastWord,
-            subText = restOfAddress
-        )
+        Spacer(modifier = Modifier.height(16.dp))
 
-        InfoRow(
-            icon = Icons.Default.People,
-            mainText = if (currentParticipants == 0) {
-                stringResource(R.string.participants_max, activity?.maxParticipants ?: 0)
-            } else {
-                stringResource(
-                    R.string.participants_registered,
-                    currentParticipants,
-                    if (currentParticipants > 1) "e" else "",
-                    activity?.maxParticipants ?: 0
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                InfoRow(
+                    icon = Icons.Default.Event,
+                    mainText = activity?.date?.let { formatDate(it) } ?: "Ukjent dato",
+                    subText = "Dato"
                 )
-            },
-            subText = stringResource(R.string.age_group, activity?.ageGroup ?: "Alle")
-        )
+                InfoRow(
+                    icon = Icons.Default.People,
+                    mainText = if (currentParticipants == 0) {
+                        stringResource(R.string.participants_max, activity?.maxParticipants ?: 0)
+                    } else {
+                        stringResource(
+                            R.string.participants_registered,
+                            currentParticipants,
+                            if (currentParticipants > 1) "e" else "",
+                            activity?.maxParticipants ?: 0
+                        )
+                    },
+                    subText = "Deltakere"
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                InfoRow(
+                    icon = Icons.Default.AccessTime,
+                    mainText = activity?.startTime ?: "Ukjent starttid",
+                    subText = "Starttid"
+                )
+                InfoRow(
+                    icon = Icons.Default.LocationOn,
+                    mainText = "${activity?.ageGroup ?: "Alle"}+",
+                    subText = "Aldersgruppe"
+                )
+            }
+        }
 
         ActivityDescription(activity?.description ?: stringResource(R.string.unknown_description))
 
+
+        Text(
+            text = fullLocation,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+            fontSize = 14.sp,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+
         ActivityGPSImage(context = context, destinationLocation = fullLocation)
+
+        Text(
+            text = "Siste endret: ${activity?.lastUpdated?.let { formatDate(it) } ?: "Ukjent"}",
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            fontSize = 12.sp,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
 
         ActivityRegisterButton(
             isRegistered = isRegistered,
@@ -219,6 +245,13 @@ fun ActivityDetailsContent(
     }
 }
 
+
+
+@Composable
+fun formatDate(date: Timestamp): String {
+    val sdf = SimpleDateFormat("d. MMM yyyy", Locale("no", "NO"))
+    return sdf.format(date.toDate())
+}
 
 @Composable
 fun ActivityImage(imageUrl: String) {
@@ -266,22 +299,20 @@ fun ActivityDate(date: Timestamp?) {
 }
 
 fun splitDescriptionWithNaturalFlow(description: String, linesPerChunk: Int = 1): String {
-    val sentences = description.split(Regex("(?<=\\.)\\s+")) // Splitter teksten ved punktum etterfulgt av mellomrom
+    val sentences = description.split(Regex("(?<=\\.)\\s+"))
     val result = StringBuilder()
     var currentLines = 0
 
     for (sentence in sentences) {
-        // Legg til setningen til resultatet
         result.append(sentence.trim()).append(" ")
         currentLines++
 
-        // Legg til linjeskift etter hver fjerde linje
         if (currentLines % linesPerChunk == 0) {
-            result.append("\n\n") // Dobbelt linjeskift for ekstra mellomrom
+            result.append("\n\n")
         }
     }
 
-    return result.toString().trim() // Fjerner eventuelt overflødig mellomrom
+    return result.toString().trim()
 }
 
 @Composable
@@ -298,11 +329,9 @@ fun ActivityDescription(description: String) {
 
 @Composable
 fun ActivityGPSImage(context: Context, destinationLocation: String) {
-    // Hent brukerens plassering
     val userLocation = remember { mutableStateOf<Location?>(null) }
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
-    // Be om plasseringstillatelser hvis det ikke allerede er gitt
     LaunchedEffect(Unit) {
         if (ActivityCompat.checkSelfPermission(
                 context,
@@ -312,11 +341,9 @@ fun ActivityGPSImage(context: Context, destinationLocation: String) {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // Tillatelsen er ikke gitt, håndter det (f.eks. vis en melding til brukeren)
             return@LaunchedEffect
         }
 
-        // Få nåværende plassering
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
                 userLocation.value = location
@@ -324,10 +351,8 @@ fun ActivityGPSImage(context: Context, destinationLocation: String) {
             }
     }
 
-    // Lag URL for Google Maps Static API med destinasjon
     val staticMapUrl = "https://maps.googleapis.com/maps/api/staticmap?center=${Uri.encode(destinationLocation)}&zoom=15&size=600x300&markers=color:red%7Clabel:S%7C${Uri.encode(destinationLocation)}&key=AIzaSyBm7zH5lmtMtmL1gz5b6Hau89lSpqv1pwY"
 
-    // Sjekk om lokasjonen er tilgjengelig
     val locationReady = userLocation.value != null
 
     Box(
@@ -342,7 +367,6 @@ fun ActivityGPSImage(context: Context, destinationLocation: String) {
                         val startLat = location.latitude
                         val startLng = location.longitude
 
-                        // Bygg Google Maps URL med nåværende posisjon og destinasjon
                         val gmmIntentUri = "https://www.google.com/maps/dir/?api=1" +
                                 "&origin=$startLat,$startLng" + // Startposisjon
                                 "&destination=${Uri.encode(destinationLocation)}"
@@ -350,7 +374,6 @@ fun ActivityGPSImage(context: Context, destinationLocation: String) {
                         openGoogleMaps(context, gmmIntentUri)
                     }
                 } else {
-                    // Hvis brukerens lokasjon ikke er tilgjengelig, åpne destinasjonen uten startpunkt
                     openGoogleMaps(context, "https://www.google.com/maps/search/?api=1&query=${Uri.encode(destinationLocation)}")
                 }
             }
@@ -424,6 +447,7 @@ fun ActivityRegisterButton(
     }
 }
 
+
 @Composable
 fun InfoRow(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
@@ -431,15 +455,39 @@ fun InfoRow(
     subText: String
 ) {
     Row(
-        modifier = Modifier.padding(vertical = 8.dp),
+        modifier = Modifier
+            .padding(vertical = 8.dp)
+            .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(modifier = Modifier.padding(end = 16.dp)) {
-            ElevatedCardExample(icon = icon)
+        Box(
+            modifier = Modifier
+                .padding(end = 8.dp)
+                .size(40.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                .padding(8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
         }
         Column {
-            Text(text = mainText, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-            Text(text = subText, color = Color.Gray)
+            Text(
+                text = subText,
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = mainText,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                fontSize = 12.sp
+            )
         }
     }
 }
