@@ -3,7 +3,7 @@ package com.example.soclub.screens.signin
 import android.content.Context
 import android.widget.Toast
 import androidx.annotation.StringRes
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -27,6 +27,9 @@ data class SigninUiState(
 class SigninViewModel @Inject constructor(private val accountService: AccountService) : ViewModel() {
 
     var uiState = mutableStateOf(SigninUiState())
+        private set
+
+    var isLoading = mutableStateOf(false)
         private set
 
     private val email get() = uiState.value.email
@@ -65,11 +68,13 @@ class SigninViewModel @Inject constructor(private val accountService: AccountSer
 
         if (hasError) return
 
+        isLoading.value = true
+
         viewModelScope.launch {
             try {
                 accountService.authenticateWithEmail(email, password) { error ->
+                    isLoading.value = false
                     if (error == null) {
-                        // Show personalized success toast and navigate to HOME screen
                         Toast.makeText(
                             context,
                             context.getString(R.string.success_login, email),
@@ -83,6 +88,7 @@ class SigninViewModel @Inject constructor(private val accountService: AccountSer
                     }
                 }
             } catch (e: Exception) {
+                isLoading.value = false
                 uiState.value = uiState.value.copy(generalError = R.string.error_could_not_log_in)
             }
         }

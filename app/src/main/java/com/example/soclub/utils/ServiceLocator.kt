@@ -12,7 +12,8 @@ object ServiceLocator {
     private var notificationService: NotificationService? = null
     private var accountService: AccountService? = null
 
-    private fun provideAccountService(): AccountService {
+    // Make provideAccountService public
+    fun provideAccountService(): AccountService {
         return accountService ?: synchronized(this) {
             accountService ?: AccountServiceImpl(
                 auth = FirebaseAuth.getInstance(),

@@ -6,7 +6,6 @@ import com.example.soclub.models.Activity
 import com.example.soclub.service.AccountService
 import com.example.soclub.service.ActivityDetailService
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -16,10 +15,8 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.soclub.utils.cancelNotificationForActivity
-import com.example.soclub.utils.enqueueSignUpNotification
-import com.example.soclub.utils.enqueueUnregistrationNotification
+import com.example.soclub.utils.scheduleReminder
 import dagger.hilt.android.qualifiers.ApplicationContext
-import com.example.soclub.utils.scheduleNotificationForActivity
 import com.google.firebase.firestore.ListenerRegistration
 import java.util.Calendar
 
@@ -65,6 +62,19 @@ class ActivityDetailViewModel @Inject constructor(
 
     private var activityListener: ListenerRegistration? = null
 
+
+    private val _requestAlarmPermission = MutableLiveData<Boolean>()
+    val requestAlarmPermission: LiveData<Boolean> = _requestAlarmPermission
+
+
+
+    private fun checkAndRequestExactAlarmPermission() {
+        _requestAlarmPermission.value = true
+    }
+
+    fun resetAlarmPermissionRequest() {
+        _requestAlarmPermission.value = false
+    }
 
 
     private suspend fun updateCurrentParticipantsMap(activities: List<Activity>) {
@@ -143,23 +153,44 @@ class ActivityDetailViewModel @Inject constructor(
 
                     val startTimeMillis = getActivityStartTimeInMillis(currentActivity)
                     if (isRegistering && startTimeMillis != null) {
+                        // Schedule notifications for 24hr, 12hr, and 1hr before the activity
                         scheduleNotificationForActivity(
-                            context = context,
                             activityTitle = currentActivity.title,
                             activityId = activityId,
                             startTimeMillis = startTimeMillis,
                             userId = userId
                         )
-                        enqueueSignUpNotification(context, currentActivity.title, userId)
+                        // Immediate registration notification
+                        scheduleReminder(
+                            context = context,
+                            reminderTime = System.currentTimeMillis(),
+                            activityTitle = currentActivity.title,
+                            activityId = activityId,
+                            userId = userId,
+                            sendNow = true,
+                            isCancellation = false,
+                            isRegistration = true
+                        )
                     } else if (!isRegistering) {
+                        // Cancel all scheduled notifications for this activity
                         cancelNotificationForActivity(context, userId, activityId)
-                        enqueueUnregistrationNotification(context, currentActivity.title, userId)
+                        // Immediate cancellation notification
+                        scheduleReminder(
+                            context = context,
+                            reminderTime = System.currentTimeMillis(),
+                            activityTitle = currentActivity.title,
+                            activityId = activityId,
+                            userId = userId,
+                            sendNow = true,
+                            isCancellation = true,
+                            isRegistration = false
+                        )
                     }
+
                 }
             }
         }
     }
-
 
 
     private fun getActivityStartTimeInMillis(activity: Activity): Long? {
@@ -181,4 +212,68 @@ class ActivityDetailViewModel @Inject constructor(
             null
         }
     }
+
+    private fun scheduleNotificationForActivity(
+        activityTitle: String,
+        activityId: String,
+        startTimeMillis: Long,
+        userId: String
+    ) {
+        val currentTimeMillis = System.currentTimeMillis()
+
+        checkAndRequestExactAlarmPermission()
+
+        // Calculate times for 24 hours, 12 hours, 1 hour, and 2 minutes before the activity
+//        val twoMinutesBefore = startTimeMillis - (2 * 60 * 1000)
+        val oneHourBefore = startTimeMillis - (60 * 60 * 1000)
+        val twelveHoursBefore = startTimeMillis - (12 * 60 * 60 * 1000)
+        val twentyFourHoursBefore = startTimeMillis - (24 * 60 * 60 * 1000)
+
+        // Schedule each reminder with a custom message
+        if (twentyFourHoursBefore > currentTimeMillis) {
+            scheduleReminder(
+                context = context,
+                reminderTime = twentyFourHoursBefore,
+                activityTitle = activityTitle,
+                activityId = "${activityId}_24hr",
+                userId = userId,
+                saveToDatabase = false  // Don't save to Firestore immediately
+            )
+        }
+
+        if (twelveHoursBefore > currentTimeMillis) {
+            scheduleReminder(
+                context = context,
+                reminderTime = twelveHoursBefore,
+                activityTitle = activityTitle,
+                activityId = "${activityId}_12hr",
+                userId = userId,
+                saveToDatabase = false  // Don't save to Firestore immediately
+            )
+        }
+
+        if (oneHourBefore > currentTimeMillis) {
+            scheduleReminder(
+                context = context,
+                reminderTime = oneHourBefore,
+                activityTitle = activityTitle,
+                activityId = "${activityId}_1hr",
+                userId = userId,
+                saveToDatabase = false  // Don't save to Firestore immediately
+            )
+        }
+
+//        if (twoMinutesBefore > currentTimeMillis) {
+//            scheduleReminder(
+//                context = context,
+//                reminderTime = twoMinutesBefore,
+//                activityTitle = activityTitle,
+//                activityId = "${activityId}_2min",
+//                userId = userId,
+//                saveToDatabase = false  // Set to false if you don’t want to save each notification to Firestore immediately
+//            )
+//        }
+    }
+
+
 }

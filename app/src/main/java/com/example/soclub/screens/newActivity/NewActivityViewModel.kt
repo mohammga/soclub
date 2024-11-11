@@ -14,11 +14,9 @@ import com.example.soclub.service.LocationService
 import com.example.soclub.service.StorageService
 import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
-import android.content.Context
-import android.widget.Toast
 import kotlinx.coroutines.launch
+import java.util.Date
 import javax.inject.Inject
-
 
 data class NewActivityState(
     val title: String = "",
@@ -230,8 +228,8 @@ class NewActivityViewModel @Inject constructor(
     }
 
     // Function to handle publish action
-    fun onPublishClick(navController: NavController, context: Context) {
-        // Validation checks for each field
+    fun onPublishClick(navController: NavController) {
+        // Validation
         var hasError = false
         var titleError: String? = null
         var descriptionError: String? = null
@@ -282,15 +280,27 @@ class NewActivityViewModel @Inject constructor(
             ageLimitError = "Må være et tall"
             hasError = true
         }
-        if (uiState.value.date == null) {
+
+        val selectedDate = uiState.value.date
+        if (selectedDate == null) {
             dateError = "Du må velge dato"
             hasError = true
+        } else {
+            val currentTimeMillis = System.currentTimeMillis()
+            val selectedDateMillis = selectedDate.toDate().time
+            val diff = selectedDateMillis - currentTimeMillis
+            if (diff < 48 * 60 * 60 * 1000) { // 48 hours in milliseconds
+                dateError = "Datoen må være minst 48 timer fra nå"
+                hasError = true
+            }
         }
+
         if (uiState.value.startTime.isBlank()) {
             startTimeError = "Du må velge starttidspunkt"
             hasError = true
         }
 
+        // Update UI-state with error messages
         uiState.value = uiState.value.copy(
             titleError = titleError,
             descriptionError = descriptionError,
@@ -319,7 +329,7 @@ class NewActivityViewModel @Inject constructor(
                 isActivity = true,  // Set to true for activity images
                 category = uiState.value.category, // Pass the activity category
                 onSuccess = { imageUrl ->
-                    createActivityAndNavigate(navController, context, imageUrl, combinedLocation, timestampDate, startTime, creatorId)
+                    createActivityAndNavigate(navController, imageUrl, combinedLocation, timestampDate, startTime, creatorId)
                 },
                 onError = { error ->
                     uiState.value = uiState.value.copy(errorMessage = R.string.error_image_upload_failed)
@@ -328,16 +338,12 @@ class NewActivityViewModel @Inject constructor(
             )
         }
         else {
-            createActivityAndNavigate(navController, context, "", combinedLocation, timestampDate, startTime, creatorId)
+            createActivityAndNavigate(navController, "", combinedLocation, timestampDate, startTime, creatorId)
         }
     }
 
-
-
-
     private fun createActivityAndNavigate(
         navController: NavController,
-        context: Context,
         imageUrl: String,
         combinedLocation: String,
         date: Timestamp,
@@ -360,7 +366,6 @@ class NewActivityViewModel @Inject constructor(
                     startTime = startTime,
                 )
                 activityService.createActivity(uiState.value.category, newActivity)
-                Toast.makeText(context, context.getString(R.string.activity_created_success), Toast.LENGTH_LONG).show()
                 navController.navigate("home")
             } catch (e: Exception) {
                 uiState.value = uiState.value.copy(errorMessage = R.string.error_creating_activity)
