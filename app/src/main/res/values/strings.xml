@@ -370,6 +370,9 @@
     <string name="you_most_select_start_time">Du må velge starttidspunkt</string>
     <string name="notification_deleted">Varsling slettet</string>
     <string name="notification_deleted_error">Feil ved sletting av varsling. Vennligst prøv igjen senere.</string>
+    <string name="signup_message">Du er påmeldt til aktiviteten %1$s</string>
+    <string name="you_canceld_message">Du har meldt deg ut av aktiviteten %1$s</string>
+    <string name="error_fetch_municipalities">Failed to fetch municipalities</string>
 
 
 </resources>

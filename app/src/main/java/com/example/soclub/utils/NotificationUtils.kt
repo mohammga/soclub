@@ -6,6 +6,8 @@ import androidx.work.*
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
+import com.example.soclub.R
+
 
 fun scheduleNotificationForActivity(
     context: Context,
@@ -86,7 +88,8 @@ fun enqueueSignUpNotification(
     userId: String
 ) {
     val activityId = "signup"
-    val message = "Du er påmeldt til aktiviteten $activityTitle"
+    //val message = "Du er påmeldt til aktiviteten $activityTitle"
+    val message = context.getString(R.string.signup_message, activityTitle)
     enqueueReminderNotification(context, 0, message, activityId, userId)
 }
 
@@ -96,7 +99,8 @@ fun enqueueUnregistrationNotification(
     userId: String
 ) {
     val activityId = "unregistration" // Unique ID for unregistration notifications
-    val message = "Du har meldt deg ut av aktiviteten $activityTitle"
+    //val message = "Du har meldt deg ut av aktiviteten $activityTitle"
+    val message = context.getString(R.string.you_canceld_message, activityTitle)
     enqueueReminderNotification(context, 0, message, activityId, userId)
 }
 
