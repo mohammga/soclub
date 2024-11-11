@@ -28,7 +28,7 @@ fun NotificationsScreen(
     val context = LocalContext.current // Get the context
 
     LaunchedEffect(Unit) {
-        viewModel.loadNotifications()
+        viewModel.loadNotifications(context)
     }
 
     Box(

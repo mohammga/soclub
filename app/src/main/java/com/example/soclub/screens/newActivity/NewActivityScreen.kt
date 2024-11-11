@@ -377,9 +377,6 @@ fun AddressField(
                 .menuAnchor()
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
-            //placeholder = { Text(stringResource(id = R.string.address_label)) },
-            //modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-            //singleLine = true,
             enabled = isEnabled,
             trailingIcon = {
                 if (suggestions.isNotEmpty()) {
@@ -695,12 +692,12 @@ fun ImageUploadSection(
                         permissionLauncher.launch(galleryPermission)
                     }
                 ) {
-                    Text("OK")
+                    Text(stringResource(R.string.ok))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showPermissionDialog = false }) {
-                    Text("Avbryt")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )

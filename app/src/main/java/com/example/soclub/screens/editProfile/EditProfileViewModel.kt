@@ -18,6 +18,7 @@ import com.example.soclub.models.UserInfo
 import com.example.soclub.service.AccountService
 import com.example.soclub.service.StorageService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -33,6 +34,7 @@ data class EditProfileState(
 
 @HiltViewModel
 class EditProfileViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val accountService: AccountService,
     private val storageService: StorageService // Inject StorageService
 ) : ViewModel() {
@@ -60,7 +62,7 @@ class EditProfileViewModel @Inject constructor(
                     imageUri = imageUri
                 )
             } catch (e: Exception) {
-                errorMessage.value = "Kunne ikke laste profilinformasjon. Vennligst prøv igjen senere."
+                errorMessage.value = context.getString(R.string.error_message)
             } finally {
                 delay(1000)
                 isLoading.value = false

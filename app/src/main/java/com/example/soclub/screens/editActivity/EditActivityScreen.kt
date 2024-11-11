@@ -465,7 +465,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
     val formattedDate = if (value != 0L) {
         SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
     } else {
-        "Velg dato"
+        stringResource(R.string.choose_Dato)
     }
 
     Box {

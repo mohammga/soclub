@@ -354,6 +354,22 @@
     <string name="we_store_personal_data_as_long_as_necessary_accordance_with_the_law">Vi lagrer personopplysninger så lenge det er nødvendig for å oppfylle formålet med behandlingen og i henhold til gjeldende lover.</string>
     <string name="the_complaint">11. Klagerett</string>
     <string name="you_have_the_right_to_file_a_complaint">Du har rett til å sende en klage til en tilsynsmyndighet, som f.eks. Datatilsynet, dersom du mener at personvernrettighetene dine er brutt.</string>
+    <string name="no_places_left">Ingen ledige plasser igjen</string>
+    <string name="error_age_limit_exceeded_message">Aldersgrensen kan ikke overstige 100</string>
+    <string name="title_required_error">Du må fylle inn tittel</string>
+    <string name="title_must_be_filled_error">Du må fylle inn tittel</string>
+    <string name="description_must_be_filled_error">Du må fylle inn beskrivelse</string>
+    <string name="you_most_select_category">Du må velge kategori</string>
+    <string name="you_most_select_location">Du må velge sted</string>
+    <string name="you_most_select_address">Du må velge adresse</string>
+    <string name="you_most_select_postalCode">Postnummer er påkrevd</string>
+    <string name="maxParticipants_must_be_filled_error">Du må fylle inn maks antall deltakere</string>
+    <string name="most_ny_a_nummber">Må være et tall</string>
+    <string name="ageLimit_must_be_filled_error">Du må fylle inn aldersgrense</string>
+    <string name="you_most_select_date">Du må velge dato</string>
+    <string name="you_most_select_start_time">Du må velge starttidspunkt</string>
+    <string name="notification_deleted">Varsling slettet</string>
+    <string name="notification_deleted_error">Feil ved sletting av varsling. Vennligst prøv igjen senere.</string>
 
 
 </resources>
