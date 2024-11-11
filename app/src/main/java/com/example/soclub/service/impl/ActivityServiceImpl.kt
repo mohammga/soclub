@@ -227,11 +227,34 @@ class ActivityServiceImpl @Inject constructor(
     }
 
     override suspend fun deleteActivity(category: String, activityId: String) {
-        firestore.collection("category")
+        val batch = firestore.batch()
+
+        // Referanse til aktivitetens dokument i /category/<category>/activities/<activityId>
+        val activityDocRef = firestore.collection("category")
             .document(category)
             .collection("activities")
             .document(activityId)
-            .delete()
+        batch.delete(activityDocRef)
+
+        // Hent og slett alle notifications med denne activityId
+        val notificationsSnapshot = firestore.collection("notifications")
+            .whereEqualTo("activityId", activityId)
+            .get()
             .await()
+        notificationsSnapshot.documents.forEach { doc ->
+            batch.delete(doc.reference)
+        }
+
+        // Hent og slett alle registrations med denne activityId
+        val registrationsSnapshot = firestore.collection("registrations")
+            .whereEqualTo("activityId", activityId)
+            .get()
+            .await()
+        registrationsSnapshot.documents.forEach { doc ->
+            batch.delete(doc.reference)
+        }
+
+        // Commit batch
+        batch.commit().await()
     }
 }

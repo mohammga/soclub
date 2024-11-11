@@ -419,6 +419,21 @@ class EditActivityViewModel @Inject constructor(
         }
     }
 
+    fun onDeleteClick(navController: NavController, category: String, activityId: String) {
+        viewModelScope.launch {
+            try {
+                activityService.deleteActivity(category, activityId)
+                // Naviger tilbake til hjem eller vis en bekreftelse
+                navController.navigate("home") {
+                    popUpTo("editActivity") { inclusive = true }
+                }
+            } catch (e: Exception) {
+                uiState.value = uiState.value.copy(errorMessage = R.string.error_creating_activity)
+                Log.e("EditActivityViewModel", "Error deleting activity: ${e.message}")
+            }
+        }
+    }
+
     private fun updateActivityAndNavigate(
         navController: NavController,
         imageUrl: String,
