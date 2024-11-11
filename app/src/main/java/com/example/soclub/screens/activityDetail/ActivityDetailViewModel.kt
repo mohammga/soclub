@@ -224,7 +224,7 @@ class ActivityDetailViewModel @Inject constructor(
         checkAndRequestExactAlarmPermission()
 
         // Calculate times for 24 hours, 12 hours, 1 hour, and 2 minutes before the activity
-        val twoMinutesBefore = startTimeMillis - (2 * 60 * 1000)
+//        val twoMinutesBefore = startTimeMillis - (2 * 60 * 1000)
         val oneHourBefore = startTimeMillis - (60 * 60 * 1000)
         val twelveHoursBefore = startTimeMillis - (12 * 60 * 60 * 1000)
         val twentyFourHoursBefore = startTimeMillis - (24 * 60 * 60 * 1000)
@@ -263,16 +263,16 @@ class ActivityDetailViewModel @Inject constructor(
             )
         }
 
-        if (twoMinutesBefore > currentTimeMillis) {
-            scheduleReminder(
-                context = context,
-                reminderTime = twoMinutesBefore,
-                activityTitle = activityTitle,
-                activityId = "${activityId}_2min",
-                userId = userId,
-                saveToDatabase = false  // Set to false if you don’t want to save each notification to Firestore immediately
-            )
-        }
+//        if (twoMinutesBefore > currentTimeMillis) {
+//            scheduleReminder(
+//                context = context,
+//                reminderTime = twoMinutesBefore,
+//                activityTitle = activityTitle,
+//                activityId = "${activityId}_2min",
+//                userId = userId,
+//                saveToDatabase = false  // Set to false if you don’t want to save each notification to Firestore immediately
+//            )
+//        }
     }
 
 
