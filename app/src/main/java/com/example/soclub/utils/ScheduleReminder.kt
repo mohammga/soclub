@@ -95,24 +95,25 @@ fun scheduleReminder(
 fun cancelNotificationForActivity(context: Context, userId: String, activityId: String) {
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-    // Create unique IDs for each reminder time (24hr, 12hr, and 1hr before)
+    // Lag unike IDs for hver påminnelse: 24 timer, 12 timer og 1 time før aktiviteten
     val reminderIds = listOf("${activityId}_24hr", "${activityId}_12hr", "${activityId}_1hr")
 
-    // Iterate over each reminder ID to cancel the associated PendingIntent
+    // Gå gjennom hver reminder ID og kanseller den tilhørende PendingIntent
     reminderIds.forEach { id ->
         val intent = Intent(context, ReminderBroadcastReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            id.hashCode(),  // Unique ID based on reminder type
+            id.hashCode(),  // Unik ID basert på påminnelsestype
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Cancel the scheduled alarm and the PendingIntent
+        // Kanseller planlagt alarm og PendingIntent
         alarmManager.cancel(pendingIntent)
         pendingIntent.cancel()
     }
 }
+
 
 // Helper function to save notification in the database
 fun saveNotificationToDatabase(userId: String, activityId: String, message: String) {

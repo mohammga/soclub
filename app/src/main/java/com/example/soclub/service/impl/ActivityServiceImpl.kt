@@ -15,6 +15,7 @@ import dagger.hilt.android.internal.Contexts.getApplication
 
 
 import android.location.Location
+import android.util.Log
 import com.google.firebase.Timestamp
 
 import java.util.Locale
@@ -260,4 +261,19 @@ class ActivityServiceImpl @Inject constructor(
         // Commit batch
         batch.commit().await()
     }
+
+    override suspend fun getRegisteredUsersForActivity(activityId: String): List<String> {
+        return try {
+            val registrationsSnapshot = firestore.collection("registrations")
+                .whereEqualTo("activityId", activityId)
+                .get()
+                .await()
+
+            registrationsSnapshot.documents.mapNotNull { it.getString("userId") }
+        } catch (e: Exception) {
+            Log.e("ActivityService", "Error getting registered users: ${e.message}")
+            emptyList()
+        }
+    }
+
 }

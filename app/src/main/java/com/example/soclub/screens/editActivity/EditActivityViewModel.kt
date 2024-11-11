@@ -12,6 +12,7 @@ import com.example.soclub.service.ActivityService
 import com.example.soclub.service.AccountService
 import com.example.soclub.service.LocationService
 import com.example.soclub.service.StorageService
+import com.example.soclub.utils.cancelNotificationForActivity
 import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -419,10 +420,19 @@ class EditActivityViewModel @Inject constructor(
         }
     }
 
+
     fun onDeleteClick(navController: NavController, category: String, activityId: String) {
         viewModelScope.launch {
             try {
+                // Før sletting, hent alle påmeldte brukere og kanseller deres varsler
+                val registeredUsers = activityService.getRegisteredUsersForActivity(activityId)
+                registeredUsers.forEach { userId ->
+                    cancelNotificationForActivity(navController.context, userId, activityId)
+                }
+
+                // Slett deretter selve aktiviteten fra databasen
                 activityService.deleteActivity(category, activityId)
+
                 // Naviger tilbake til hjem eller vis en bekreftelse
                 navController.navigate("home") {
                     popUpTo("editActivity") { inclusive = true }
@@ -433,6 +443,8 @@ class EditActivityViewModel @Inject constructor(
             }
         }
     }
+
+
 
     private fun updateActivityAndNavigate(
         navController: NavController,
