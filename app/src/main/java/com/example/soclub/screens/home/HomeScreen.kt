@@ -354,21 +354,21 @@ fun CategoryTabs(categories: List<String>, pagerState: PagerState) {
     }
 }
 
-
 @Composable
-fun ActivityList(
-    activities: List<Activity>,
-    selectedCategory: String,
-    navController: NavHostController
-) {
+fun ActivityList(activities: List<Activity>, selectedCategory: String, navController: NavHostController) {
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.fillMaxSize()
     ) {
         items(activities) { activity ->
+            val categoryToUse = if (selectedCategory == "Nærme Aktiviteter") {
+                activity.category ?: "ukjent"
+            } else {
+                selectedCategory
+            }
             ActivityItem(activity = activity) {
-                navController.navigate("detail/$selectedCategory/${activity.id}")
+                navController.navigate("detail/${categoryToUse}/${activity.id}")
             }
         }
     }
