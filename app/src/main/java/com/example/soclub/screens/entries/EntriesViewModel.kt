@@ -8,7 +8,8 @@ import com.example.soclub.models.Activity
 import com.example.soclub.service.EntriesService
 import com.example.soclub.service.AccountService
 import com.example.soclub.service.ActivityDetailService
-import com.example.soclub.utils.enqueueUnregistrationNotification
+import com.example.soclub.utils.scheduleReminder
+import com.example.soclub.utils.cancelNotificationForActivity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,21 +71,29 @@ class EntriesScreenViewModel @Inject constructor(
     fun cancelRegistration(activityId: String) {
         viewModelScope.launch {
             val userId = accountService.currentUserId
-
             val activityTitle = _activeActivities.value.find { it.id == activityId }?.title ?: "Aktivitet"
 
             val success = activityDetailService.updateRegistrationStatus(userId, activityId, "notAktiv")
 
             if (success) {
+                // Update the active activities list to remove the cancelled activity
                 _activeActivities.value = _activeActivities.value.filter { it.id != activityId }
 
-                enqueueUnregistrationNotification(
+                // Send a cancellation notification
+                scheduleReminder(
                     context = context,
+                    reminderTime = System.currentTimeMillis(),  // Send immediately
                     activityTitle = activityTitle,
-                    userId = userId
+                    activityId = activityId,
+                    userId = userId,
+                    sendNow = true,
+                    isCancellation = true  // Specify cancellation message
                 )
 
-                // Vis Toast-melding
+                // Optionally, cancel any pre-scheduled notifications for this activity
+                cancelNotificationForActivity(context, userId, activityId)
+
+                // Display a Toast message for user feedback
                 Toast.makeText(context, "Aktivitet kansellert", Toast.LENGTH_LONG).show()
             }
         }
