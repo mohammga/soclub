@@ -455,7 +455,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
             supportingText = {
                 val errorMessage = error ?: internalError
                 if (errorMessage == null) {
-                    Text("Velg dato for aktiviteten (minst 48 timer fra nå)")
+                    Text("Velg dato for aktiviteten (minst 24 timer fra nå)")
                 } else {
                     Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
                 }
@@ -478,12 +478,12 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
                             datePickerState.selectedDateMillis?.let { selectedMillis ->
                                 val currentTimeMillis = System.currentTimeMillis()
                                 val diff = selectedMillis - currentTimeMillis
-                                if (diff >= 48 * 60 * 60 * 1000) { // 48 hours in milliseconds
+                                if (diff >= 24 * 60 * 60 * 1000) { // 24 hours in milliseconds
                                     onNewValue(Timestamp(Date(selectedMillis)))
                                     internalError = null
                                     isDatePickerVisible.value = false
                                 } else {
-                                    internalError = "Datoen må være minst 48 timer fra nå"
+                                    internalError = "Datoen må være minst 24 timer fra nå"
                                 }
                             } ?: run {
                                 internalError = "Du må velge en dato"
@@ -504,6 +504,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
         }
     }
 }
+
 
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)

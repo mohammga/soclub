@@ -291,8 +291,8 @@ class NewActivityViewModel @Inject constructor(
             val currentTimeMillis = System.currentTimeMillis()
             val selectedDateMillis = selectedDate.toDate().time
             val diff = selectedDateMillis - currentTimeMillis
-            if (diff < 48 * 60 * 60 * 1000) { // 48 hours in milliseconds
-                dateError = "Datoen må være minst 48 timer fra nå"
+            if (diff < 24 * 60 * 60 * 1000) { // 24 hours in milliseconds
+                dateError = "Datoen må være minst 24 timer fra nå"
                 hasError = true
             }
         }
