@@ -49,6 +49,7 @@ import android.icu.text.SimpleDateFormat
 import android.widget.Toast
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.ui.res.painterResource
 import com.google.firebase.Timestamp
 import java.util.Locale
@@ -166,8 +167,6 @@ fun ActivityDetailsContent(
 ) {
     val context = LocalContext.current
     val fullLocation = activity?.location ?: stringResource(R.string.unknown_location)
-    //val lastWord = fullLocation.substringAfterLast(" ")
-    //val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
 
     Column(modifier = Modifier.padding(16.dp)) {
         ActivityTitle(activity?.title ?: stringResource(R.string.activity_no_title))
@@ -175,13 +174,14 @@ fun ActivityDetailsContent(
         Spacer(modifier = Modifier.height(16.dp))
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 InfoRow(
                     icon = Icons.Default.Event,
-                    mainText = activity?.date?.let { formatDate(it) } ?: "Ukjent dato",
+                    mainText = activity?.date?.let { formatDateWithoutTime(it) } ?: "Ukjent dato",
                     subText = "Dato"
                 )
                 InfoRow(
@@ -192,7 +192,7 @@ fun ActivityDetailsContent(
                         stringResource(
                             R.string.participants_registered,
                             currentParticipants,
-                            if (currentParticipants > 1) "e" else "",
+                            if (currentParticipants > 1) "e" else "e",
                             activity?.maxParticipants ?: 0
                         )
                     },
@@ -206,7 +206,7 @@ fun ActivityDetailsContent(
                     subText = "Starttid"
                 )
                 InfoRow(
-                    icon = Icons.Default.LocationOn,
+                    icon = Icons.Default.Groups,
                     mainText = "${activity?.ageGroup ?: "Alle"}+",
                     subText = "Aldersgruppe"
                 )
@@ -247,11 +247,17 @@ fun ActivityDetailsContent(
 
 
 
-@Composable
 fun formatDate(date: Timestamp): String {
+    val sdf = SimpleDateFormat("d. MMM yyyy, HH:mm", Locale("no", "NO"))
+    return sdf.format(date.toDate())
+}
+
+fun formatDateWithoutTime(date: Timestamp): String {
     val sdf = SimpleDateFormat("d. MMM yyyy", Locale("no", "NO"))
     return sdf.format(date.toDate())
 }
+
+
 
 @Composable
 fun ActivityImage(imageUrl: String) {
@@ -278,7 +284,7 @@ fun ActivityImage(imageUrl: String) {
 fun ActivityTitle(title: String) {
     Text(
         text = title,
-        fontSize = 24.sp,
+        fontSize = 32.sp,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(top = 16.dp)
     )
@@ -322,6 +328,13 @@ fun ActivityDescription(description: String) {
     }
 
     Text(
+        text = "Beskrivelse",
+        fontSize = 24.sp,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(top = 16.dp)
+    )
+
+    Text(
         text = formattedDescription,
         modifier = Modifier.padding(vertical = 16.dp)
     )
@@ -331,8 +344,16 @@ fun ActivityDescription(description: String) {
 fun ActivityGPSImage(context: Context, destinationLocation: String) {
     val userLocation = remember { mutableStateOf<Location?>(null) }
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    val lc = 1001
+    val apiKey = try {
+        val ai = context.packageManager.getApplicationInfo(context.packageName, PackageManager.GET_META_DATA)
+        ai.metaData.getString("com.google.android.geo.API_KEY")
+    } catch (e: PackageManager.NameNotFoundException) {
+        null
+    }
 
     LaunchedEffect(Unit) {
+        // Sjekker tillatelser
         if (ActivityCompat.checkSelfPermission(
                 context,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -341,18 +362,23 @@ fun ActivityGPSImage(context: Context, destinationLocation: String) {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
+            ActivityCompat.requestPermissions(
+                context as android.app.Activity, // Bruker fullt kvalifisert navn
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
+                lc
+            )
+
             return@LaunchedEffect
         }
 
+        // Få siste plassering hvis tillatelse er gitt
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
                 userLocation.value = location
                 println("User's current location: ${location?.latitude}, ${location?.longitude}")
             }
     }
-
-    val staticMapUrl = "https://maps.googleapis.com/maps/api/staticmap?center=${Uri.encode(destinationLocation)}&zoom=15&size=600x300&markers=color:red%7Clabel:S%7C${Uri.encode(destinationLocation)}&key=AIzaSyBm7zH5lmtMtmL1gz5b6Hau89lSpqv1pwY"
-
+    val staticMapUrl = "https://maps.googleapis.com/maps/api/staticmap?center=${Uri.encode(destinationLocation)}&zoom=15&size=600x300&markers=color:red%7Clabel:S%7C${Uri.encode(destinationLocation)}&key=$apiKey"
     val locationReady = userLocation.value != null
 
     Box(
@@ -415,8 +441,9 @@ fun ActivityRegisterButton(
         else -> stringResource(R.string.registerr)
     }
 
+    //DENNE DELEN MÅ BRUKE RIKTIG FARGER
     val buttonColor = when {
-        isFull -> Color.Green
+        isFull -> Color.Gray
         isCreator || !canRegister -> Color.Gray
         isRegistered -> Color.Red
         else -> Color.Black

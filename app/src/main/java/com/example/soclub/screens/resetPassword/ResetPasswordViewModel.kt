@@ -30,8 +30,10 @@ class ResetPasswordViewModel @Inject constructor(private val accountService: Acc
 
     private val email get() = uiState.value.email
 
+
     fun onEmailChange(newValue: String) {
-        uiState.value = uiState.value.copy(email = newValue, emailError = null)
+        val lowerCaseEmail = newValue.lowercase()
+        uiState.value = uiState.value.copy(email = lowerCaseEmail, emailError = null)
     }
 
     fun onForgotPasswordClick(context: Context) {

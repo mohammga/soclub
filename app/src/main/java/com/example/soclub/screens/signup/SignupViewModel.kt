@@ -38,17 +38,24 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
     var isLoading = mutableStateOf(false) // Ny tilstand for å spore registreringsstatus
         private set
 
+
     fun onEmailChange(newValue: String) {
-        uiState.value = uiState.value.copy(email = newValue, emailError = null)
+        val lowerCaseEmail = newValue.lowercase()
+        uiState.value = uiState.value.copy(email = lowerCaseEmail, emailError = null)
     }
 
     fun onFirstNameChange(newValue: String) {
-        uiState.value = uiState.value.copy(firstname = newValue, firstNameError = null)
+        val formattedFirstName = newValue
+            .split(" ")
+            .joinToString(" ") { word -> word.replaceFirstChar { it.uppercaseChar() } }
+        uiState.value = uiState.value.copy(firstname = formattedFirstName, firstNameError = null)
     }
 
     fun onLastNameChange(newValue: String) {
-        uiState.value = uiState.value.copy(lastname = newValue, lastNameError = null)
+        val formattedLastName = newValue.replace(" ", "").replaceFirstChar { it.uppercaseChar() }
+        uiState.value = uiState.value.copy(lastname = formattedLastName, lastNameError = null)
     }
+
 
     fun onPasswordChange(newValue: String) {
         uiState.value = uiState.value.copy(password = newValue, passwordError = null)
@@ -129,6 +136,8 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
             passwordError = passwordError,
             generalError = null // Reset general error on each new attempt
         )
+
+        if (hasError) return
 
         // Start registreringsprosessen
         isLoading.value = true

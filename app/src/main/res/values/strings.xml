@@ -138,7 +138,7 @@
     <string name="unknown_address">Ukjent adresse</string>
     <string name="unknown_description">Ingen beskrivelse</string>
     <string name="participants_max">Maks %1$d</string>
-    <string name="participants_registered">%1$d deltaker%2$s av %3$d</string>
+    <string name="participants_registered">%1$d av %3$d deltaker%2$s</string>
     <string name="age_group">Aldersgruppe: %1$s</string>
     <string name="under_age_limit">Du er under aldersgrensen (%1$d)</string>
     <string name="registerr">Meld deg på</string>
