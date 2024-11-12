@@ -129,14 +129,20 @@ class EditActivityViewModel @Inject constructor(
         }
     }
 
+    
+    // Function to handle title change with first letter capitalized
 
-    // Funksjoner for å håndtere inputendringer
     fun onTitleChange(newValue: String) {
         uiState.value = uiState.value.copy(title = newValue, titleError = null)
+        val capitalizedTitle = newValue.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+        uiState.value = uiState.value.copy(title = capitalizedTitle, titleError = null)
     }
 
+    // Function to handle description change with first letter capitalized
     fun onDescriptionChange(newValue: String) {
         uiState.value = uiState.value.copy(description = newValue, descriptionError = null)
+        val capitalizedDescription = newValue.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+        uiState.value = uiState.value.copy(description = capitalizedDescription, descriptionError = null)
     }
 
     fun onImageSelected(uri: Uri?) {

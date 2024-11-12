@@ -35,8 +35,10 @@ class SigninViewModel @Inject constructor(private val accountService: AccountSer
     private val email get() = uiState.value.email
     private val password get() = uiState.value.password
 
+
     fun onEmailChange(newValue: String) {
-        uiState.value = uiState.value.copy(email = newValue, emailError = null)
+        val lowerCaseEmail = newValue.lowercase()
+        uiState.value = uiState.value.copy(email = lowerCaseEmail, emailError = null)
     }
 
     fun onPasswordChange(newValue: String) {

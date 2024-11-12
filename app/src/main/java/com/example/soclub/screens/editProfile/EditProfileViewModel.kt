@@ -71,13 +71,17 @@ class EditProfileViewModel @Inject constructor(
     }
 
     fun onNameChange(newValue: String) {
-        val isNameDirty = newValue != uiState.value.firstname
-        uiState.value = uiState.value.copy(firstname = newValue, isDirty = isNameDirty, firstnameError = null)
+        val formattedFirstName = newValue
+            .split(" ")
+            .joinToString(" ") { part -> part.replaceFirstChar { it.uppercaseChar() } }
+        val isNameDirty = formattedFirstName != uiState.value.firstname
+        uiState.value = uiState.value.copy(firstname = formattedFirstName, isDirty = isNameDirty, firstnameError = null)
     }
 
     fun onLastnameChange(newValue: String) {
-        val isLastnameDirty = newValue != uiState.value.lastname
-        uiState.value = uiState.value.copy(lastname = newValue, isDirty = isLastnameDirty, lastnameError = null)
+        val formattedLastName = newValue.replace(" ", "").replaceFirstChar { it.uppercaseChar() }
+        val isLastnameDirty = formattedLastName != uiState.value.lastname
+        uiState.value = uiState.value.copy(lastname = formattedLastName, isDirty = isLastnameDirty, lastnameError = null)
     }
 
     fun onImageSelected(uri: Uri?) {
