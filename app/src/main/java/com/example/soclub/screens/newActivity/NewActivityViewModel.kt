@@ -3,6 +3,7 @@ package com.example.soclub.screens.newActivity
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -245,47 +246,52 @@ class NewActivityViewModel @Inject constructor(
         var startTimeError: String? = null
 
         if (uiState.value.title.isBlank()) {
-            titleError = "Du må fylle inn tittel"
+            titleError = context.getString(R.string.title_must_be_filled_error)//"Du må fylle inn tittel"
             hasError = true
         }
         if (uiState.value.description.isBlank()) {
-            descriptionError = "Du må fylle inn beskrivelse"
+            descriptionError = context.getString(R.string.description_must_be_filled_error)//"Du må fylle inn beskrivelse"
             hasError = true
         }
         if (uiState.value.category.isBlank()) {
-            categoryError = "Du må velge kategori"
+            categoryError = context.getString(R.string.you_most_select_category)//"Du må velge kategori"
             hasError = true
         }
         if (uiState.value.location.isBlank()) {
-            locationError = "Du må velge sted"
+            locationError = context.getString(R.string.you_most_select_location)//"Du må velge sted"
             hasError = true
         }
         if (uiState.value.address.isBlank()) {
-            addressError = "Du må velge adresse"
+            addressError = context.getString(R.string.you_most_select_address)//"Du må velge adresse"
             hasError = true
         }
         if (uiState.value.postalCode.isBlank()) {
-            postalCodeError = "Postnummer er påkrevd"
+            postalCodeError = context.getString(R.string.you_most_select_postalCode)//"Postnummer er påkrevd"
             hasError = true
         }
         if (uiState.value.maxParticipants.isBlank()) {
-            maxParticipantsError = "Du må fylle inn maks antall deltakere"
+            maxParticipantsError = context.getString(R.string.maxParticipants_must_be_filled_error)//"Du må fylle inn maks antall deltakere"
             hasError = true
         } else if (uiState.value.maxParticipants.toIntOrNull() == null) {
-            maxParticipantsError = "Må være et tall"
+            maxParticipantsError = context.getString(R.string.most_ny_a_nummber)//"Må være et tall"
             hasError = true
         }
         if (uiState.value.ageLimit.isBlank()) {
-            ageLimitError = "Du må fylle inn aldersgrense"
+            ageLimitError = context.getString(R.string.ageLimit_must_be_filled_error)//"Du må fylle inn aldersgrense"
             hasError = true
         } else if (uiState.value.ageLimit.toIntOrNull() == null) {
-            ageLimitError = "Må være et tall"
+            ageLimitError = context.getString(R.string.most_ny_a_nummber)
             hasError = true
         }
+
 
         val selectedDate = uiState.value.date
         if (selectedDate == null) {
             dateError = "Du må velge dato"
+
+        //if (uiState.value.date == null) {
+            //dateError = context.getString(R.string.you_most_select_date)//"Du må velge dato"
+
             hasError = true
         } else {
             val currentTimeMillis = System.currentTimeMillis()
@@ -298,7 +304,7 @@ class NewActivityViewModel @Inject constructor(
         }
 
         if (uiState.value.startTime.isBlank()) {
-            startTimeError = "Du må velge starttidspunkt"
+            startTimeError = context.getString(R.string.you_most_select_start_time)//"Du må velge starttidspunkt"
             hasError = true
         }
 

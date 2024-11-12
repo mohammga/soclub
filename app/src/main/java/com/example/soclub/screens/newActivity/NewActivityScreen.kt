@@ -290,7 +290,7 @@ fun LocationField(
                 expanded = newValue.text.isNotEmpty() && suggestions.isNotEmpty()
             },
             label = { Text(stringResource(id = R.string.location_label)) },
-            placeholder = { Text("Sted") },
+            placeholder = { Text(stringResource(R.string.location_label)) },
             modifier = Modifier
                 .menuAnchor()
                 .fillMaxWidth()
@@ -360,7 +360,7 @@ fun AddressField(
                 }
             },
             label = { Text(stringResource(id = R.string.address_label)) },
-            placeholder = { Text("Adresse") },
+            placeholder = { Text(stringResource(id = R.string.address_label)) },
             modifier = Modifier
                 .menuAnchor()
                 .fillMaxWidth()
@@ -410,7 +410,7 @@ fun PostalCodeField(value: String, error: String?) {
         value = value,
         onValueChange = {},
         label = { Text(stringResource(id = R.string.postal_code_label)) },
-        placeholder = { Text("Postnummer") },
+        placeholder = { Text(stringResource(id = R.string.postal_code_label)) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
@@ -446,16 +446,21 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
         OutlinedTextField(
             value = formattedDate,
             onValueChange = {},
-            label = { Text("Dato") },
+            label = { Text(stringResource(id = R.string.date_label)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             readOnly = true,
             isError = error != null || internalError != null,
             supportingText = {
+
                 val errorMessage = error ?: internalError
                 if (errorMessage == null) {
                     Text("Velg dato for aktiviteten (minst 24 timer fra nå)")
+
+                //if (error == null) {
+                    //Text(stringResource(id = R.string.choose_activity_Dato))
+
                 } else {
                     Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
                 }
@@ -490,7 +495,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
                             }
                         }
                     ) {
-                        Text("OK")
+                        Text(stringResource(id = R.string.ok))
                     }
                 },
                 dismissButton = {
@@ -516,9 +521,10 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
     Box {
         OutlinedTextField(
             value = value,
+            //value = if (value.isNotEmpty()) value else stringResource(R.string.choose_start_time),
             onValueChange = {},
-            placeholder = { Text("Starttidspunkt") },
-            label = { Text("Starttidspunkt") },
+            placeholder = { Text(stringResource(R.string.start_time_label)) },
+            label = { Text(stringResource(R.string.start_time_label))},
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
@@ -526,7 +532,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
             isError = error != null,
             supportingText = {
                 if (error == null) {
-                    Text("Velg starttid for aktiviteten")
+                    Text(stringResource(R.string.choose_activity_starttime))
                 } else {
                     Text(text = error, color = MaterialTheme.colorScheme.error)
                 }
@@ -542,7 +548,6 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
                     isTimePickerVisible.value = true
                 }
         )
-
         if (isTimePickerVisible.value) {
             Dialog(onDismissRequest = { isTimePickerVisible.value = false }) {
                 Surface(
@@ -559,7 +564,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
                             horizontalArrangement = Arrangement.End
                         ) {
                             TextButton(onClick = { isTimePickerVisible.value = false }) {
-                                Text("Avbryt")
+                                Text(stringResource(R.string.cancel))
                             }
                             TextButton(onClick = {
                                 val hour = timePickerState.hour
@@ -567,7 +572,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
                                 onNewValue(String.format("%02d:%02d", hour, minute))
                                 isTimePickerVisible.value = false
                             }) {
-                                Text("OK")
+                                Text(stringResource(R.string.ok))
                             }
                         }
                     }
@@ -632,6 +637,7 @@ fun ImageUploadSection(
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
+
         onImageSelected(uri)
     }
 
