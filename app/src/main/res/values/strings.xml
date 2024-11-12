@@ -374,6 +374,13 @@
     <string name="signup_message">Du er påmeldt til aktiviteten %1$s</string>
     <string name="you_canceld_message">Du har meldt deg ut av aktiviteten %1$s</string>
     <string name="error_fetch_municipalities">Failed to fetch municipalities</string>
+    <string name="most_by_24_h">Datoen må være minst 24 timer fra nå</string>
+    <string name="age_limt_100">Aldersgrensen kan ikke overstige 100</string>
+    <string name="date_most_by_24_fn">Velg dato for aktiviteten (minst 24 timer fra nå)</string>
+    <string name="delete_aktivity">Slett aktivitet</string>
+    <string name="confirm_deletion">Bekreft sletting</string>
+    <string name="sure_you_want_to_delete">Er du sikker på at du vil slette denne aktiviteten? Denne handlingen kan ikke angres.</string>
+    <string name="date_expiered">Du kan ikke velge en dato som har gått.</string>
 
 
 </resources>

@@ -2,6 +2,7 @@ package com.example.soclub.screens.newActivity
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
@@ -43,6 +44,7 @@ fun NewActivityScreen(
     val uiState by viewModel.uiState
     val locationSuggestions by remember { derivedStateOf { uiState.locationSuggestions } }
     val addressSuggestions by remember { derivedStateOf { uiState.addressSuggestions } }
+
 
     // State to trigger recomposition when updated
     var locationConfirmed by remember { mutableStateOf(false) }
@@ -432,6 +434,9 @@ fun PostalCodeField(value: String, error: String?) {
 @Composable
 fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
     val context = LocalContext.current
+    val currentTimeMillis = System.currentTimeMillis()
+
+    // Date picker state with initial value
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = value)
     val isDatePickerVisible = remember { mutableStateOf(false) }
     var internalError by remember { mutableStateOf<String?>(null) }
@@ -439,7 +444,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
     val formattedDate = if (value != 0L) {
         SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
     } else {
-        "Velg dato"
+        stringResource(R.string.choose_Dato)//"Velg dato"
     }
 
     Box {
@@ -453,14 +458,9 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
             readOnly = true,
             isError = error != null || internalError != null,
             supportingText = {
-
                 val errorMessage = error ?: internalError
                 if (errorMessage == null) {
-                    Text("Velg dato for aktiviteten (minst 24 timer fra nå)")
-
-                //if (error == null) {
-                    //Text(stringResource(id = R.string.choose_activity_Dato))
-
+                    Text(stringResource(R.string.date_most_by_24_fn))//Velg dato for aktiviteten (minst 24 timer fra nå)
                 } else {
                     Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
                 }
@@ -481,17 +481,19 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
                     TextButton(
                         onClick = {
                             datePickerState.selectedDateMillis?.let { selectedMillis ->
-                                val currentTimeMillis = System.currentTimeMillis()
                                 val diff = selectedMillis - currentTimeMillis
-                                if (diff >= 24 * 60 * 60 * 1000) { // 24 hours in milliseconds
+                                if (diff >= 24 * 60 * 60 * 1000) { // Minimum 24 hours from now
                                     onNewValue(Timestamp(Date(selectedMillis)))
                                     internalError = null
                                     isDatePickerVisible.value = false
+                                } else if (selectedMillis < currentTimeMillis) {
+                                    internalError =  context.getString(R.string.date_most_by_24_fn)//"Datoen må være minst 24 timer fra nå"
+                                    Toast.makeText(context, R.string.date_expiered, Toast.LENGTH_SHORT).show()//"Du kan ikke velge en dato som har gått."
                                 } else {
-                                    internalError = "Datoen må være minst 24 timer fra nå"
+                                    internalError = context.getString(R.string.date_most_by_24_fn)//"Datoen må være minst 24 timer fra nå"
                                 }
                             } ?: run {
-                                internalError = "Du må velge en dato"
+                                internalError = context.getString(R.string.you_most_select_date)//"Du må velge en dato"
                             }
                         }
                     ) {
@@ -500,7 +502,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
                 },
                 dismissButton = {
                     TextButton(onClick = { isDatePickerVisible.value = false }) {
-                        Text("Avbryt")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             ) {
@@ -509,6 +511,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
         }
     }
 }
+
 
 
 @SuppressLint("DefaultLocale")

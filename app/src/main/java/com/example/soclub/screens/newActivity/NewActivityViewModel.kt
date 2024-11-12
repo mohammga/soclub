@@ -1,9 +1,9 @@
 package com.example.soclub.screens.newActivity
 
+import android.app.Application
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -56,7 +56,8 @@ class NewActivityViewModel @Inject constructor(
     private val activityService: ActivityService,
     private val accountService: AccountService,
     private val locationService: LocationService,
-    private val storageService: StorageService
+    private val storageService: StorageService,
+    private val application: Application
 ) : ViewModel() {
 
     var uiState = mutableStateOf(NewActivityState())
@@ -209,7 +210,7 @@ class NewActivityViewModel @Inject constructor(
         if (age != null && age > 100) {
             uiState.value = uiState.value.copy(
                 errorMessage = R.string.error_age_limit_exceeded,
-                ageLimitError = "Aldersgrensen kan ikke overstige 100"
+                ageLimitError = application.getString(R.string.age_limt_100)//"Aldersgrensen kan ikke overstige 100"
             )
         } else {
             uiState.value = uiState.value.copy(
@@ -246,65 +247,64 @@ class NewActivityViewModel @Inject constructor(
         var startTimeError: String? = null
 
         if (uiState.value.title.isBlank()) {
-            titleError = context.getString(R.string.title_must_be_filled_error)//"Du må fylle inn tittel"
+            //titleError = "Du må fylle inn tittel"
+            titleError = application.getString(R.string.you_must_fyll_the_titel)
             hasError = true
         }
         if (uiState.value.description.isBlank()) {
-            descriptionError = context.getString(R.string.description_must_be_filled_error)//"Du må fylle inn beskrivelse"
+            //descriptionError = "Du må fylle inn beskrivelse"
+            descriptionError = application.getString(R.string.description_must_be_filled_error)
             hasError = true
         }
         if (uiState.value.category.isBlank()) {
-            categoryError = context.getString(R.string.you_most_select_category)//"Du må velge kategori"
+            //categoryError = "Du må velge kategori"
+            categoryError = application.getString(R.string.you_most_select_category)
             hasError = true
         }
         if (uiState.value.location.isBlank()) {
-            locationError = context.getString(R.string.you_most_select_location)//"Du må velge sted"
+            //locationError = "Du må velge sted"
+            locationError = application.getString(R.string.you_most_select_location)
             hasError = true
         }
         if (uiState.value.address.isBlank()) {
-            addressError = context.getString(R.string.you_most_select_address)//"Du må velge adresse"
+            addressError = application.getString(R.string.you_most_select_address)//"Du må velge adresse"
             hasError = true
         }
         if (uiState.value.postalCode.isBlank()) {
-            postalCodeError = context.getString(R.string.you_most_select_postalCode)//"Postnummer er påkrevd"
+            postalCodeError = application.getString(R.string.you_most_select_postalCode)//"Postnummer er påkrevd"
             hasError = true
         }
         if (uiState.value.maxParticipants.isBlank()) {
-            maxParticipantsError = context.getString(R.string.maxParticipants_must_be_filled_error)//"Du må fylle inn maks antall deltakere"
+            maxParticipantsError = application.getString(R.string.maxParticipants_must_be_filled_error)//"Du må fylle inn maks antall deltakere"
             hasError = true
         } else if (uiState.value.maxParticipants.toIntOrNull() == null) {
-            maxParticipantsError = context.getString(R.string.most_ny_a_nummber)//"Må være et tall"
+            maxParticipantsError = application.getString(R.string.most_ny_a_nummber)//"Må være et tall"
             hasError = true
         }
         if (uiState.value.ageLimit.isBlank()) {
-            ageLimitError = context.getString(R.string.ageLimit_must_be_filled_error)//"Du må fylle inn aldersgrense"
+            ageLimitError = application.getString(R.string.ageLimit_must_be_filled_error)//"Du må fylle inn aldersgrense"
             hasError = true
         } else if (uiState.value.ageLimit.toIntOrNull() == null) {
-            ageLimitError = context.getString(R.string.most_ny_a_nummber)
+            ageLimitError = application.getString(R.string.most_ny_a_nummber)//"Må være et tall"
             hasError = true
         }
 
-
         val selectedDate = uiState.value.date
         if (selectedDate == null) {
-            dateError = "Du må velge dato"
-
-        //if (uiState.value.date == null) {
-            //dateError = context.getString(R.string.you_most_select_date)//"Du må velge dato"
-
+            dateError = application.getString(R.string.you_most_select_date)//"Du må velge dato"
             hasError = true
         } else {
             val currentTimeMillis = System.currentTimeMillis()
             val selectedDateMillis = selectedDate.toDate().time
             val diff = selectedDateMillis - currentTimeMillis
             if (diff < 24 * 60 * 60 * 1000) { // 24 hours in milliseconds
-                dateError = "Datoen må være minst 24 timer fra nå"
+                dateError = application.getString(R.string.most_by_24_h)//"Datoen må være minst 24 timer fra nå"
                 hasError = true
             }
         }
 
         if (uiState.value.startTime.isBlank()) {
-            startTimeError = context.getString(R.string.you_most_select_start_time)//"Du må velge starttidspunkt"
+            startTimeError = application.getString(R.string.you_most_select_start_time)//"Du må velge starttidspunkt"
             hasError = true
         }
 
