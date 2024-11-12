@@ -7,6 +7,7 @@ import android.location.Location
 import android.util.Log
 import androidx.lifecycle.*
 import com.example.soclub.models.Activity
+import com.example.soclub.service.ActivityDetailService
 import com.example.soclub.service.ActivityService
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.firebase.firestore.ListenerRegistration
@@ -20,13 +21,17 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     application: Application,
-
     private val activityService: ActivityService,
-    private val fusedLocationClient: FusedLocationProviderClient
+    private val fusedLocationClient: FusedLocationProviderClient,
 ) : AndroidViewModel(application) {
+
 
     private val _userCity = MutableLiveData<String?>()
     val userCity: LiveData<String?> get() = _userCity
+
+    // LiveData for å holde styr på GPS-tillatelsen
+    private val _hasLocationPermission = MutableLiveData(false)
+    val hasLocationPermission: LiveData<Boolean> get() = _hasLocationPermission
 
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
@@ -45,11 +50,32 @@ class HomeViewModel @Inject constructor(
     private val _hasLoadedActivities = MutableLiveData(false)
     val hasLoadedActivities: LiveData<Boolean> get() = _hasLoadedActivities
 
-    // Hold alle aktiviteter
     private var allActivities = listOf<Activity>()
-
-    // Listener for sanntidsoppdateringer
     private var activitiesListener: ListenerRegistration? = null
+    private var nearestActivitiesListener: ListenerRegistration? = null
+
+
+
+    @SuppressLint("MissingPermission")
+    fun fetchUserLocation() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val location: Location? = fusedLocationClient.lastLocation.await()
+                _hasLocationPermission.postValue(location != null) // Setter tillatelse basert på lokasjonsdata
+                location?.let {
+                    val city = getCityFromLocation(it)
+                    _userCity.postValue(city)
+                }
+            } catch (e: SecurityException) {
+                Log.e("HomeViewModel", "Location permission not granted: ${e.message}")
+                _hasLocationPermission.postValue(false) // Setter tillatelse til false hvis tilgang ikke er gitt
+            } catch (e: Exception) {
+                Log.e("HomeViewModel", "Error fetching location: ${e.message}")
+                _hasLocationPermission.postValue(false)
+            }
+        }
+    }
+
 
     init {
         listenForActivityUpdates()
@@ -61,6 +87,8 @@ class HomeViewModel @Inject constructor(
             applyFilters()
         }
     }
+
+
 
     private fun applyFilters() {
         viewModelScope.launch(Dispatchers.Default) {
@@ -85,7 +113,6 @@ class HomeViewModel @Inject constructor(
             }
 
             val grouped = sortedActivities.groupBy { it.category ?: "Ukjent kategori" }
-
             _groupedActivities.postValue(grouped)
             _hasLoadedActivities.postValue(true)
         }
@@ -94,27 +121,7 @@ class HomeViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         activitiesListener?.remove()
-    }
-
-    @SuppressLint("MissingPermission")
-    fun fetchUserLocation() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                Log.d("HomeViewModel", "Henter brukerens posisjon...")
-                val location: Location? = fusedLocationClient.lastLocation.await()
-
-                if (location != null) {
-                    Log.d("HomeViewModel", "Posisjon hentet: ${location.latitude}, ${location.longitude}")
-                    val city = getCityFromLocation(location)
-                    _userCity.postValue(city)
-                    Log.d("HomeViewModel", "Brukerens by: $city")
-                } else {
-                    Log.w("HomeViewModel", "Posisjon er null")
-                }
-            } catch (e: Exception) {
-                Log.e("HomeViewModel", "Feil ved henting av posisjon: ${e.message}")
-            }
-        }
+        nearestActivitiesListener?.remove()
     }
 
     fun getCategories(): LiveData<List<String>> = liveData {
@@ -133,8 +140,7 @@ class HomeViewModel @Inject constructor(
         try {
             val activities = activityService.getAllActivities()
             val cities = activities.map { activity ->
-                val fullLocation = activity.location ?: "Ukjent"
-                fullLocation.substringAfterLast(" ")
+                activity.location?.substringAfterLast(" ") ?: "Ukjent"
             }.distinct()
             emit(cities)
         } catch (e: Exception) {
@@ -150,7 +156,6 @@ class HomeViewModel @Inject constructor(
             currentCities.remove(city)
         }
         _selectedCities.value = currentCities
-
         applyFilters()
     }
 
@@ -163,53 +168,58 @@ class HomeViewModel @Inject constructor(
         location?.let {
             val geocoder = Geocoder(getApplication<Application>().applicationContext, Locale.getDefault())
             val addresses = geocoder.getFromLocation(it.latitude, it.longitude, 1)
-            val city = addresses?.firstOrNull()?.locality ?: addresses?.firstOrNull()?.subAdminArea
-
-            Log.d("HomeViewModel", "Geokoderesultat for posisjon (${it.latitude}, ${it.longitude}): $city")
-
-            return city
+            return addresses?.firstOrNull()?.locality ?: addresses?.firstOrNull()?.subAdminArea
         }
         return null
     }
 
     @SuppressLint("MissingPermission")
-
     fun getNearestActivities() {
+        // Sjekk om aktivitetene allerede er lastet inn for å unngå flere lastinger
+        if (hasLoadedNearestActivities) return
+
         _isLoading.value = true
+
         viewModelScope.launch {
             try {
                 val userLocation = fusedLocationClient.lastLocation.await() ?: return@launch
-                val allActivities = activityService.getAllActivities()
 
-                val currentDateTime = Calendar.getInstance().time
+                // Oppretter en lytter for sanntidsoppdateringer
+                nearestActivitiesListener = activityService.listenForActivities { allActivities ->
+                    val currentDateTime = Calendar.getInstance().time
 
-                val nonExpiredActivities = allActivities.filter { activity ->
-                    val activityDateTime = combineDateAndTime(activity.date, activity.startTime)
-                    activityDateTime?.after(currentDateTime) ?: false
-                }
-
-                val activitiesWithDistance = nonExpiredActivities.mapNotNull { activity ->
-                    val location = Geocoder(getApplication<Application>().applicationContext, Locale.getDefault())
-                        .getFromLocationName(activity.location ?: "", 1)
-                        ?.firstOrNull()
-                        ?.let {
-                            Location("").apply {
-                                latitude = it.latitude
-                                longitude = it.longitude
-                            }
-                        }
-
-                    location?.let {
-                        val distance = userLocation.distanceTo(location)
-                        activity to distance
+                    // Filtrer ut aktiviteter som ikke er utløpt
+                    val nonExpiredActivities = allActivities.filter { activity ->
+                        val activityDateTime = combineDateAndTime(activity.date, activity.startTime)
+                        activityDateTime?.after(currentDateTime) ?: false
                     }
+
+                    // Beregn avstand og sorter aktivitetene
+                    val activitiesWithDistance = nonExpiredActivities.mapNotNull { activity ->
+                        val location = Geocoder(getApplication<Application>().applicationContext, Locale.getDefault())
+                            .getFromLocationName(activity.location ?: "", 1)
+                            ?.firstOrNull()
+                            ?.let {
+                                Location("").apply {
+                                    latitude = it.latitude
+                                    longitude = it.longitude
+                                }
+                            }
+
+                        location?.let {
+                            val distance = userLocation.distanceTo(location)
+                            activity to distance
+                        }
+                    }
+
+                    // Velg de nærmeste aktivitetene og oppdater LiveData
+                    val nearestActivities = activitiesWithDistance.sortedBy { it.second }.take(10).map { it.first }
+                    _activities.postValue(nearestActivities)
+                    _hasLoadedActivities.postValue(true)
                 }
 
-                val nearestActivities = activitiesWithDistance.sortedBy { it.second }.take(10).map { it.first }
-
-                _activities.postValue(nearestActivities)
+                // Marker at dataene har blitt lastet
                 hasLoadedNearestActivities = true
-                _hasLoadedActivities.postValue(true)
             } catch (e: Exception) {
                 _activities.postValue(emptyList())
                 Log.e("HomeViewModel", "Error fetching nearest activities: ${e.message}")
@@ -219,24 +229,18 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+
     private fun combineDateAndTime(date: com.google.firebase.Timestamp?, timeString: String): Date? {
         if (date == null || timeString.isEmpty()) return null
-
         return try {
             val calendar = Calendar.getInstance()
             calendar.time = date.toDate()
-
             val timeParts = timeString.split(":")
             if (timeParts.size != 2) return null
-
-            val hour = timeParts[0].toInt()
-            val minute = timeParts[1].toInt()
-
-            calendar.set(Calendar.HOUR_OF_DAY, hour)
-            calendar.set(Calendar.MINUTE, minute)
+            calendar.set(Calendar.HOUR_OF_DAY, timeParts[0].toInt())
+            calendar.set(Calendar.MINUTE, timeParts[1].toInt())
             calendar.set(Calendar.SECOND, 0)
             calendar.set(Calendar.MILLISECOND, 0)
-
             calendar.time
         } catch (e: Exception) {
             null

@@ -27,6 +27,9 @@ class ProfileViewModel @Inject constructor(
     var isLoading by mutableStateOf(true)
         private set
 
+    var isLoggingOut by mutableStateOf(false)
+        private set
+
     init {
         fetchUserInfo()
     }
@@ -37,7 +40,7 @@ class ProfileViewModel @Inject constructor(
             try {
                 userInfo = accountService.getUserInfo()
             } catch (e: Exception) {
-                // Handle error if necessary
+                // Håndtere feil ved behov
             } finally {
                 isLoading = false
             }
@@ -45,8 +48,10 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun onSignOut(navController: NavController, context: Context) {
+        isLoggingOut = true
         viewModelScope.launch {
             accountService.signOut()
+            isLoggingOut = false
             Toast.makeText(context, context.getString(R.string.sign_out_success), Toast.LENGTH_LONG).show()
             navController.navigate(AppScreens.SIGNIN.name) {
                 popUpTo(0) { inclusive = true }

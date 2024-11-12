@@ -11,15 +11,16 @@
 
     <!--StartScreen -->
     <string name="app_name">SoClub</string>
-    <string name="welcome_message">
-        Logg på for å få<br />
-        tilgang til det beste av<br />
-        SoClub.
+    <string name="welcome_message">Meld deg på for å få tilgang til det beste av SoClub.
     </string>
     <string name="signing_in">Logger inn...</string>
-    <string name="error_google_signin_failed">Innlogging med Google feilet</string>
+    <string name="or_text">eller</string>
+    <string name="sign_in_button">Logg inn</string>
     <string name="continue_with_email_button">Fortsett med e-postadresse</string>
-    <string name="continue_with_google_button">Fortsett med Google</string>
+    <string name="registering">Registrerer...</string>
+    <string name="logging_in">Logger inn...</string>
+    <string name="sending_email">Sender e-post...</string>
+    <string name="logging_out_button">Logger ut...</string>
 
     <!--SigninScreen-->
     <string name="welcome_back">Velkommen tilbake.</string>

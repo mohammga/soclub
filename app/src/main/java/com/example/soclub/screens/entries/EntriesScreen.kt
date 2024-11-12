@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext // Importer dette
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -69,6 +70,7 @@ fun Tabs(selectedTab: Int, setSelectedTab: (Int) -> Unit) {
 fun ActiveEntriesList(navController: NavHostController, viewModel: EntriesScreenViewModel = hiltViewModel()) {
     val activeActivities by viewModel.activeActivities.collectAsState()
     val isLoading by viewModel.isLoadingActive.collectAsState()
+    val context = LocalContext.current // Hent Context her
 
     if (isLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -80,7 +82,9 @@ fun ActiveEntriesList(navController: NavHostController, viewModel: EntriesScreen
         }
     } else {
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(activeActivities.size) { index ->
@@ -90,7 +94,7 @@ fun ActiveEntriesList(navController: NavHostController, viewModel: EntriesScreen
                     title = activity.title,
                     time = activity.startTime,
                     date = activity.date,
-                    onCancelClick = { viewModel.cancelRegistration(activity.id) },
+                    onCancelClick = { viewModel.cancelRegistration(activity.id) }, // Ikke nødvendig å passere Context her
                     onClick = {
                         activity.category?.let { category ->
                             activity.id.let { id ->
@@ -120,7 +124,9 @@ fun CancelledEntriesList(navController: NavHostController, viewModel: EntriesScr
         }
     } else {
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(cancelledActivities.size) { index ->
@@ -153,7 +159,10 @@ fun ActiveEntryItem(
     onClick: () -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().clickable { onClick() }.padding(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -165,7 +174,7 @@ fun ActiveEntryItem(
             Spacer(modifier = Modifier.height(8.dp))
             CancelButton(onClick = onCancelClick)
             Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(thickness = 1.dp)
+            Divider(thickness = 1.dp)
         }
     }
 }
@@ -179,7 +188,10 @@ fun CancelledEntryItem(
     onClick: () -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().clickable { onClick() }.padding(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -189,7 +201,7 @@ fun CancelledEntryItem(
             Text(text = title ?: stringResource(R.string.unknown_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             DateDisplay(date = date, time = time)
             Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(thickness = 1.dp)
+            Divider(thickness = 1.dp)
         }
     }
 }
@@ -213,7 +225,6 @@ fun EventImage(imageUrl: String?) {
     )
 }
 
-
 @Composable
 fun DateDisplay(date: Timestamp?, time: String?) {
     val formattedDateTime = date?.let {
@@ -222,7 +233,7 @@ fun DateDisplay(date: Timestamp?, time: String?) {
         dateStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
     } ?: stringResource(R.string.unknown_dato)
 
-    // Concatenate the date and time if both are available
+    // Koble sammen dato og tid hvis begge er tilgjengelige
     val displayText = if (time != null) {
         "$formattedDateTime, $time"
     } else {
@@ -235,7 +246,6 @@ fun DateDisplay(date: Timestamp?, time: String?) {
         modifier = Modifier.padding(vertical = 4.dp)
     )
 }
-
 
 @Composable
 fun CancelButton(onClick: () -> Unit) {

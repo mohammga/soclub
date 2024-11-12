@@ -1,5 +1,7 @@
 package com.example.soclub.screens.profile
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,7 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,14 +33,13 @@ import com.example.soclub.R
 import com.example.soclub.components.navigation.AppScreens
 import com.example.soclub.models.UserInfo
 
-
 @Composable
 fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel = hiltViewModel()) {
     val userInfo = viewModel.userInfo
     val isLoading = viewModel.isLoading
+    val isLoggingOut = viewModel.isLoggingOut
 
     if (isLoading) {
-        // Viser loading-indikator
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
@@ -56,17 +57,17 @@ fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel 
                 ProfileName(firstname = userInfo?.firstname ?: "", lastname = userInfo?.lastname ?: "")
                 Spacer(modifier = Modifier.height(8.dp))
 
-                EditProfileButton(navController)
+                EditProfileButton(navController, isLoggingOut)
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
             item {
-                AccountInfoSection(navController, userInfo)
+                AccountInfoSection(navController, userInfo, isLoggingOut)
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
             item {
-                LogoutButton(navController, viewModel)
+                LogoutButton(navController, viewModel, isLoggingOut)
             }
         }
     }
@@ -75,7 +76,6 @@ fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel 
 @Composable
 fun ProfileImage(imageUrl: String?) {
     if (imageUrl.isNullOrEmpty()) {
-        // Show placeholder image when there's no image URL
         Image(
             painter = painterResource(R.drawable.user),
             contentDescription = stringResource(id = R.string.profile_picture_description),
@@ -85,7 +85,6 @@ fun ProfileImage(imageUrl: String?) {
             contentScale = ContentScale.Crop
         )
     } else {
-        // Load image from URL using Coil
         Image(
             painter = rememberAsyncImagePainter(model = imageUrl),
             contentDescription = stringResource(id = R.string.profile_picture_description),
@@ -111,19 +110,21 @@ fun ProfileName(firstname: String, lastname: String) {
         fontWeight = FontWeight.Bold
     )
 }
+
 @Composable
-fun EditProfileButton(navController: NavHostController) {
+fun EditProfileButton(navController: NavHostController, isLoggingOut: Boolean) {
     Button(
         onClick = { navController.navigate(AppScreens.EDIT_PROFILE.name) },
         shape = RoundedCornerShape(16.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+        enabled = !isLoggingOut
     ) {
         Text(text = stringResource(id = R.string.edit_profile_button))
     }
 }
 
 @Composable
-fun AccountInfoSection(navController: NavHostController, userInfo: UserInfo?) {
+fun AccountInfoSection(navController: NavHostController, userInfo: UserInfo?, isLoggingOut: Boolean) {
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -141,44 +142,45 @@ fun AccountInfoSection(navController: NavHostController, userInfo: UserInfo?) {
         ProfileInfoRow(label = stringResource(id = R.string.label_name), value = fullName)
         ProfileInfoRow(label = stringResource(id = R.string.label_age), value = (userInfo?.age ?: stringResource(id = R.string.loading)).toString())
         ProfileInfoRow(label = stringResource(id = R.string.label_email), value = userInfo?.email ?: stringResource(id = R.string.loading))
-        ProfileInfoRow(label = stringResource(id = R.string.label_ads), onClick = {
+        ProfileInfoRow(label = stringResource(id = R.string.label_ads), enabled = !isLoggingOut) {
             navController.navigate("ads")
-        })
-        ProfileInfoRow(label = stringResource(id = R.string.label_password), onClick = {
+        }
+        ProfileInfoRow(label = stringResource(id = R.string.label_password), enabled = !isLoggingOut) {
             navController.navigate("change_password")
-        })
-        ProfileInfoRow(label = stringResource(id = R.string.label_permissions), onClick = {
+        }
+        ProfileInfoRow(label = stringResource(id = R.string.label_permissions), enabled = !isLoggingOut) {
             navController.navigate("edit_permission")
-        })
+        }
     }
 }
 
 @Composable
-fun LogoutButton(navController: NavHostController, viewModel: ProfileViewModel) {
-    val context = LocalContext.current // Get the context
+fun LogoutButton(navController: NavHostController, viewModel: ProfileViewModel, isLoggingOut: Boolean) {
+    val context = LocalContext.current
 
     TextButton(
-        onClick = { viewModel.onSignOut(navController, context) }, // Pass context here
+        onClick = { viewModel.onSignOut(navController, context) },
         shape = RoundedCornerShape(50),
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
         modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp)
+            .height(48.dp),
+        enabled = !isLoggingOut
     ) {
         Text(
-            text = stringResource(id = R.string.logout_button),
+            text = if (isLoggingOut) stringResource(id = R.string.logging_out_button) else stringResource(id = R.string.logout_button),
             style = MaterialTheme.typography.labelLarge
         )
     }
 }
 
 @Composable
-fun ProfileInfoRow(label: String, value: String = "", onClick: (() -> Unit)? = null) {
+fun ProfileInfoRow(label: String, value: String = "", enabled: Boolean = true, onClick: (() -> Unit)? = null) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .clickable(enabled = onClick != null) { onClick?.invoke() },
+            .clickable(enabled = onClick != null && enabled) { onClick?.invoke() },
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -188,10 +190,8 @@ fun ProfileInfoRow(label: String, value: String = "", onClick: (() -> Unit)? = n
         if (value.isNotEmpty()) {
             Text(
                 text = AnnotatedString(value),
-                style = TextStyle(
-                    color = MaterialTheme.colorScheme.secondary,
-                ),
-                modifier = Modifier.clickable { onClick?.invoke() }
+                style = TextStyle(color = MaterialTheme.colorScheme.secondary),
+                modifier = Modifier.clickable(enabled = enabled) { onClick?.invoke() }
             )
         } else {
             Icon(
@@ -201,7 +201,6 @@ fun ProfileInfoRow(label: String, value: String = "", onClick: (() -> Unit)? = n
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable

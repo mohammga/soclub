@@ -36,6 +36,7 @@ import com.example.soclub.R
 @Composable
 fun SigninScreen(navController: NavController, viewModel: SigninViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState
+    val isLoading by viewModel.isLoading
     val context = LocalContext.current
 
     LazyColumn(
@@ -56,7 +57,8 @@ fun SigninScreen(navController: NavController, viewModel: SigninViewModel = hilt
             EmailField(
                 value = uiState.email,
                 onNewValue = viewModel::onEmailChange,
-                error = uiState.emailError?.let { stringResource(id = it) }
+                error = uiState.emailError?.let { stringResource(id = it) },
+                enabled = !isLoading
             )
         }
 
@@ -64,7 +66,8 @@ fun SigninScreen(navController: NavController, viewModel: SigninViewModel = hilt
             PasswordField(
                 value = uiState.password,
                 onNewValue = viewModel::onPasswordChange,
-                error = uiState.passwordError?.let { stringResource(id = it) }
+                error = uiState.passwordError?.let { stringResource(id = it) },
+                enabled = !isLoading
             )
         }
 
@@ -84,7 +87,7 @@ fun SigninScreen(navController: NavController, viewModel: SigninViewModel = hilt
         }
 
         item {
-            SignInButton(navController, viewModel, context)
+            SignInButton(navController, viewModel, context, isLoading)
             Spacer(modifier = Modifier.height(16.dp))
         }
 
@@ -95,7 +98,7 @@ fun SigninScreen(navController: NavController, viewModel: SigninViewModel = hilt
 }
 
 @Composable
-fun EmailField(value: String, onNewValue: (String) -> Unit, error: String?) {
+fun EmailField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
         singleLine = true,
         modifier = Modifier
@@ -106,6 +109,7 @@ fun EmailField(value: String, onNewValue: (String) -> Unit, error: String?) {
         label = { Text(stringResource(id = R.string.email_label)) },
         placeholder = { Text(stringResource(id = R.string.email_label)) },
         isError = error != null,
+        enabled = enabled,
         supportingText = {
             if (error == null) {
                 Text(text = stringResource(id = R.string.email_supporting_text))
@@ -120,11 +124,10 @@ fun EmailField(value: String, onNewValue: (String) -> Unit, error: String?) {
 fun PasswordField(
     value: String,
     onNewValue: (String) -> Unit,
-    error: String?
+    error: String?,
+    enabled: Boolean
 ) {
     var isVisible by remember { mutableStateOf(true) }
-    var isVisibleToggled by remember { mutableStateOf(false) }
-
     val icon = if (isVisible) painterResource(R.drawable.ic_visibility_on) else painterResource(R.drawable.ic_visibility_off)
     val visualTransformation = if (isVisible) VisualTransformation.None else PasswordVisualTransformation()
 
@@ -134,23 +137,18 @@ fun PasswordField(
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         value = value,
-        onValueChange = {
-            onNewValue(it)
-            if (!isVisibleToggled) isVisible = it == ""
-        },
+        onValueChange = onNewValue,
         label = { Text(stringResource(id = R.string.password_label)) },
         placeholder = { Text(stringResource(id = R.string.password_label)) },
         trailingIcon = {
-            IconButton(onClick = {
-                isVisible = !isVisible
-                if (!isVisibleToggled) isVisibleToggled = true
-            }) {
-                Icon(painter = icon, contentDescription = if (isVisible) stringResource(id = R.string.hide_password) else stringResource(id = R.string.show_password))
+            IconButton(onClick = { isVisible = !isVisible }) {
+                Icon(painter = icon, contentDescription = null)
             }
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         visualTransformation = visualTransformation,
         isError = error != null,
+        enabled = enabled,
         supportingText = {
             if (error == null) {
                 Text(text = stringResource(id = R.string.password_supporting_text))
@@ -162,16 +160,15 @@ fun PasswordField(
 }
 
 @Composable
-private fun SignInButton(navController: NavController, viewModel: SigninViewModel, context: Context) {
-    val context = LocalContext.current // Get the context
-
+private fun SignInButton(navController: NavController, viewModel: SigninViewModel, context: Context, isLoading: Boolean) {
     Button(
-        onClick = { viewModel.onLoginClick(navController, context) }, // Pass context here
+        onClick = { viewModel.onLoginClick(navController, context) },
         modifier = Modifier
             .fillMaxWidth()
-            .height(60.dp)
+            .height(60.dp),
+        enabled = !isLoading
     ) {
-        Text(text = stringResource(id = R.string.sign_in))
+        Text(text = if (isLoading) stringResource(id = R.string.logging_in) else stringResource(id = R.string.sign_in))
     }
 }
 

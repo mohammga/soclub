@@ -1,10 +1,10 @@
+// File: com/example/soclub/screens/editActivity/EditActivityScreen.kt
 package com.example.soclub.screens.editActivity
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResultRegistryOwner
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -46,6 +45,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.widget.Toast
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.core.content.ContextCompat
 
 @Composable
@@ -61,9 +61,10 @@ fun EditActivityScreen(
     val locationSuggestions by remember { derivedStateOf { uiState.locationSuggestions } }
     val addressSuggestions by remember { derivedStateOf { uiState.addressSuggestions } }
 
-// Ensure locationConfirmed is managed based on UI state changes
     var locationConfirmed by remember { mutableStateOf(uiState.locationConfirmed) }
 
+    // State to manage the visibility of the delete confirmation dialog
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.loadActivity(category, activityId)
@@ -106,7 +107,6 @@ fun EditActivityScreen(
                 )
             }
 
-
             item {
                 LocationField(
                     initialValue = uiState.location,
@@ -122,7 +122,6 @@ fun EditActivityScreen(
                     error = uiState.locationError
                 )
             }
-
 
             if (uiState.locationConfirmed) {
                 item {
@@ -145,8 +144,6 @@ fun EditActivityScreen(
                     )
                 }
             }
-
-
 
             item {
                 DateField(
@@ -180,11 +177,11 @@ fun EditActivityScreen(
                 )
             }
 
-            item { Spacer(modifier = Modifier.height(5.dp)) }
+            item { Spacer(modifier = Modifier.height(16.dp)) }
 
             item {
                 Button(
-                    onClick = { viewModel.onSaveClick(navController, activityId, category, context) }, // Pass context here
+                    onClick = { viewModel.onSaveClick(navController, activityId, category) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
@@ -193,14 +190,54 @@ fun EditActivityScreen(
                 }
             }
 
+            item { Spacer(modifier = Modifier.height(8.dp)) }
+
+            item {
+                OutlinedButton(
+                    onClick = { showDeleteDialog = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    colors = ButtonDefaults.outlinedButtonColors()
+                ) {
+                    Text(text = "Slett aktivitet", color = Color.Red)
+                }
+            }
+        }
+
+        // Slettebekreftelsesdialog
+        if (showDeleteDialog) {
+            DeleteConfirmationDialog(
+                onConfirm = {
+                    viewModel.onDeleteClick(navController, category, activityId)
+                    showDeleteDialog = false
+                },
+                onDismiss = { showDeleteDialog = false }
+            )
         }
     }
+}
 
-
-
-
-
-
+@Composable
+fun DeleteConfirmationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Bekreft sletting") },
+        text = { Text("Er du sikker på at du vil slette denne aktiviteten? Denne handlingen kan ikke angres.") },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Slett", color = Color.Red)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Avbryt")
+            }
+        }
+    )
 }
 
 @Composable
@@ -818,8 +855,8 @@ fun ImageUploadSection(
 // Helper function to check if rationale should be shown
 @SuppressLint("RestrictedApi")
 fun shouldShowRequestPermissionRationale(context: Context, permission: String): Boolean {
-    return if (context is ActivityResultRegistryOwner) {
-        ActivityCompat.shouldShowRequestPermissionRationale(context as ComponentActivity, permission)
+    return if (context is ComponentActivity) {
+        ActivityCompat.shouldShowRequestPermissionRationale(context, permission)
     } else {
         false
     }
