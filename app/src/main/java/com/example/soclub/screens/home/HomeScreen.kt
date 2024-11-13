@@ -39,6 +39,15 @@ import com.example.soclub.models.Activity
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import java.text.SimpleDateFormat
+import java.util.*
+
+
+
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -495,7 +504,7 @@ fun FilterBottomSheet(
                     .fillMaxHeight()
                     .padding(16.dp)
             ) {
-                Text(text = "Filtrer etter område", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text(stringResource(R.string.filter_by_area), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Spacer(modifier = Modifier.height(16.dp))
                 Box(
                     modifier = Modifier
@@ -526,7 +535,7 @@ fun FilterBottomSheet(
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
                 ) {
-                    Text(text = "Vis treff")
+                    Text(stringResource(R.string.Show_hits))
                 }
 
                 if (selectedCities.isNotEmpty()) {
@@ -536,13 +545,14 @@ fun FilterBottomSheet(
                             .fillMaxWidth()
                             .padding(vertical = 4.dp)
                     ) {
-                        Text("Nullstill")
+                        Text(stringResource(R.string.Reset))
                     }
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun isLandscape(): Boolean {

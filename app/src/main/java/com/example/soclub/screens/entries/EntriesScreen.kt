@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext // Importer dette
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -52,13 +53,13 @@ fun Tabs(selectedTab: Int, setSelectedTab: (Int) -> Unit) {
         }
     ) {
         Tab(
-            text = { Text("Aktive") },
+            text = { Text(stringResource(R.string.Aktive)) },
             selected = selectedTab == 0,
             onClick = { setSelectedTab(0) }
         )
 
         Tab(
-            text = { Text("Kansellerte") },
+            text = { Text(stringResource(R.string.cancelled)) },
             selected = selectedTab == 1,
             onClick = { setSelectedTab(1) }
         )
@@ -77,7 +78,7 @@ fun ActiveEntriesList(navController: NavHostController, viewModel: EntriesScreen
         }
     } else if (activeActivities.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(text = "Det er ingen aktiviteter som er aktive", modifier = Modifier.padding(16.dp))
+            Text(stringResource(R.string.No_Aktivirty_is_activ),modifier = Modifier.padding(16.dp))
         }
     } else {
         LazyColumn(
@@ -118,7 +119,8 @@ fun CancelledEntriesList(navController: NavHostController, viewModel: EntriesScr
         }
     } else if (cancelledActivities.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(text = "Det er ingen aktiviteter som er kansellerte", modifier = Modifier.padding(16.dp))
+            //Text(text = "Det er ingen aktiviteter som er kansellerte", modifier = Modifier.padding(16.dp))
+            Text(stringResource(R.string.No_Aktivirty_is_cancelled),modifier = Modifier.padding(16.dp))
         }
     } else {
         LazyColumn(
@@ -196,7 +198,7 @@ fun CancelledEntryItem(
         EventImage(imageUrl)
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title ?: "Ukjent tittel", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(text = title ?: stringResource(R.string.unknown_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             DateDisplay(date = date, time = time)
             Spacer(modifier = Modifier.height(16.dp))
             HorizontalDivider(thickness = 1.dp)
@@ -229,7 +231,7 @@ fun DateDisplay(date: Timestamp?, time: String?) {
         val sdf = SimpleDateFormat("EEEE, d. MMMM yyyy", Locale("no", "NO"))
         val dateStr = sdf.format(it.toDate())
         dateStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-    } ?: "Ukjent dato"
+    } ?: stringResource(R.string.unknown_dato)
 
     // Koble sammen dato og tid hvis begge er tilgjengelige
     val displayText = if (time != null) {
@@ -254,6 +256,6 @@ fun CancelButton(onClick: () -> Unit) {
             .fillMaxWidth()
             .height(32.dp)
     ) {
-        Text(text = "Kanseller")
+        Text(text = stringResource(R.string.kanseller))
     }
 }

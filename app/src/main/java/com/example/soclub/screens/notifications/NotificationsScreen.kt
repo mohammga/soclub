@@ -9,9 +9,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.soclub.R
+//import androidx.navigation.NavController
+//import com.example.soclub.R
 import com.example.soclub.models.Notification
 
 @Composable
@@ -24,7 +28,7 @@ fun NotificationsScreen(
     val context = LocalContext.current // Get the context
 
     LaunchedEffect(Unit) {
-        viewModel.loadNotifications()
+        viewModel.loadNotifications(context)
     }
 
     Box(
@@ -54,7 +58,7 @@ fun NotificationsScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Ingen varslinger",
+                            text = stringResource(R.string.no_notifications),
                             fontSize = 18.sp,
                             color = MaterialTheme.colorScheme.onBackground
                         )
@@ -136,7 +140,7 @@ fun NotificationItem(
             IconButton(onClick = { onDelete(notification) }) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "Delete Notification",
+                    contentDescription = stringResource(R.string.delete_Notification),
                 )
             }
         }

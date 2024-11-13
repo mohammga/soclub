@@ -20,13 +20,13 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
         createNotificationChannel(context)  // Ensure the channel exists
 
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            val message = intent?.getStringExtra("message") ?: "Påminnelse om din aktivitet"
+            val message = intent?.getStringExtra("message") ?: context.getString(R.string.default_notification_message)//"Påminnelse om din aktivitet"
             val activityId = intent?.getStringExtra("activityId") ?: return
             val userId = intent.getStringExtra("userId") ?: return
 
             // Display the notification to the user
             val notification = NotificationCompat.Builder(context, "activity_reminder_channel")
-                .setContentTitle("Aktivitetspåminnelse")
+                .setContentTitle(context.getString(R.string.notification_title))//Aktivitetspåminnelse
                 .setContentText(message)
                 .setSmallIcon(R.drawable.ic_stat_name) // Use a relevant icon
                 .setPriority(NotificationCompat.PRIORITY_HIGH)

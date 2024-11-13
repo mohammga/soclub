@@ -10,12 +10,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.soclub.R
 import com.example.soclub.components.navigation.navBars.BottomNavBar
 import com.example.soclub.components.navigation.navBars.HomeTopBar
 import com.example.soclub.components.navigation.navBars.TopBar
@@ -71,14 +73,14 @@ fun AppNavigation(navController: NavHostController, notificationsViewModel: Noti
         topBar = {
             when {
                 currentScreen.startsWith("detail") -> {
-                    TopBar(navController, title = "Aktivitet", showBackButton = true)
+                    TopBar(navController, title = stringResource(R.string.activity), showBackButton = true)
                 }
                 currentScreen == AppScreens.SIGNUP.name -> {
                     TopBar(navController, title = "", showBackButton = true)
                 }
 
                 currentScreen == AppScreens.TERMS_PRIVACY.name -> {
-                    TopBar(navController, title = "Vilkår for bruk og personvern", showBackButton = true)
+                    TopBar(navController, title = stringResource(R.string.terms), showBackButton = true)
                 }
                 currentScreen == AppScreens.SIGNIN.name -> {
                     TopBar(navController, title = "", showBackButton = true)
@@ -87,34 +89,38 @@ fun AppNavigation(navController: NavHostController, notificationsViewModel: Noti
                     TopBar(navController, title = "", showBackButton = true)
                 }
                 currentScreen == AppScreens.HOME.name -> {
+
                     HomeTopBar(title = "SoClub")
+
+                    //HomeTopBar(navController, title = stringResource(R.string.appname))
+
                 }
                 currentScreen == AppScreens.PROFILE.name -> {
-                    TopBar(navController, title = "Profil", showBackButton = false)
+                    TopBar(navController, title = stringResource(R.string.profile), showBackButton = false)
                 }
                 currentScreen == AppScreens.NOTIFICATIONS.name -> {
-                    TopBar(navController, title = "Varslinger", showBackButton = false)
+                    TopBar(navController, title = stringResource(R.string.notifications), showBackButton = false)
                 }
                 currentScreen == AppScreens.ADS.name -> {
-                    TopBar(navController, title = "Mine annonser", showBackButton = true)
+                    TopBar(navController, title = stringResource(R.string.myAdd), showBackButton = true)
                 }
                 currentScreen == AppScreens.NEW_ACTIVITY.name -> {
-                    TopBar(navController, title = "Legg til aktivitet", showBackButton = false)
+                    TopBar(navController, title = stringResource(R.string.add_activity), showBackButton = false)
                 }
                 currentScreen == AppScreens.EDIT_PROFILE.name -> {
-                    TopBar(navController, title = "Endre Profil", showBackButton = true)
+                    TopBar(navController, title = stringResource(R.string.change_profile), showBackButton = true)
                 }
                 currentScreen == AppScreens.CHANGE_PASSWORD.name -> {
-                    TopBar(navController, title = "Endre passord", showBackButton = true)
+                    TopBar(navController, title = stringResource(R.string.change_password), showBackButton = true)
                 }
                 currentScreen == AppScreens.EDIT_PERMISSION.name -> {
-                    TopBar(navController, title = "Endre tillatelser", showBackButton = true)
+                    TopBar(navController, title = stringResource(R.string.editpermission), showBackButton = true)
                 }
                 currentScreen == AppScreens.ENTRIES.name -> {
-                    TopBar(navController, title = "Mine Påmeldinger", showBackButton = false)
+                    TopBar(navController, title = stringResource(R.string.myEntries) , showBackButton = false)
                 }
                 currentScreen.startsWith("editActivity") -> {
-                    TopBar(navController, title = "Endre aktivitet", showBackButton = true)
+                    TopBar(navController, title = stringResource(R.string.editAktvititi), showBackButton = true)
                 }
                 else -> { /* Håndter andre skjermer */ }
             }

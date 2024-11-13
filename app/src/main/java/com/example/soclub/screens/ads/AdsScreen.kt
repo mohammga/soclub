@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -24,6 +25,7 @@ import com.example.soclub.R
 import java.util.Locale
 import android.icu.text.SimpleDateFormat
 import com.google.firebase.Timestamp
+
 
 
 @Composable
@@ -65,7 +67,8 @@ fun AdsScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = "Du har ingen publiserte annonser", color = MaterialTheme.colorScheme.onBackground)
+                    Text(stringResource (id = R.string.ingen_publiserte_annonser), color = MaterialTheme.colorScheme.onBackground)
+                    
                 }
             }
             else -> {
@@ -120,7 +123,7 @@ fun EntryItem(
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = title ?: "Ingen tittel",
+                text = title ?: stringResource(R.string.no_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -135,7 +138,7 @@ fun EntryItem(
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Endre annonse")
+                Text(stringResource(R.string.Endre_annonse))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
