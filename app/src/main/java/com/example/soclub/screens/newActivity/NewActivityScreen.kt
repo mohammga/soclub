@@ -232,7 +232,7 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?) {
             label = { Text(stringResource(id = R.string.category_label)) },
             placeholder = { Text(stringResource(id = R.string.placeholder_category)) },
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(MenuAnchorType.PrimaryEditable)
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             readOnly = true,
@@ -294,7 +294,7 @@ fun LocationField(
             label = { Text(stringResource(id = R.string.location_label)) },
             placeholder = { Text(stringResource(R.string.location_label)) },
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(MenuAnchorType.PrimaryEditable)
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             trailingIcon = {
@@ -364,7 +364,7 @@ fun AddressField(
             label = { Text(stringResource(id = R.string.address_label)) },
             placeholder = { Text(stringResource(id = R.string.address_label)) },
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(MenuAnchorType.PrimaryEditable)
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             enabled = isEnabled,
@@ -433,9 +433,9 @@ fun PostalCodeField(value: String, error: String?) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
+    //LocalContext.current
     val context = LocalContext.current
     val currentTimeMillis = System.currentTimeMillis()
-
     // Date picker state with initial value
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = value)
     val isDatePickerVisible = remember { mutableStateOf(false) }

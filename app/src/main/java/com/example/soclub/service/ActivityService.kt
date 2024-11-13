@@ -19,6 +19,5 @@ interface ActivityService {
     suspend fun deleteActivity(category: String, activityId: String)
     fun listenForActivities(onUpdate: (List<Activity>) -> Unit): ListenerRegistration
     fun listenForNearestActivities(userLocation: Location, maxDistance: Float, onUpdate: (List<Activity>) -> Unit): ListenerRegistration
-    // Ny funksjon for å hente alle bruker-ID-er for påmeldte brukere i en aktivitet
     suspend fun getRegisteredUsersForActivity(activityId: String): List<String>
 }

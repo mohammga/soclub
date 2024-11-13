@@ -104,7 +104,7 @@ class ChangePasswordViewModel @Inject constructor(
             try {
                 accountService.changePassword(oldPassword, newPassword) { error ->
                     if (error == null) {
-                        uiState.value = ChangePasswordState() // Reset state after success
+                        uiState.value = ChangePasswordState()
                         Toast.makeText(context, context.getString(R.string.password_change), Toast.LENGTH_LONG).show()
                     } else {
                         uiState.value = uiState.value.copy(generalError = R.string.error_could_not_change_password)

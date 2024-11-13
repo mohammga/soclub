@@ -13,13 +13,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
-import com.example.soclub.R
+//import androidx.navigation.NavController
+//import com.example.soclub.R
 import com.example.soclub.models.Notification
 
 @Composable
 fun NotificationsScreen(
-    navController: NavController,
     viewModel: NotificationsViewModel = hiltViewModel()
 ) {
     val notifications by viewModel.notifications.collectAsState()

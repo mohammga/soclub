@@ -70,7 +70,7 @@ fun Tabs(selectedTab: Int, setSelectedTab: (Int) -> Unit) {
 fun ActiveEntriesList(navController: NavHostController, viewModel: EntriesScreenViewModel = hiltViewModel()) {
     val activeActivities by viewModel.activeActivities.collectAsState()
     val isLoading by viewModel.isLoadingActive.collectAsState()
-    val context = LocalContext.current // Hent Context her
+    LocalContext.current
 
     if (isLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -174,7 +174,7 @@ fun ActiveEntryItem(
             Spacer(modifier = Modifier.height(8.dp))
             CancelButton(onClick = onCancelClick)
             Spacer(modifier = Modifier.height(16.dp))
-            Divider(thickness = 1.dp)
+            HorizontalDivider(thickness = 1.dp)
         }
     }
 }
@@ -201,7 +201,7 @@ fun CancelledEntryItem(
             Text(text = title ?: stringResource(R.string.unknown_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             DateDisplay(date = date, time = time)
             Spacer(modifier = Modifier.height(16.dp))
-            Divider(thickness = 1.dp)
+            HorizontalDivider(thickness = 1.dp)
         }
     }
 }
@@ -227,7 +227,7 @@ fun EventImage(imageUrl: String?) {
 
 @Composable
 fun DateDisplay(date: Timestamp?, time: String?) {
-    val formattedDateTime = date?.let {
+    val formattedDateTime = date?.let { it ->
         val sdf = SimpleDateFormat("EEEE, d. MMMM yyyy", Locale("no", "NO"))
         val dateStr = sdf.format(it.toDate())
         dateStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }

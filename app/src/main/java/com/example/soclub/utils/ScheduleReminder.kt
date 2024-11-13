@@ -14,9 +14,6 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import com.example.soclub.R
 import com.example.soclub.models.Notification
-import com.example.soclub.utils.ReminderBroadcastReceiver
-import com.example.soclub.utils.ServiceLocator
-import com.example.soclub.utils.createNotificationChannel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -92,7 +89,7 @@ fun scheduleReminder(
 }
 
 
-fun cancelNotificationForActivity(context: Context, userId: String, activityId: String) {
+fun cancelNotificationForActivity(context: Context, activityId: String) {
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
     // Lag unike IDs for hver påminnelse: 24 timer, 12 timer og 1 time før aktiviteten

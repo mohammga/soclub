@@ -87,8 +87,8 @@ class EditActivityViewModel @Inject constructor(
             try {
                 val activity = activityService.getActivityById(category, activityId)
                 if (activity != null) {
-                    val location = activity.location ?: ""
-                    val restOfAddress = activity.restOfAddress ?: ""
+                    val location = activity.location
+                    val restOfAddress = activity.restOfAddress
                     val addressParts = restOfAddress.split(", ")
                     val address = addressParts.getOrNull(0)?.trim() ?: ""
                     val postalCode = addressParts.getOrNull(1)?.trim() ?: ""
@@ -437,8 +437,8 @@ class EditActivityViewModel @Inject constructor(
             try {
                 // Før sletting, hent alle påmeldte brukere og kanseller deres varsler
                 val registeredUsers = activityService.getRegisteredUsersForActivity(activityId)
-                registeredUsers.forEach { userId ->
-                    cancelNotificationForActivity(navController.context, userId, activityId)
+                registeredUsers.forEach {
+                    cancelNotificationForActivity(navController.context, activityId)
                 }
 
                 // Slett deretter selve aktiviteten fra databasen

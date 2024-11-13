@@ -1,4 +1,3 @@
-// File: com/example/soclub/screens/editActivity/EditActivityScreen.kt
 package com.example.soclub.screens.editActivity
 
 import android.annotation.SuppressLint
@@ -56,14 +55,11 @@ fun EditActivityScreen(
     category: String
 ) {
     val uiState by viewModel.uiState
-    val context = LocalContext.current
+    LocalContext.current
 
     val locationSuggestions by remember { derivedStateOf { uiState.locationSuggestions } }
     val addressSuggestions by remember { derivedStateOf { uiState.addressSuggestions } }
-
     var locationConfirmed by remember { mutableStateOf(uiState.locationConfirmed) }
-
-    // State to manage the visibility of the delete confirmation dialog
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -112,12 +108,12 @@ fun EditActivityScreen(
                     initialValue = uiState.location,
                     onNewValue = { location ->
                         viewModel.onLocationChange(location)
-                        locationConfirmed = false // Reset confirmation on new input
+                        locationConfirmed = false
                     },
                     suggestions = locationSuggestions,
                     onSuggestionClick = { suggestion ->
                         viewModel.onLocationSelected(suggestion)
-                        locationConfirmed = true // Confirm location selection
+                        locationConfirmed = true
                     },
                     error = uiState.locationError
                 )
@@ -205,7 +201,6 @@ fun EditActivityScreen(
             }
         }
 
-        // Slettebekreftelsesdialog
         if (showDeleteDialog) {
             DeleteConfirmationDialog(
                 onConfirm = {
@@ -272,7 +267,7 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .height(150.dp), // Increase the height for a larger field
+            .height(150.dp),
         maxLines = 10,
         isError = error != null,
         supportingText = {
@@ -297,11 +292,11 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?) {
     ) {
         OutlinedTextField(
             value = value,
-            onValueChange = { /* Read-only field, do nothing */ },
+            onValueChange = {},
             label = { Text(stringResource(id = R.string.category_label)) },
             placeholder = { Text(stringResource(id = R.string.placeholder_category)) },
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(MenuAnchorType.PrimaryEditable)
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             readOnly = true,
@@ -357,7 +352,7 @@ fun LocationField(
             label = { Text(stringResource(id = R.string.location_label)) },
             placeholder = { Text(stringResource( R.string.location_label)) },
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(MenuAnchorType.PrimaryEditable)
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             trailingIcon = {
@@ -386,9 +381,9 @@ fun LocationField(
                         onClick = {
                             textFieldValue = TextFieldValue(
                                 text = suggestion,
-                                selection = TextRange(suggestion.length) // Move cursor to end
+                                selection = TextRange(suggestion.length)
                             )
-                            onSuggestionClick(suggestion) // Call onSuggestionClick here
+                            onSuggestionClick(suggestion)
                             expanded = false
                         }
                     )
@@ -427,7 +422,7 @@ fun AddressField(
             label = { Text(stringResource(id = R.string.address_label)) },
             placeholder = { Text(stringResource(R.string.address_label)) },
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(MenuAnchorType.PrimaryEditable)
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             enabled = isEnabled,
@@ -457,9 +452,9 @@ fun AddressField(
                         onClick = {
                             textFieldValue = TextFieldValue(
                                 text = suggestion,
-                                selection = TextRange(suggestion.length) // Move cursor to end
+                                selection = TextRange(suggestion.length)
                             )
-                            onSuggestionClick(suggestion) // Call onSuggestionClick here
+                            onSuggestionClick(suggestion)
                             expanded = false
                         }
                     )

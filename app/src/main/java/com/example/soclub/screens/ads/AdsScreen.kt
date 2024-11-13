@@ -150,7 +150,7 @@ fun EntryItem(
 
 @Composable
 fun DateDisplay(date: Timestamp?, time: String?) {
-    val formattedDateTime = date?.let {
+    val formattedDateTime = date?.let { it ->
         val sdf = SimpleDateFormat("EEEE, d. MMMM yyyy", Locale("no", "NO"))
         val dateStr = sdf.format(it.toDate())
         dateStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
