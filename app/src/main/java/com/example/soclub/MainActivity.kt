@@ -8,7 +8,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.remember
-import androidx.lifecycle.Observer
 import androidx.navigation.compose.rememberNavController
 import com.example.soclub.components.navigation.AppNavigation
 import com.example.soclub.screens.noInternet.NoInternetScreen
@@ -49,15 +48,13 @@ class MainActivity : ComponentActivity() {
         permissionHelper.requestPermissions()
 
 
-
-
         // Observe the ViewModel's request for exact alarm permission
-        activityDetailViewModel.requestAlarmPermission.observe(this, Observer { shouldRequest ->
+        activityDetailViewModel.requestAlarmPermission.observe(this) { shouldRequest ->
             if (shouldRequest) {
                 requestExactAlarmPermissionIfNeeded(this)
                 activityDetailViewModel.resetAlarmPermissionRequest()
             }
-        })
+        }
 
         // Set the Compose content for the activity
         setContent {
