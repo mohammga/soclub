@@ -5,8 +5,10 @@ import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.StringRes
+import androidx.compose.material.Text
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -16,6 +18,7 @@ import com.example.soclub.models.UserInfo
 import com.example.soclub.service.AccountService
 import com.example.soclub.service.StorageService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -31,6 +34,7 @@ data class EditProfileState(
 
 @HiltViewModel
 class EditProfileViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val accountService: AccountService,
     private val storageService: StorageService // Inject StorageService
 ) : ViewModel() {
@@ -58,7 +62,7 @@ class EditProfileViewModel @Inject constructor(
                     imageUri = imageUri
                 )
             } catch (e: Exception) {
-                errorMessage.value = "Kunne ikke laste profilinformasjon. Vennligst prøv igjen senere."
+                errorMessage.value = context.getString(R.string.error_message)
             } finally {
                 delay(1000)
                 isLoading.value = false
@@ -67,13 +71,17 @@ class EditProfileViewModel @Inject constructor(
     }
 
     fun onNameChange(newValue: String) {
-        val isNameDirty = newValue != uiState.value.firstname
-        uiState.value = uiState.value.copy(firstname = newValue, isDirty = isNameDirty, firstnameError = null)
+        val formattedFirstName = newValue
+            .split(" ")
+            .joinToString(" ") { part -> part.replaceFirstChar { it.uppercaseChar() } }
+        val isNameDirty = formattedFirstName != uiState.value.firstname
+        uiState.value = uiState.value.copy(firstname = formattedFirstName, isDirty = isNameDirty, firstnameError = null)
     }
 
     fun onLastnameChange(newValue: String) {
-        val isLastnameDirty = newValue != uiState.value.lastname
-        uiState.value = uiState.value.copy(lastname = newValue, isDirty = isLastnameDirty, lastnameError = null)
+        val formattedLastName = newValue.replace(" ", "").replaceFirstChar { it.uppercaseChar() }
+        val isLastnameDirty = formattedLastName != uiState.value.lastname
+        uiState.value = uiState.value.copy(lastname = formattedLastName, isDirty = isLastnameDirty, lastnameError = null)
     }
 
     fun onImageSelected(uri: Uri?) {
@@ -142,7 +150,7 @@ class EditProfileViewModel @Inject constructor(
             try {
                 accountService.updateProfile(firstname = firstname, lastname = lastname, imageUrl = imageUrl) { error ->
                     if (error == null) {
-                        Toast.makeText(context, "Profilinformasjon ble endret", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, R.string.profile_han_been_changed, Toast.LENGTH_SHORT).show()
                         viewModelScope.launch {
                             delay(2000)
                             navController.navigate("profile") {

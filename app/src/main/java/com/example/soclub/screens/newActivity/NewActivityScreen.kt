@@ -2,6 +2,7 @@ package com.example.soclub.screens.newActivity
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
@@ -43,6 +44,7 @@ fun NewActivityScreen(
     val uiState by viewModel.uiState
     val locationSuggestions by remember { derivedStateOf { uiState.locationSuggestions } }
     val addressSuggestions by remember { derivedStateOf { uiState.addressSuggestions } }
+
 
     // State to trigger recomposition when updated
     var locationConfirmed by remember { mutableStateOf(false) }
@@ -230,7 +232,7 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?) {
             label = { Text(stringResource(id = R.string.category_label)) },
             placeholder = { Text(stringResource(id = R.string.placeholder_category)) },
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(MenuAnchorType.PrimaryEditable)
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             readOnly = true,
@@ -290,9 +292,9 @@ fun LocationField(
                 expanded = newValue.text.isNotEmpty() && suggestions.isNotEmpty()
             },
             label = { Text(stringResource(id = R.string.location_label)) },
-            placeholder = { Text("Sted") },
+            placeholder = { Text(stringResource(R.string.location_label)) },
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(MenuAnchorType.PrimaryEditable)
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             trailingIcon = {
@@ -360,9 +362,9 @@ fun AddressField(
                 }
             },
             label = { Text(stringResource(id = R.string.address_label)) },
-            placeholder = { Text("Adresse") },
+            placeholder = { Text(stringResource(id = R.string.address_label)) },
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(MenuAnchorType.PrimaryEditable)
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             enabled = isEnabled,
@@ -410,7 +412,7 @@ fun PostalCodeField(value: String, error: String?) {
         value = value,
         onValueChange = {},
         label = { Text(stringResource(id = R.string.postal_code_label)) },
-        placeholder = { Text("Postnummer") },
+        placeholder = { Text(stringResource(id = R.string.postal_code_label)) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
@@ -431,7 +433,10 @@ fun PostalCodeField(value: String, error: String?) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
+    //LocalContext.current
     val context = LocalContext.current
+    val currentTimeMillis = System.currentTimeMillis()
+    // Date picker state with initial value
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = value)
     val isDatePickerVisible = remember { mutableStateOf(false) }
     var internalError by remember { mutableStateOf<String?>(null) }
@@ -439,14 +444,14 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
     val formattedDate = if (value != 0L) {
         SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
     } else {
-        "Velg dato"
+        stringResource(R.string.choose_Dato)//"Velg dato"
     }
 
     Box {
         OutlinedTextField(
             value = formattedDate,
             onValueChange = {},
-            label = { Text("Dato") },
+            label = { Text(stringResource(id = R.string.date_label)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
@@ -455,7 +460,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
             supportingText = {
                 val errorMessage = error ?: internalError
                 if (errorMessage == null) {
-                    Text("Velg dato for aktiviteten (minst 48 timer fra nå)")
+                    Text(stringResource(R.string.date_most_by_24_fn))//Velg dato for aktiviteten (minst 24 timer fra nå)
                 } else {
                     Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
                 }
@@ -476,26 +481,28 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
                     TextButton(
                         onClick = {
                             datePickerState.selectedDateMillis?.let { selectedMillis ->
-                                val currentTimeMillis = System.currentTimeMillis()
                                 val diff = selectedMillis - currentTimeMillis
-                                if (diff >= 48 * 60 * 60 * 1000) { // 48 hours in milliseconds
+                                if (diff >= 24 * 60 * 60 * 1000) { // Minimum 24 hours from now
                                     onNewValue(Timestamp(Date(selectedMillis)))
                                     internalError = null
                                     isDatePickerVisible.value = false
+                                } else if (selectedMillis < currentTimeMillis) {
+                                    internalError =  context.getString(R.string.date_most_by_24_fn)//"Datoen må være minst 24 timer fra nå"
+                                    Toast.makeText(context, R.string.date_expiered, Toast.LENGTH_SHORT).show()//"Du kan ikke velge en dato som har gått."
                                 } else {
-                                    internalError = "Datoen må være minst 48 timer fra nå"
+                                    internalError = context.getString(R.string.date_most_by_24_fn)//"Datoen må være minst 24 timer fra nå"
                                 }
                             } ?: run {
-                                internalError = "Du må velge en dato"
+                                internalError = context.getString(R.string.you_most_select_date)//"Du må velge en dato"
                             }
                         }
                     ) {
-                        Text("OK")
+                        Text(stringResource(id = R.string.ok))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { isDatePickerVisible.value = false }) {
-                        Text("Avbryt")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             ) {
@@ -504,6 +511,8 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
         }
     }
 }
+
+
 
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -515,9 +524,10 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
     Box {
         OutlinedTextField(
             value = value,
+            //value = if (value.isNotEmpty()) value else stringResource(R.string.choose_start_time),
             onValueChange = {},
-            placeholder = { Text("Starttidspunkt") },
-            label = { Text("Starttidspunkt") },
+            placeholder = { Text(stringResource(R.string.start_time_label)) },
+            label = { Text(stringResource(R.string.start_time_label))},
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
@@ -525,7 +535,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
             isError = error != null,
             supportingText = {
                 if (error == null) {
-                    Text("Velg starttid for aktiviteten")
+                    Text(stringResource(R.string.choose_activity_starttime))
                 } else {
                     Text(text = error, color = MaterialTheme.colorScheme.error)
                 }
@@ -541,7 +551,6 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
                     isTimePickerVisible.value = true
                 }
         )
-
         if (isTimePickerVisible.value) {
             Dialog(onDismissRequest = { isTimePickerVisible.value = false }) {
                 Surface(
@@ -558,7 +567,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
                             horizontalArrangement = Arrangement.End
                         ) {
                             TextButton(onClick = { isTimePickerVisible.value = false }) {
-                                Text("Avbryt")
+                                Text(stringResource(R.string.cancel))
                             }
                             TextButton(onClick = {
                                 val hour = timePickerState.hour
@@ -566,7 +575,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
                                 onNewValue(String.format("%02d:%02d", hour, minute))
                                 isTimePickerVisible.value = false
                             }) {
-                                Text("OK")
+                                Text(stringResource(R.string.ok))
                             }
                         }
                     }
@@ -631,6 +640,7 @@ fun ImageUploadSection(
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
+
         onImageSelected(uri)
     }
 

@@ -188,7 +188,7 @@ fun ImageUploadSection(
             // Permission denied, show a message or handle accordingly
             Toast.makeText(
                 context,
-                "Tillatelse er nødvendig for å velge et bilde.",
+                R.string.galleriPermissionisrequired,
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -219,8 +219,8 @@ fun ImageUploadSection(
     if (showPermissionDialog) {
         AlertDialog(
             onDismissRequest = { showPermissionDialog = false },
-            title = { Text("Tillat tilgang til galleri") },
-            text = { Text("Denne appen trenger tilgang til galleriet ditt for å velge et profilbilde.") },
+            title = { Text(stringResource(R.string.allow_premision_gallery)) },
+            text = { Text(stringResource(R.string.this_app_need_gallery_premision)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -228,14 +228,14 @@ fun ImageUploadSection(
                         permissionLauncher.launch(galleryPermission)
                     }
                 ) {
-                    Text("OK")
+                    Text(stringResource(R.string.ok))
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { showPermissionDialog = false }
                 ) {
-                    Text("Avbryt")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )

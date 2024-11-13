@@ -14,6 +14,7 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.example.soclub.R
 import com.example.soclub.utils.cancelNotificationForActivity
 import com.example.soclub.utils.scheduleReminder
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -30,11 +31,6 @@ class ActivityDetailViewModel @Inject constructor(
 
     private val _activities = MutableLiveData<List<Activity>>()
     val activities: LiveData<List<Activity>> = _activities
-
-    private val _currentParticipantsMap = MutableStateFlow<Map<String, Int>>(emptyMap())
-    val currentParticipantsMap: StateFlow<Map<String, Int>> = _currentParticipantsMap
-
-    private var activitiesListener: ListenerRegistration? = null
 
     private val _isRegistered = MutableStateFlow(false)
     val isRegistered: StateFlow<Boolean> = _isRegistered
@@ -54,7 +50,6 @@ class ActivityDetailViewModel @Inject constructor(
     private val _isCreator = MutableStateFlow(false)
     val isCreator: StateFlow<Boolean> = _isCreator
 
-    // Listener for sanntidsoppdateringer av registreringer
     private var registrationListener: ListenerRegistration? = null
 
     private val _activity = MutableStateFlow<Activity?>(null)
@@ -67,7 +62,6 @@ class ActivityDetailViewModel @Inject constructor(
     val requestAlarmPermission: LiveData<Boolean> = _requestAlarmPermission
 
 
-
     private fun checkAndRequestExactAlarmPermission() {
         _requestAlarmPermission.value = true
     }
@@ -77,19 +71,10 @@ class ActivityDetailViewModel @Inject constructor(
     }
 
 
-    private suspend fun updateCurrentParticipantsMap(activities: List<Activity>) {
-        val participantsMap = mutableMapOf<String, Int>()
-        for (activity in activities) {
-            val count = activityDetailService.getRegisteredParticipantsCount(activity.id)
-            participantsMap[activity.id] = count
-        }
-        _currentParticipantsMap.value = participantsMap
-    }
-
     override fun onCleared() {
         super.onCleared()
         registrationListener?.remove()
-        activityListener?.remove()  // Fjern aktivitetens lytter
+        activityListener?.remove()
     }
 
     fun loadActivityWithStatus(category: String, activityId: String) {
@@ -124,7 +109,7 @@ class ActivityDetailViewModel @Inject constructor(
                 }
 
             } catch (e: Exception) {
-                _errorMessage.value = "Det skjedde en feil. Vennligst prøv igjen senere."
+                _errorMessage.value = context.getString(R.string.error_message)
             } finally {
                 _isLoading.value = false
             }
@@ -173,7 +158,7 @@ class ActivityDetailViewModel @Inject constructor(
                         )
                     } else if (!isRegistering) {
                         // Cancel all scheduled notifications for this activity
-                        cancelNotificationForActivity(context, userId, activityId)
+                        cancelNotificationForActivity(context, activityId)
                         // Immediate cancellation notification
                         scheduleReminder(
                             context = context,

@@ -1,4 +1,3 @@
-// File: com/example/soclub/screens/editActivity/EditActivityScreen.kt
 package com.example.soclub.screens.editActivity
 
 import android.annotation.SuppressLint
@@ -56,14 +55,11 @@ fun EditActivityScreen(
     category: String
 ) {
     val uiState by viewModel.uiState
-    val context = LocalContext.current
+    LocalContext.current
 
     val locationSuggestions by remember { derivedStateOf { uiState.locationSuggestions } }
     val addressSuggestions by remember { derivedStateOf { uiState.addressSuggestions } }
-
     var locationConfirmed by remember { mutableStateOf(uiState.locationConfirmed) }
-
-    // State to manage the visibility of the delete confirmation dialog
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -112,12 +108,12 @@ fun EditActivityScreen(
                     initialValue = uiState.location,
                     onNewValue = { location ->
                         viewModel.onLocationChange(location)
-                        locationConfirmed = false // Reset confirmation on new input
+                        locationConfirmed = false
                     },
                     suggestions = locationSuggestions,
                     onSuggestionClick = { suggestion ->
                         viewModel.onLocationSelected(suggestion)
-                        locationConfirmed = true // Confirm location selection
+                        locationConfirmed = true
                     },
                     error = uiState.locationError
                 )
@@ -186,7 +182,7 @@ fun EditActivityScreen(
                         .fillMaxWidth()
                         .height(48.dp),
                 ) {
-                    Text(text = "Lagre endringer")
+                    Text(text = stringResource(R.string.save_changes_button))//"Lagre endringer"
                 }
             }
 
@@ -200,12 +196,11 @@ fun EditActivityScreen(
                         .height(48.dp),
                     colors = ButtonDefaults.outlinedButtonColors()
                 ) {
-                    Text(text = "Slett aktivitet", color = Color.Red)
+                    Text(text = stringResource(R.string.delete_aktivity), color = Color.Red)//Slett aktivitet"
                 }
             }
         }
 
-        // Slettebekreftelsesdialog
         if (showDeleteDialog) {
             DeleteConfirmationDialog(
                 onConfirm = {
@@ -225,16 +220,16 @@ fun DeleteConfirmationDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Bekreft sletting") },
-        text = { Text("Er du sikker på at du vil slette denne aktiviteten? Denne handlingen kan ikke angres.") },
+        title = { Text(stringResource(R.string.confirm_deletion)) },//Bekreft sletting
+        text = { Text(stringResource(R.string.sure_you_want_to_delete)) },//"Er du sikker på at du vil slette denne aktiviteten? Denne handlingen kan ikke angres."
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text("Slett", color = Color.Red)
+                Text(stringResource(R.string.delete), color = Color.Red)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Avbryt")
+                Text(stringResource(R.string.cancel))//"Avbryt"
             }
         }
     )
@@ -272,7 +267,7 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .height(150.dp), // Increase the height for a larger field
+            .height(150.dp),
         maxLines = 10,
         isError = error != null,
         supportingText = {
@@ -297,11 +292,11 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?) {
     ) {
         OutlinedTextField(
             value = value,
-            onValueChange = { /* Read-only field, do nothing */ },
+            onValueChange = {},
             label = { Text(stringResource(id = R.string.category_label)) },
             placeholder = { Text(stringResource(id = R.string.placeholder_category)) },
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(MenuAnchorType.PrimaryEditable)
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             readOnly = true,
@@ -355,9 +350,9 @@ fun LocationField(
                 expanded = newValue.text.isNotEmpty() && suggestions.isNotEmpty()
             },
             label = { Text(stringResource(id = R.string.location_label)) },
-            placeholder = { Text("Sted") },
+            placeholder = { Text(stringResource( R.string.location_label)) },
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(MenuAnchorType.PrimaryEditable)
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             trailingIcon = {
@@ -386,9 +381,9 @@ fun LocationField(
                         onClick = {
                             textFieldValue = TextFieldValue(
                                 text = suggestion,
-                                selection = TextRange(suggestion.length) // Move cursor to end
+                                selection = TextRange(suggestion.length)
                             )
-                            onSuggestionClick(suggestion) // Call onSuggestionClick here
+                            onSuggestionClick(suggestion)
                             expanded = false
                         }
                     )
@@ -425,9 +420,9 @@ fun AddressField(
                 }
             },
             label = { Text(stringResource(id = R.string.address_label)) },
-            placeholder = { Text("Adresse") },
+            placeholder = { Text(stringResource(R.string.address_label)) },
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(MenuAnchorType.PrimaryEditable)
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             enabled = isEnabled,
@@ -457,9 +452,9 @@ fun AddressField(
                         onClick = {
                             textFieldValue = TextFieldValue(
                                 text = suggestion,
-                                selection = TextRange(suggestion.length) // Move cursor to end
+                                selection = TextRange(suggestion.length)
                             )
-                            onSuggestionClick(suggestion) // Call onSuggestionClick here
+                            onSuggestionClick(suggestion)
                             expanded = false
                         }
                     )
@@ -475,7 +470,7 @@ fun PostalCodeField(value: String, error: String?) {
         value = value,
         onValueChange = {},
         label = { Text(stringResource(id = R.string.postal_code_label)) },
-        placeholder = { Text("Postnummer") },
+        placeholder = { Text(stringResource(R.string.postal_code_label)) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
@@ -496,20 +491,23 @@ fun PostalCodeField(value: String, error: String?) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
+    val context = LocalContext.current
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = value)
     val isDatePickerVisible = remember { mutableStateOf(false) }
+    val todayMillis = System.currentTimeMillis() // For å sjekke dagens dato
 
+    // Formatere valgt dato eller vise placeholder
     val formattedDate = if (value != 0L) {
         SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
     } else {
-        "Velg dato"
+        stringResource(R.string.choose_Dato)
     }
 
     Box {
         OutlinedTextField(
             value = formattedDate,
             onValueChange = {},
-            label = { Text("Dato") },
+            label = { Text(stringResource(R.string.date_label)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
@@ -517,7 +515,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
             isError = error != null,
             supportingText = {
                 if (error == null) {
-                    Text("Velg dato for aktiviteten")
+                    Text(stringResource(R.string.choose_activity_Dato))
                 } else {
                     Text(text = error, color = MaterialTheme.colorScheme.error)
                 }
@@ -537,13 +535,28 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            datePickerState.selectedDateMillis?.let {
-                                onNewValue(Timestamp(Date(it)))
+                            datePickerState.selectedDateMillis?.let { selectedDateMillis ->
+                                // Sjekker om valgt dato er gyldig (ikke i fortiden)
+                                if (selectedDateMillis >= todayMillis) {
+                                    onNewValue(Timestamp(Date(selectedDateMillis)))
+                                    isDatePickerVisible.value = false // Lukk dialogen
+                                } else {
+                                    // Vis toast hvis datoen er i fortiden
+                                    Toast.makeText(
+                                        context,
+                                        R.string.date_expiered,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                             }
-                            isDatePickerVisible.value = false
                         }
                     ) {
-                        Text("OK")
+                        Text(stringResource(R.string.ok))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { isDatePickerVisible.value = false }) {
+                        Text(stringResource( R.string.cancel))
                     }
                 }
             ) {
@@ -552,6 +565,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
         }
     }
 }
+
 
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -564,8 +578,8 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
         OutlinedTextField(
             value = value,
             onValueChange = {},
-            placeholder = { Text("Starttidspunkt") },
-            label = { Text("Starttidspunkt") },
+            placeholder = { Text(stringResource(R.string.start_time_label)) },//Starttidspunkt"
+            label = { Text(stringResource(R.string.start_time_label))},
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
@@ -573,7 +587,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
             isError = error != null,
             supportingText = {
                 if (error == null) {
-                    Text("Velg starttid for aktiviteten")
+                    Text(stringResource(R.string.choose_activity_starttime))
                 } else {
                     Text(text = error, color = MaterialTheme.colorScheme.error)
                 }
@@ -606,7 +620,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
                             horizontalArrangement = Arrangement.End
                         ) {
                             TextButton(onClick = { isTimePickerVisible.value = false }) {
-                                Text("Avbryt")
+                                Text(stringResource(R.string.cancel))
                             }
                             TextButton(onClick = {
                                 val hour = timePickerState.hour
@@ -614,7 +628,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
                                 onNewValue(String.format("%02d:%02d", hour, minute))
                                 isTimePickerVisible.value = false
                             }) {
-                                Text("OK")
+                                Text(stringResource(R.string.ok))
                             }
                         }
                     }
@@ -708,7 +722,7 @@ fun ImageUploadSection(
             // Permission denied, show a message or handle accordingly
             Toast.makeText(
                 context,
-                "Tillatelse er nødvendig for å velge et bilde.",
+                R.string.galleriPermissionisrequired,
                 Toast.LENGTH_SHORT
             ).show()
         }
@@ -736,8 +750,8 @@ fun ImageUploadSection(
     if (showPermissionDialog) {
         AlertDialog(
             onDismissRequest = { showPermissionDialog = false },
-            title = { Text("Tillat tilgang til galleri") },
-            text = { Text("Denne appen trenger tilgang til galleriet ditt for å velge et bilde.") },
+            title = { Text(stringResource(R.string.allow_premision_gallery)) },
+            text = { Text(stringResource(R.string.this_app_need_gallery_premision)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -745,7 +759,7 @@ fun ImageUploadSection(
                         permissionLauncher.launch(galleryPermission)
                     }
                 ) {
-                    Text("OK")
+                    Text(stringResource(R.string.ok))
                 }
             },
             dismissButton = {
@@ -860,3 +874,4 @@ fun shouldShowRequestPermissionRationale(context: Context, permission: String): 
         false
     }
 }
+

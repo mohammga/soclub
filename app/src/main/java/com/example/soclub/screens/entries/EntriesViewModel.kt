@@ -91,7 +91,7 @@ class EntriesScreenViewModel @Inject constructor(
                 )
 
                 // Optionally, cancel any pre-scheduled notifications for this activity
-                cancelNotificationForActivity(context, userId, activityId)
+                cancelNotificationForActivity(context, activityId)
 
                 // Display a Toast message for user feedback
                 Toast.makeText(context, "Aktivitet kansellert", Toast.LENGTH_LONG).show()
