@@ -4,7 +4,6 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import java.util.Date
 
-
 data class Activity(
     val id: String = "",
     val imageUrl: String = "",
@@ -21,41 +20,6 @@ data class Activity(
     val category: String? = null,
     val lastUpdated: Timestamp = Timestamp.now()
 )
-
-data class CreateActivity(
-    val creatorId: String = "",
-    val imageUrl: String = "",
-    val title: String = "",
-    val description: String = "",
-    val ageGroup: Int = 0,
-    val maxParticipants: Int = 0,
-    val location: String = "",
-    val date: Timestamp? = null,
-    val startTime: String = "",
-    val createdAt: Timestamp = Timestamp.now(),
-    val lastUpdated: Timestamp = Timestamp.now(),
-)
-
-
-data class EditActivity(
-    val id: String = "",
-    val creatorId: String = "",
-    val imageUrl: String = "",
-    val title: String = "",
-    val description: String = "",
-    val ageGroup: Int = 0,
-    val maxParticipants: Int = 0,
-    val location: String = "",
-    val date: Timestamp? = null,
-    val startTime: String = "",
-    val category: String = "",
-    val createdAt: Timestamp = Timestamp.now(),
-    val lastUpdated: Timestamp = Timestamp.now(),
-)
-
-
-
-
 
 // Denne koden hjelper oss til å fylle databasen vår med data for testing
 //

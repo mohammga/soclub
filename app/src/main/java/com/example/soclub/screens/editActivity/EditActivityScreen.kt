@@ -1,4 +1,3 @@
-// File: com/example/soclub/screens/editActivity/EditActivityScreen.kt
 package com.example.soclub.screens.editActivity
 
 import android.annotation.SuppressLint
