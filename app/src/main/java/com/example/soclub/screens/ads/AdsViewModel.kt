@@ -1,11 +1,14 @@
 package com.example.soclub.screens.ads
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.soclub.R
 import com.example.soclub.models.EditActivity
 import com.example.soclub.service.AccountService
 import com.example.soclub.service.ActivityService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -13,6 +16,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AdsViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val activityService: ActivityService,
     private val accountService: AccountService
 ) : ViewModel() {
@@ -51,7 +55,7 @@ class AdsViewModel @Inject constructor(
                 _activities.value = fetchedActivities
             } catch (e: Exception) {
                 e.printStackTrace()
-                _errorMessage.value = "Det skjedde en feil. Vennligst prøv igjen senere."
+                _errorMessage.value = context.getString(R.string.error_message)//"Det skjedde en feil. Vennligst prøv igjen senere."
             } finally {
                 _isLoading.value = false
             }

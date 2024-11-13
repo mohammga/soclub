@@ -4,6 +4,7 @@ import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.soclub.R
 import com.example.soclub.models.Notification
 import com.example.soclub.service.NotificationService
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,7 +44,7 @@ class NotificationsViewModel @Inject constructor(
         }
     }
 
-    fun loadNotifications() {
+    fun loadNotifications(context: Context) {
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
@@ -52,7 +53,7 @@ class NotificationsViewModel @Inject constructor(
                 val notificationsFromDb = notificationService.getAllNotifications()
                 _notifications.value = notificationsFromDb
             } catch (e: Exception) {
-                _errorMessage.value = "Det skjedde en feil. Vennligst prøv igjen senere."
+                _errorMessage.value = context.getString(R.string.error_message)//"Det skjedde en feil. Vennligst prøv igjen senere."
             } finally {
                 _isLoading.value = false
             }
@@ -64,9 +65,9 @@ class NotificationsViewModel @Inject constructor(
             try {
                 notificationService.deleteNotification(notification)
                 _notifications.value = _notifications.value.filter { it != notification }
-                Toast.makeText(context, "Varsling slettet", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.notification_deleted), Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
-                _errorMessage.value = "Feil ved sletting av varsling. Vennligst prøv igjen senere."
+                _errorMessage.value = context.getString(R.string.notification_deleted_error)
             }
         }
     }

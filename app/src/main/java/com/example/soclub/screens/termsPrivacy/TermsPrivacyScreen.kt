@@ -5,8 +5,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+//import androidx.navigation.NavController
+//import androidx.navigation.compose.rememberNavController
+//import com.example.soclub.R
+
 
 @Composable
 fun TermsPrivacyScreen() {
@@ -20,138 +25,138 @@ fun TermsPrivacyScreen() {
 
         item {
             Text(
-                text = "Disse vilkårene regulerer din bruk av applikasjonen vår. Ved å bruke appen, godtar du å overholde disse vilkårene.",
+                text = stringResource(R.string.this_terms),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
         item {
             Text(
-                text = "1. Bruk av Tjenesten",
+                text = stringResource(R.string.use_of_the_Service),
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Du må bruke tjenesten i samsvar med gjeldende lover og regler.",
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-
-        item {
-            Text(
-                text = "2. Personvern",
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Vi samler inn og behandler personopplysninger i henhold til vår personvernerklæring.",
+                text = stringResource(R.string.fair_use),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
 
         item {
             Text(
-                text = "3. Ansvarsfraskrivelse",
+                text = stringResource(R.string.privacy),
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Tjenesten tilbys \"som den er\", og vi fraskriver oss ethvert ansvar for eventuelle feil eller mangler.",
+                text = stringResource(R.string.processes_personal_data),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
 
         item {
             Text(
-                text = "4. Innhold og Eiendomsrett",
+                text = stringResource(R.string.disclaimer),
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Alt innhold i applikasjonen er beskyttet av opphavsrett og andre eiendomsrettigheter. Reproduksjon eller distribusjon av innholdet uten tillatelse er ikke tillatt.",
+                text = stringResource(R.string.the_service_is_offered),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
 
         item {
             Text(
-                text = "5. Endringer i Vilkår",
+                text = stringResource(R.string.Content_Property),
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Vi forbeholder oss retten til å endre vilkårene når som helst. Brukere vil bli varslet om vesentlige endringer.",
+                text = stringResource(R.string.in_app),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
 
         item {
             Text(
-                text = "6. Brukerrettigheter",
+                text = stringResource(R.string.changes_Terms ),
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Du har rett til å be om innsyn, korrigering eller sletting av dine personopplysninger i henhold til vår personvernerklæring.",
+                text = stringResource(R.string.change_terms_any_time),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
 
         item {
             Text(
-                text = "7. Samtykke",
+                text = stringResource(R.string.user_rights),
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Ved å bruke applikasjonen gir du ditt samtykke til at vi behandler dine personopplysninger i tråd med vår personvernerklæring.",
+                text = stringResource(R.string.se_delet),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
 
         item {
             Text(
-                text = "8. Databehandlingsansvarlig",
+                text = stringResource( R.string.consent) ,
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Databehandlingsansvarlig for denne applikasjonen er Firebase (Google). Kontakt oss ved spørsmål om personvern.",
+                text = stringResource(R.string.you_give_your_consent),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
 
         item {
             Text(
-                text = "9. Overføring til Tredjeland",
+                text = stringResource(R.string.data_processing),
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Personopplysninger overføres ikke til tredjeland uten tilstrekkelige sikkerhetstiltak i samsvar med GDPR.",
+                text = stringResource(R.string.data_processing_in_app),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
 
         item {
             Text(
-                text = "10. Datalagring",
+                text = stringResource(R.string.transfer_third_country) ,//"",
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Vi lagrer personopplysninger så lenge det er nødvendig for å oppfylle formålet med behandlingen og i henhold til gjeldende lover.",
+                text = stringResource(R.string.no_transfer_third_country),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
 
         item {
             Text(
-                text = "11. Klagerett",
+                text = stringResource(R.string.data_storage),
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Du har rett til å sende en klage til en tilsynsmyndighet, som f.eks. Datatilsynet, dersom du mener at personvernrettighetene dine er brutt.",
+                text = stringResource(R.string.we_store_personal_data_as_long_as_necessary_accordance_with_the_law),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
+        item {
+            Text(
+                text = stringResource(R.string.the_complaint),
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = stringResource(R.string.you_have_the_right_to_file_a_complaint),
                 style = MaterialTheme.typography.bodyMedium
             )
         }

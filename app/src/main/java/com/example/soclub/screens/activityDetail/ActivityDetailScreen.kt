@@ -139,12 +139,12 @@ fun showToast(context: Context, isRegistering: Boolean, activity: Activity?, cur
 
     val message = if (isRegistering) {
         if (remainingSlots > 0) {
-            "Påmeldingen var vellykket."
+            context.getString(R.string.registration_successful)//"Påmeldingen var vellykket."
         } else {
-            "Påmeldingen var vellykket. Alle plasser er nå fylt opp."
+            context.getString(R.string.registration_successful_filled)//"Påmeldingen var vellykket. Alle plasser er nå fylt opp."
         }
     } else {
-        "Du har nå meldt deg ut av aktiviteten."
+        context.getString(R.string.unregistered_successful)//"Du har nå meldt deg ut av aktiviteten."
     }
 
     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -464,7 +464,7 @@ fun ActivityRegisterButton(
         enabled = buttonEnabled
     ) {
         if (isFull) {
-            Text(text = "Ingen ledige plasser igjen", color = Color.White)
+            Text(text = stringResource(R.string.no_places_left), color = Color.White)
         } else {
             Text(text = buttonText, color = Color.White)
         }
@@ -527,6 +527,7 @@ fun ElevatedCardExample(icon: androidx.compose.ui.graphics.vector.ImageVector) {
             contentAlignment = Alignment.Center
         ) {
             Icon(
+
                 imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(30.dp)

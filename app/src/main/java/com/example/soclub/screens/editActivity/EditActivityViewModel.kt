@@ -1,5 +1,6 @@
 package com.example.soclub.screens.editActivity
 
+import android.app.Application
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
@@ -56,7 +57,8 @@ class EditActivityViewModel @Inject constructor(
     private val activityService: ActivityService,
     private val accountService: AccountService,
     private val locationService: LocationService,
-    private val storageService: StorageService
+    private val storageService: StorageService,
+    private val application: Application
 ) : ViewModel() {
 
     var uiState = mutableStateOf(EditActivityState())
@@ -121,7 +123,7 @@ class EditActivityViewModel @Inject constructor(
             }
         }
     }
-    
+
     // Function to handle title change with first letter capitalized
     fun onTitleChange(newValue: String) {
         uiState.value = uiState.value.copy(title = newValue, titleError = null)
@@ -298,60 +300,64 @@ class EditActivityViewModel @Inject constructor(
         var startTimeError: String? = null
 
         if (uiState.value.title.isBlank()) {
-            titleError = "Du må fylle inn tittel"
+            //titleError = "Du må fylle inn tittel"
+            titleError = application.getString(R.string.you_must_fyll_the_titel)
             hasError = true
         }
         if (uiState.value.description.isBlank()) {
-            descriptionError = "Du må fylle inn beskrivelse"
+            //descriptionError = "Du må fylle inn beskrivelse"
+            descriptionError = application.getString(R.string.description_must_be_filled_error)
             hasError = true
         }
         if (uiState.value.category.isBlank()) {
-            categoryError = "Du må velge kategori"
+            //categoryError = "Du må velge kategori"
+            categoryError = application.getString(R.string.you_most_select_category)
             hasError = true
         }
         if (uiState.value.location.isBlank()) {
-            locationError = "Du må velge sted"
+            //locationError = "Du må velge sted"
+            locationError = application.getString(R.string.you_most_select_location)
             hasError = true
         }
         if (uiState.value.address.isBlank()) {
-            addressError = "Du må velge adresse"
+            addressError = application.getString(R.string.you_most_select_address)//"Du må velge adresse"
             hasError = true
         }
         if (uiState.value.postalCode.isBlank()) {
-            postalCodeError = "Postnummer er påkrevd"
+            postalCodeError = application.getString(R.string.you_most_select_postalCode)//"Postnummer er påkrevd"
             hasError = true
         }
         if (uiState.value.maxParticipants.isBlank()) {
-            maxParticipantsError = "Du må fylle inn maks antall deltakere"
+            maxParticipantsError = application.getString(R.string.maxParticipants_must_be_filled_error)//"Du må fylle inn maks antall deltakere"
             hasError = true
         } else if (uiState.value.maxParticipants.toIntOrNull() == null) {
-            maxParticipantsError = "Må være et tall"
+            maxParticipantsError = application.getString(R.string.most_ny_a_nummber)//"Må være et tall"
             hasError = true
         }
         if (uiState.value.ageLimit.isBlank()) {
-            ageLimitError = "Du må fylle inn aldersgrense"
+            ageLimitError = application.getString(R.string.ageLimit_must_be_filled_error)//"Du må fylle inn aldersgrense"
             hasError = true
         } else if (uiState.value.ageLimit.toIntOrNull() == null) {
-            ageLimitError = "Må være et tall"
+            ageLimitError = application.getString(R.string.most_ny_a_nummber)//"Må være et tall"
             hasError = true
         }
 
         val selectedDate = uiState.value.date
         if (selectedDate == null) {
-            dateError = "Du må velge dato"
+            dateError = application.getString(R.string.you_most_select_date)//"Du må velge dato"
             hasError = true
         } else {
             val currentTimeMillis = System.currentTimeMillis()
             val selectedDateMillis = selectedDate.toDate().time
             val diff = selectedDateMillis - currentTimeMillis
-            if (diff < 48 * 60 * 60 * 1000) { // 48 hours in milliseconds
-                dateError = "Datoen må være minst 48 timer fra nå"
+            if (diff < 24 * 60 * 60 * 1000) { // 48 hours in milliseconds
+                dateError = application.getString(R.string.most_by_24_h)//"Datoen må være minst 24 timer fra nå"
                 hasError = true
             }
         }
 
         if (uiState.value.startTime.isBlank()) {
-            startTimeError = "Du må velge starttidspunkt"
+            startTimeError = application.getString(R.string.you_most_select_start_time)//"Du må velge starttidspunkt"
             hasError = true
         }
 
