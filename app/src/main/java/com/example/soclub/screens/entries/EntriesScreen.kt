@@ -67,18 +67,30 @@ fun Tabs(selectedTab: Int, setSelectedTab: (Int) -> Unit) {
 }
 
 @Composable
-fun ActiveEntriesList(navController: NavHostController, viewModel: EntriesScreenViewModel = hiltViewModel()) {
+fun ActiveEntriesList(
+    navController: NavHostController,
+    viewModel: EntriesScreenViewModel = hiltViewModel()
+) {
     val activeActivities by viewModel.activeActivities.collectAsState()
     val isLoading by viewModel.isLoadingActive.collectAsState()
-    LocalContext.current
+    val isProcessingCancellation by viewModel.isProcessingCancellation.collectAsState()
 
     if (isLoading) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
             CircularProgressIndicator()
         }
     } else if (activeActivities.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(stringResource(R.string.No_Aktivirty_is_activ),modifier = Modifier.padding(16.dp))
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stringResource(R.string.No_Aktivirty_is_activ),
+                modifier = Modifier.padding(16.dp)
+            )
         }
     } else {
         LazyColumn(
@@ -94,7 +106,8 @@ fun ActiveEntriesList(navController: NavHostController, viewModel: EntriesScreen
                     title = activity.title,
                     time = activity.startTime,
                     date = activity.date,
-                    onCancelClick = { viewModel.cancelRegistration(activity.id) }, // Ikke nødvendig å passere Context her
+                    isProcessingCancellation = isProcessingCancellation == activity.id, // Sjekker om denne aktiviteten blir kansellert
+                    onCancelClick = { viewModel.cancelRegistration(activity.id) },
                     onClick = {
                         activity.category?.let { category ->
                             activity.id.let { id ->
@@ -155,6 +168,7 @@ fun ActiveEntryItem(
     title: String,
     date: Timestamp?,
     time: String?,
+    isProcessingCancellation: Boolean,
     onCancelClick: () -> Unit,
     onClick: () -> Unit
 ) {
@@ -163,18 +177,28 @@ fun ActiveEntryItem(
             .fillMaxWidth()
             .clickable { onClick() }
             .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.Start
     ) {
         EventImage(imageUrl)
         Spacer(modifier = Modifier.width(16.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.Top
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
             DateDisplay(date = date, time = time)
             Spacer(modifier = Modifier.height(8.dp))
-            CancelButton(onClick = onCancelClick)
+            CancelButton(
+                onClick = onCancelClick,
+                isProcessing = isProcessingCancellation
+            )
             Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(thickness = 1.dp)
+            Divider(thickness = 1.dp)
         }
     }
 }
@@ -248,14 +272,22 @@ fun DateDisplay(date: Timestamp?, time: String?) {
 }
 
 @Composable
-fun CancelButton(onClick: () -> Unit) {
+fun CancelButton(onClick: () -> Unit, isProcessing: Boolean) {
+    val buttonText = if (isProcessing) {
+        stringResource(R.string.cancelling_you) // "Kansellerer deg..."
+    } else {
+        stringResource(R.string.kanseller) // "Kanseller"
+    }
+
     Button(
         onClick = onClick,
         shape = RoundedCornerShape(24.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .height(32.dp)
+            .height(32.dp),
+        enabled = !isProcessing
     ) {
-        Text(text = stringResource(R.string.kanseller))
+        Text(text = buttonText)
     }
 }
+

@@ -59,6 +59,10 @@ class NewActivityViewModel @Inject constructor(
     private val application: Application
 ) : ViewModel() {
 
+    var isPublishing = mutableStateOf(false)
+        private set
+
+
     var uiState = mutableStateOf(NewActivityState())
         private set
 
@@ -325,6 +329,8 @@ class NewActivityViewModel @Inject constructor(
             return
         }
 
+        isPublishing.value = true
+
         val combinedLocation = "${uiState.value.address}, ${uiState.value.postalCode} ${uiState.value.location}"
         val creatorId = accountService.currentUserId
         val timestampDate = uiState.value.date ?: Timestamp.now()
@@ -341,6 +347,7 @@ class NewActivityViewModel @Inject constructor(
                 onError = { error ->
                     uiState.value = uiState.value.copy(errorMessage = R.string.error_image_upload_failed)
                     Log.e("NewActivityViewModel", "Error uploading image: ${error.message}")
+                    isPublishing.value = false
                 }
             )
         }
@@ -373,10 +380,13 @@ class NewActivityViewModel @Inject constructor(
                     startTime = startTime,
                 )
                 activityService.createActivity(uiState.value.category, newActivity)
+                isPublishing.value = false
+                uiState.value = NewActivityState()
                 navController.navigate("home")
             } catch (e: Exception) {
                 uiState.value = uiState.value.copy(errorMessage = R.string.error_creating_activity)
                 Log.e("NewActivityViewModel", "Error creating activity: ${e.message}")
+                isPublishing.value = false
             }
         }
     }

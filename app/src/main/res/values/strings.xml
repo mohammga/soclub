@@ -156,6 +156,18 @@
     <string name="ingen_publiserte_annonser">Du har ingen publiserte annonser</string>
     <string name="Endre_annonse">Endre annonse</string>
 
+    <string name="registering_you">Melder deg...</string>
+    <string name="unregistering_you">Melder deg ut...</string>
+    <string name="cancelling_you">Kansellerer deg...</string>
+    <string name="saving_changes_button">Lagrer endringene...</string>
+    <string name="updating_password_button">Oppdaterer passord...</string>
+    <string name="publishing_activity">Publiserer...</string>
+
+
+
+
+
+
 
 
 
