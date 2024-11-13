@@ -90,9 +90,9 @@ fun AppNavigation(navController: NavHostController, notificationsViewModel: Noti
                 }
                 currentScreen == AppScreens.HOME.name -> {
 
-                    //HomeTopBar(title = "SoClub")
+                    HomeTopBar(title = "SoClub")
 
-                    HomeTopBar(navController, title = stringResource(R.string.appname))
+                    //HomeTopBar(navController, title = stringResource(R.string.appname))
 
                 }
                 currentScreen == AppScreens.PROFILE.name -> {

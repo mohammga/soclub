@@ -381,6 +381,24 @@
     <string name="confirm_deletion">Bekreft sletting</string>
     <string name="sure_you_want_to_delete">Er du sikker på at du vil slette denne aktiviteten? Denne handlingen kan ikke angres.</string>
     <string name="date_expiered">Du kan ikke velge en dato som har gått.</string>
+    <string name="exact_alarm_permission_title">Enable Exact Alarms</string>
+    <string name="exact_alarm_permission_message">To provide timely notifications, please allow exact alarms.</string>
+    <string name="allow">Allow</string>
+    <string name="cancel_eng">Cancel</string>
+    <string name="default_notification_message">Påminnelse om din aktivitet</string>
+    <string name="notification_title">Aktivitetspåminnelse</string>
+
+
+    <string name="notification_registration">Du er påmeldt til aktiviteten: %1$s</string>
+    <string name="notification_cancellation">Du har avmeldt deg fra aktiviteten: %1$s</string>
+    <string name="notification_2_minutes">Aktiviteten starter om 2 minutter: %1$s</string>
+    <string name="notification_1_hour">Aktiviteten starter om 1 time: %1$s</string>
+    <string name="notification_12_hours">Aktiviteten starter om 12 timer: %1$s</string>
+    <string name="notification_24_hours">Aktiviteten starter om 24 timer: %1$s</string>
+    <string name="notification_default">Påminnelse om din aktivitet: %1$s</string>
+    <string name="error_user_not_logged_in">User not logged in</string>
+    <string name="error_user_data_not_found">User data not found</string>
+    <string name="user_null_after_registration">User is null after registration</string>
 
 
 </resources>
