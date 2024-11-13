@@ -1,4 +1,3 @@
-// File: com/example/soclub/screens/home/HomeScreen.kt
 package com.example.soclub.screens.home
 
 import android.content.res.Configuration

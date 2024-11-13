@@ -1,7 +1,5 @@
 package com.example.soclub.screens.profile
 
-import android.content.Context
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
