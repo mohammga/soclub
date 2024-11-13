@@ -31,11 +31,6 @@ class ActivityDetailViewModel @Inject constructor(
     private val _activities = MutableLiveData<List<Activity>>()
     val activities: LiveData<List<Activity>> = _activities
 
-    private val _currentParticipantsMap = MutableStateFlow<Map<String, Int>>(emptyMap())
-    val currentParticipantsMap: StateFlow<Map<String, Int>> = _currentParticipantsMap
-
-    private var activitiesListener: ListenerRegistration? = null
-
     private val _isRegistered = MutableStateFlow(false)
     val isRegistered: StateFlow<Boolean> = _isRegistered
 
@@ -54,7 +49,6 @@ class ActivityDetailViewModel @Inject constructor(
     private val _isCreator = MutableStateFlow(false)
     val isCreator: StateFlow<Boolean> = _isCreator
 
-    // Listener for sanntidsoppdateringer av registreringer
     private var registrationListener: ListenerRegistration? = null
 
     private val _activity = MutableStateFlow<Activity?>(null)
@@ -67,7 +61,6 @@ class ActivityDetailViewModel @Inject constructor(
     val requestAlarmPermission: LiveData<Boolean> = _requestAlarmPermission
 
 
-
     private fun checkAndRequestExactAlarmPermission() {
         _requestAlarmPermission.value = true
     }
@@ -77,19 +70,10 @@ class ActivityDetailViewModel @Inject constructor(
     }
 
 
-    private suspend fun updateCurrentParticipantsMap(activities: List<Activity>) {
-        val participantsMap = mutableMapOf<String, Int>()
-        for (activity in activities) {
-            val count = activityDetailService.getRegisteredParticipantsCount(activity.id)
-            participantsMap[activity.id] = count
-        }
-        _currentParticipantsMap.value = participantsMap
-    }
-
     override fun onCleared() {
         super.onCleared()
         registrationListener?.remove()
-        activityListener?.remove()  // Fjern aktivitetens lytter
+        activityListener?.remove()
     }
 
     fun loadActivityWithStatus(category: String, activityId: String) {
