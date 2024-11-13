@@ -1,6 +1,7 @@
 package com.example.soclub.screens.editPermission
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -27,6 +28,7 @@ class EditPermissionViewModel @Inject constructor() : ViewModel() {
     val notificationPermission: StateFlow<Boolean> = _notificationPermission
 
     // Function to check permission status
+    @SuppressLint("InlinedApi")
     fun checkPermissions(context: Context) {
         viewModelScope.launch {
             _locationPermission.value = checkPermissionStatus(context, Manifest.permission.ACCESS_FINE_LOCATION)
