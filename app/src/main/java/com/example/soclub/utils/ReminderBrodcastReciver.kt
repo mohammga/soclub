@@ -22,7 +22,7 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             val message = intent?.getStringExtra("message") ?: "Påminnelse om din aktivitet"
             val activityId = intent?.getStringExtra("activityId") ?: return
-            val userId = intent?.getStringExtra("userId") ?: return
+            val userId = intent.getStringExtra("userId") ?: return
 
             // Display the notification to the user
             val notification = NotificationCompat.Builder(context, "activity_reminder_channel")

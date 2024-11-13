@@ -2,21 +2,27 @@ package com.example.soclub.screens.home
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.location.Address
 import android.location.Geocoder
 import android.location.Location
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.*
 import com.example.soclub.models.Activity
-import com.example.soclub.service.ActivityDetailService
 import com.example.soclub.service.ActivityService
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.firebase.firestore.ListenerRegistration
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import java.io.IOException
 import java.util.*
 import javax.inject.Inject
+import kotlin.coroutines.resume
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -101,7 +107,7 @@ class HomeViewModel @Inject constructor(
             val filteredActivities = if (_selectedCities.value?.isNotEmpty() == true) {
                 nonExpiredActivities.filter { activity ->
                     _selectedCities.value?.any { city ->
-                        activity.location?.contains(city, ignoreCase = true) == true
+                        activity.location.contains(city, ignoreCase = true)
                     } == true
                 }
             } else {
@@ -140,7 +146,7 @@ class HomeViewModel @Inject constructor(
         try {
             val activities = activityService.getAllActivities()
             val cities = activities.map { activity ->
-                activity.location?.substringAfterLast(" ") ?: "Ukjent"
+                activity.location.substringAfterLast(" ")
             }.distinct()
             emit(cities)
         } catch (e: Exception) {
@@ -164,18 +170,46 @@ class HomeViewModel @Inject constructor(
         applyFilters()
     }
 
-    private fun getCityFromLocation(location: Location?): String? {
-        location?.let {
-            val geocoder = Geocoder(getApplication<Application>().applicationContext, Locale.getDefault())
-            val addresses = geocoder.getFromLocation(it.latitude, it.longitude, 1)
-            return addresses?.firstOrNull()?.locality ?: addresses?.firstOrNull()?.subAdminArea
-        }
-        return null
-    }
+    private suspend fun getCityFromLocation(location: Location?): String? {
+        location ?: return null
 
+        val geocoder = Geocoder(getApplication<Application>().applicationContext, Locale.getDefault())
+
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // For API level 33 and above, use GeocodeListener
+            suspendCancellableCoroutine { cont ->
+                geocoder.getFromLocation(
+                    location.latitude,
+                    location.longitude,
+                    1,
+                    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+                    object : Geocoder.GeocodeListener {
+                        override fun onGeocode(addresses: MutableList<Address>) {
+                            cont.resume(addresses.firstOrNull()?.locality ?: addresses.firstOrNull()?.subAdminArea)
+                        }
+
+                        override fun onError(errorMessage: String?) {
+                            cont.resume(null)
+                        }
+                    }
+                )
+            }
+        } else {
+            // For lower API levels, use deprecated getFromLocation in IO dispatcher
+            withContext(Dispatchers.IO) {
+                try {
+                    @Suppress("DEPRECATION")
+                    val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+                    addresses?.firstOrNull()?.locality ?: addresses?.firstOrNull()?.subAdminArea
+                } catch (e: IOException) {
+                    // Handle IOException, such as network issues
+                    null
+                }
+            }
+        }
+    }
     @SuppressLint("MissingPermission")
     fun getNearestActivities() {
-        // Sjekk om aktivitetene allerede er lastet inn for å unngå flere lastinger
         if (hasLoadedNearestActivities) return
 
         _isLoading.value = true
@@ -184,47 +218,76 @@ class HomeViewModel @Inject constructor(
             try {
                 val userLocation = fusedLocationClient.lastLocation.await() ?: return@launch
 
-                // Oppretter en lytter for sanntidsoppdateringer
                 nearestActivitiesListener = activityService.listenForActivities { allActivities ->
-                    val currentDateTime = Calendar.getInstance().time
+                    viewModelScope.launch {
+                        val currentDateTime = Calendar.getInstance().time
 
-                    // Filtrer ut aktiviteter som ikke er utløpt
-                    val nonExpiredActivities = allActivities.filter { activity ->
-                        val activityDateTime = combineDateAndTime(activity.date, activity.startTime)
-                        activityDateTime?.after(currentDateTime) ?: false
-                    }
-
-                    // Beregn avstand og sorter aktivitetene
-                    val activitiesWithDistance = nonExpiredActivities.mapNotNull { activity ->
-                        val location = Geocoder(getApplication<Application>().applicationContext, Locale.getDefault())
-                            .getFromLocationName(activity.location ?: "", 1)
-                            ?.firstOrNull()
-                            ?.let {
-                                Location("").apply {
-                                    latitude = it.latitude
-                                    longitude = it.longitude
-                                }
-                            }
-
-                        location?.let {
-                            val distance = userLocation.distanceTo(location)
-                            activity to distance
+                        val nonExpiredActivities = allActivities.filter { activity ->
+                            val activityDateTime = combineDateAndTime(activity.date, activity.startTime)
+                            activityDateTime?.after(currentDateTime) ?: false
                         }
-                    }
 
-                    // Velg de nærmeste aktivitetene og oppdater LiveData
-                    val nearestActivities = activitiesWithDistance.sortedBy { it.second }.take(10).map { it.first }
-                    _activities.postValue(nearestActivities)
-                    _hasLoadedActivities.postValue(true)
+                        val activitiesWithDistance = nonExpiredActivities.mapNotNull { activity ->
+                            val location = getLocationFromAddress(activity.location) // Call inside coroutine
+                            location?.let {
+                                val distance = userLocation.distanceTo(location)
+                                activity to distance
+                            }
+                        }
+
+                        val nearestActivities = activitiesWithDistance.sortedBy { it.second }.take(10).map { it.first }
+                        _activities.postValue(nearestActivities)
+                        _hasLoadedActivities.postValue(true)
+                    }
                 }
 
-                // Marker at dataene har blitt lastet
                 hasLoadedNearestActivities = true
             } catch (e: Exception) {
                 _activities.postValue(emptyList())
                 Log.e("HomeViewModel", "Error fetching nearest activities: ${e.message}")
             } finally {
                 _isLoading.postValue(false)
+            }
+        }
+    }
+
+    private suspend fun getLocationFromAddress(address: String): Location? {
+        val geocoder = Geocoder(getApplication<Application>().applicationContext, Locale.getDefault())
+
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            suspendCancellableCoroutine { cont ->
+                geocoder.getFromLocationName(address, 1, object : Geocoder.GeocodeListener {
+                    override fun onGeocode(addresses: MutableList<Address>) {
+                        val firstAddress = addresses.firstOrNull()
+                        val location = firstAddress?.let {
+                            Location("").apply {
+                                latitude = it.latitude
+                                longitude = it.longitude
+                            }
+                        }
+                        cont.resume(location)
+                    }
+
+                    override fun onError(errorMessage: String?) {
+                        cont.resume(null)
+                    }
+                })
+            }
+        } else {
+            withContext(Dispatchers.IO) {
+                try {
+                    @Suppress("DEPRECATION")
+                    val addresses = geocoder.getFromLocationName(address, 1)
+                    addresses?.firstOrNull()?.let {
+                        Location("").apply {
+                            latitude = it.latitude
+                            longitude = it.longitude
+                        }
+                    }
+                } catch (e: IOException) {
+                    Log.e("HomeViewModel", "Geocoder I/O error: ${e.message}")
+                    null
+                }
             }
         }
     }

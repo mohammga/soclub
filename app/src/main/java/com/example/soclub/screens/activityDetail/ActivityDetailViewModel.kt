@@ -173,7 +173,7 @@ class ActivityDetailViewModel @Inject constructor(
                         )
                     } else if (!isRegistering) {
                         // Cancel all scheduled notifications for this activity
-                        cancelNotificationForActivity(context, userId, activityId)
+                        cancelNotificationForActivity(context, activityId)
                         // Immediate cancellation notification
                         scheduleReminder(
                             context = context,

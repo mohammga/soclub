@@ -1,7 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Soclub</string>
-    <string name="see_image">Fortsett</string>
-    <string name="home">Hjem</string>
-    <string name="counter">Teller</string>
+    <string name="app_name">SoClub</string>
 </resources>

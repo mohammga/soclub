@@ -13,7 +13,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.navigation.NavController
 import com.example.soclub.R
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
@@ -22,14 +21,13 @@ import androidx.lifecycle.Lifecycle
 
 @Composable
 fun EditPermissionScreen(
-    navController: NavController,
     viewModel: EditPermissionViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val locationPermission by viewModel.locationPermission.collectAsState()
     val galleryPermission by viewModel.galleryPermission.collectAsState()
     val notificationPermission by viewModel.notificationPermission.collectAsState()
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->

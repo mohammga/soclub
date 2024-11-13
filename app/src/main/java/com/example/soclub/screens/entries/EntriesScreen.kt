@@ -69,7 +69,7 @@ fun Tabs(selectedTab: Int, setSelectedTab: (Int) -> Unit) {
 fun ActiveEntriesList(navController: NavHostController, viewModel: EntriesScreenViewModel = hiltViewModel()) {
     val activeActivities by viewModel.activeActivities.collectAsState()
     val isLoading by viewModel.isLoadingActive.collectAsState()
-    val context = LocalContext.current // Hent Context her
+    LocalContext.current
 
     if (isLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -172,7 +172,7 @@ fun ActiveEntryItem(
             Spacer(modifier = Modifier.height(8.dp))
             CancelButton(onClick = onCancelClick)
             Spacer(modifier = Modifier.height(16.dp))
-            Divider(thickness = 1.dp)
+            HorizontalDivider(thickness = 1.dp)
         }
     }
 }
@@ -199,7 +199,7 @@ fun CancelledEntryItem(
             Text(text = title ?: "Ukjent tittel", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             DateDisplay(date = date, time = time)
             Spacer(modifier = Modifier.height(16.dp))
-            Divider(thickness = 1.dp)
+            HorizontalDivider(thickness = 1.dp)
         }
     }
 }

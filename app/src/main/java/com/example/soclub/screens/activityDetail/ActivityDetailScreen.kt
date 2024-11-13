@@ -19,10 +19,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.example.soclub.R
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material3.Icon
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -65,7 +63,6 @@ fun openGoogleMaps(context: Context, gmmIntentUri: String) {
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ActivityDetailScreen(
-    navController: NavController,
     category: String?,
     activityId: String?,
     viewModel: ActivityDetailViewModel = hiltViewModel()

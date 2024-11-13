@@ -1,3 +1,4 @@
+// File: com/example/soclub/screens/home/HomeScreen.kt
 package com.example.soclub.screens.home
 
 import android.content.res.Configuration
@@ -44,18 +45,24 @@ import java.util.Locale
 @Composable
 fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hiltViewModel()) {
     val categories by viewModel.getCategories().observeAsState(emptyList())
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { categories.size })
     var showBottomSheet by remember { mutableStateOf(false) }
     var isSelectingArea by remember { mutableStateOf(true) }
     val selectedCities by viewModel.selectedCities.observeAsState(emptyList())
     val cities by viewModel.getCities().observeAsState(emptyList())
     val hasLocationPermission by viewModel.hasLocationPermission.observeAsState(false)
 
+    // Filter categories based on location permission
     val visibleCategories = if (hasLocationPermission) {
         categories
     } else {
         categories.filter { it != "Nærme Aktiviteter" }
     }
+
+    // Initialize pagerState with visibleCategories.size
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        pageCount = { visibleCategories.size }
+    )
 
     LaunchedEffect(Unit) {
         viewModel.fetchUserLocation()
@@ -68,7 +75,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Velg aktuell kategori basert på hvilken side som er valgt i pageren
+        // Select the current category based on the current page in the pager
         val selectedCategory = visibleCategories.getOrNull(pagerState.currentPage) ?: ""
 
         Row(
@@ -117,7 +124,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Viser aktiviteter basert på valgt kategori
+        // Display activities based on the selected category
         CategoryActivitiesPager(
             categories = visibleCategories,
             pagerState = pagerState,
@@ -127,15 +134,13 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
         )
     }
 
-    // Filterbunnark for byvalg og områdeinnstillinger
+    // Filter bottom sheet for city selection and area settings
     if (showBottomSheet) {
         FilterBottomSheet(
             showBottomSheet = showBottomSheet,
-            isSelectingArea = isSelectingArea,
             selectedCities = selectedCities,
             cities = cities,
             onDismissRequest = { showBottomSheet = false },
-            onSelectArea = { isSelectingArea = it },
             onCitySelected = { city, isSelected -> viewModel.updateSelectedCities(city, isSelected) },
             onSearch = {
                 showBottomSheet = false
@@ -148,20 +153,19 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
     }
 }
 
-
 @Composable
 fun Chip(text: String, onRemove: () -> Unit) {
     Row(
         modifier = Modifier
-            .clip(RoundedCornerShape(12.dp))  // Mindre runding
+            .clip(RoundedCornerShape(12.dp))  // Smaller rounding
             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
-            .padding(horizontal = 8.dp, vertical = 4.dp),  // Reduser padding
+            .padding(horizontal = 8.dp, vertical = 4.dp),  // Reduced padding
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
         Text(
             text = text,
-            fontSize = 14.sp,  // Mindre fontstørrelse
+            fontSize = 14.sp,  // Smaller font size
             fontWeight = FontWeight.Normal
         )
         Spacer(modifier = Modifier.width(4.dp))
@@ -187,17 +191,6 @@ fun CategoryActivitiesPager(
     val isLoading by viewModel.isLoading.observeAsState(false)
     val activities by viewModel.activities.observeAsState(emptyList())
 
-    // Dette kontrollerer om "Nærme Aktiviteter" er valgt, og om GPS-tilgang er gitt
-    val isNearestActivitiesSelected = pagerState.currentPage < categories.size &&
-            categories[pagerState.currentPage] == "Nærme Aktiviteter" && hasLocationPermission
-
-    // Henter nærmeste aktiviteter når GPS er aktivert og "Nærme Aktiviteter" er valgt
-    LaunchedEffect(isNearestActivitiesSelected) {
-        if (isNearestActivitiesSelected) {
-            viewModel.getNearestActivities()
-        }
-    }
-
     HorizontalPager(
         state = pagerState,
         modifier = Modifier.fillMaxSize(),
@@ -205,16 +198,26 @@ fun CategoryActivitiesPager(
     ) { page ->
         val selectedCategory = categories[page]
 
-        // Velger aktiviteter basert på valgt kategori og GPS-tilgang
-        val activitiesToShow = if (selectedCategory == "Nærme Aktiviteter" && hasLocationPermission) {
-            activities // Bruker nærme aktiviteter hvis GPS-tilgang er gitt
+        // Determine if "Nærme Aktiviteter" is selected and if location permission is granted
+        val isNearestActivitiesSelected = selectedCategory == "Nærme Aktiviteter" && hasLocationPermission
+
+        // Fetch nearest activities when GPS is enabled and "Nærme Aktiviteter" is selected
+        LaunchedEffect(isNearestActivitiesSelected) {
+            if (isNearestActivitiesSelected) {
+                viewModel.getNearestActivities()
+            }
+        }
+
+        // Choose activities to display based on selected category and GPS access
+        val activitiesToShow = if (isNearestActivitiesSelected) {
+            activities // Use nearest activities if GPS access is granted
         } else {
-            groupedActivities[selectedCategory] ?: emptyList() // Ellers bruker vi grupperte aktiviteter
+            groupedActivities[selectedCategory] ?: emptyList() // Otherwise, use grouped activities
         }
 
         Column(modifier = Modifier.fillMaxSize()) {
             if (isLoading) {
-                // Viser en lastesirkel mens data lastes inn
+                // Show a loading indicator while data is loading
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -225,14 +228,14 @@ fun CategoryActivitiesPager(
                 }
             } else {
                 if (activitiesToShow.isNotEmpty()) {
-                    // Viser liste over aktiviteter
+                    // Display the list of activities
                     ActivityList(
                         activities = activitiesToShow,
                         selectedCategory = selectedCategory,
                         navController = navController
                     )
                 } else {
-                    // Viser en melding hvis ingen aktiviteter er tilgjengelige
+                    // Display a message if no activities are available
                     Text(
                         text = "Ingen aktiviteter tilgjengelig for $selectedCategory.",
                         modifier = Modifier.padding(16.dp),
@@ -291,7 +294,7 @@ fun FilterListItem(
             color = contentColor,
         )
         Icon(
-            imageVector = Icons.Default.FilterList, // Du kan endre til riktig ikon
+            imageVector = Icons.Default.FilterList, // You can change to the appropriate icon
             contentDescription = "Arrow",
             tint = contentColor,
             modifier = Modifier.padding(end = 16.dp)
@@ -309,8 +312,8 @@ fun CategoryTabs(categories: List<String>, pagerState: PagerState) {
             selectedTabIndex = pagerState.currentPage,
             modifier = Modifier.fillMaxWidth(),
             indicator = { tabPositions ->
-                TabRowDefaults.Indicator(
-                    Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage])
+                TabRowDefaults.SecondaryIndicator(
+                    modifier = Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage])
                 )
             },
             divider = {}
@@ -333,8 +336,8 @@ fun CategoryTabs(categories: List<String>, pagerState: PagerState) {
             modifier = Modifier.fillMaxWidth(),
             edgePadding = 0.dp,
             indicator = { tabPositions ->
-                TabRowDefaults.Indicator(
-                    Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage])
+                TabRowDefaults.SecondaryIndicator(
+                    modifier = Modifier.tabIndicatorOffset(tabPositions[pagerState.currentPage])
                 )
             },
             divider = {}
@@ -418,7 +421,7 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             verticalArrangement = Arrangement.Bottom
         ) {
             Text(
-                text = activity.title ?: "Ingen tittel",
+                text = activity.title,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
@@ -427,7 +430,7 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = activity.location ?: "Ukjent sted",
+                text = activity.location,
                 fontSize = 14.sp,
                 color = Color.LightGray
             )
@@ -477,11 +480,9 @@ fun combineDateAndTime(date: com.google.firebase.Timestamp?, timeString: String)
 @Composable
 fun FilterBottomSheet(
     showBottomSheet: Boolean,
-    isSelectingArea: Boolean,
     selectedCities: List<String>,
     cities: List<String>,
     onDismissRequest: () -> Unit,
-    onSelectArea: (Boolean) -> Unit,
     onCitySelected: (String, Boolean) -> Unit,
     onSearch: () -> Unit,
     onResetFilter: () -> Unit

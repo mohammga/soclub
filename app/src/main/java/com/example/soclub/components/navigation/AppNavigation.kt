@@ -87,7 +87,7 @@ fun AppNavigation(navController: NavHostController, notificationsViewModel: Noti
                     TopBar(navController, title = "", showBackButton = true)
                 }
                 currentScreen == AppScreens.HOME.name -> {
-                    HomeTopBar(navController, title = "SoClub")
+                    HomeTopBar(title = "SoClub")
                 }
                 currentScreen == AppScreens.PROFILE.name -> {
                     TopBar(navController, title = "Profil", showBackButton = false)
@@ -158,7 +158,6 @@ fun AppNavigation(navController: NavHostController, notificationsViewModel: Noti
                 val category = backStackEntry.arguments?.getString("category")
                 val activityId = backStackEntry.arguments?.getString("activityId")
                 ActivityDetailScreen(
-                    navController = navController,
                     category = category,
                     activityId = activityId
                 )
@@ -167,11 +166,11 @@ fun AppNavigation(navController: NavHostController, notificationsViewModel: Noti
             composable(AppScreens.PROFILE.name) { ProfileScreen(navController) }
             composable(AppScreens.CHANGE_PASSWORD.name) { ChangePasswordScreen() }
             composable(AppScreens.EDIT_PROFILE.name) { EditProfileScreen(navController) }
-            composable(AppScreens.EDIT_PERMISSION.name) { EditPermissionScreen(navController) }
-            composable(AppScreens.NOTIFICATIONS.name) { NotificationsScreen(navController) }
+            composable(AppScreens.EDIT_PERMISSION.name) { EditPermissionScreen() }
+            composable(AppScreens.NOTIFICATIONS.name) { NotificationsScreen() }
             composable(AppScreens.NEW_ACTIVITY.name) { NewActivityScreen(navController) }
             composable(AppScreens.ADS.name) { AdsScreen(navController) }
-            composable(AppScreens.TERMS_PRIVACY.name) { TermsPrivacyScreen(navController) }
+            composable(AppScreens.TERMS_PRIVACY.name) { TermsPrivacyScreen() }
             composable(
                 route = "editActivity/{category}/{activityId}",
                 arguments = listOf(

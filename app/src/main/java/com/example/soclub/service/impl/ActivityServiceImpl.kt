@@ -1,7 +1,7 @@
 package com.example.soclub.service.impl
 
 import android.app.Application
-import android.health.connect.datatypes.ExerciseRoute
+import android.location.Address
 import android.location.Geocoder
 import com.example.soclub.models.Activity
 import com.example.soclub.models.CreateActivity
@@ -11,14 +11,21 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import com.google.firebase.firestore.ListenerRegistration
-import dagger.hilt.android.internal.Contexts.getApplication
 
 
 import android.location.Location
+import android.os.Build
 import android.util.Log
 import com.google.firebase.Timestamp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import java.io.IOException
 
 import java.util.Locale
+import kotlin.coroutines.resume
 
 
 class ActivityServiceImpl @Inject constructor(
@@ -88,7 +95,11 @@ class ActivityServiceImpl @Inject constructor(
     }
 
 
-    override fun listenForNearestActivities(userLocation: Location, maxDistance: Float, onUpdate: (List<Activity>) -> Unit): ListenerRegistration {
+    override fun listenForNearestActivities(
+        userLocation: Location,
+        maxDistance: Float,
+        onUpdate: (List<Activity>) -> Unit
+    ): ListenerRegistration {
         return firestore.collectionGroup("activities")
             .addSnapshotListener { snapshot, error ->
                 if (error != null || snapshot == null) {
@@ -96,29 +107,70 @@ class ActivityServiceImpl @Inject constructor(
                     return@addSnapshotListener
                 }
 
-                val activities = snapshot.documents.mapNotNull { doc ->
-                    val activity = doc.toObject(Activity::class.java)
-                    val location = Geocoder(application.applicationContext, Locale.getDefault())
-                        .getFromLocationName(activity?.location ?: "", 1)
-                        ?.firstOrNull()
-                        ?.let {
+                // Use a coroutine scope to allow suspending function calls
+                CoroutineScope(Dispatchers.IO).launch {
+                    val activities = snapshot.documents.mapNotNull { doc ->
+                        val activity = doc.toObject(Activity::class.java)
+                        if (activity != null) {
+                            // Call the suspend function within the coroutine
+                            val location = getLocationFromAddress(activity.location)
+                            if (location != null) {
+                                val distance = userLocation.distanceTo(location)
+                                if (distance <= maxDistance) {
+                                    activity.copy(id = doc.id)
+                                } else null
+                            } else null
+                        } else null
+                    }
+                    onUpdate(activities)
+                }
+            }
+    }
+
+    // Helper function to get location from address
+    private suspend fun getLocationFromAddress(address: String?): Location? {
+        if (address.isNullOrEmpty()) return null
+        val geocoder = Geocoder(application.applicationContext, Locale.getDefault())
+
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // For API 33 and above, use the GeocodeListener
+            suspendCancellableCoroutine { cont ->
+                geocoder.getFromLocationName(address, 1, object : Geocoder.GeocodeListener {
+                    override fun onGeocode(addresses: MutableList<Address>) {
+                        val firstAddress = addresses.firstOrNull()
+                        val location = firstAddress?.let {
                             Location("").apply {
                                 latitude = it.latitude
                                 longitude = it.longitude
                             }
                         }
+                        cont.resume(location)
+                    }
 
-                    if (activity != null && location != null) {
-                        val distance = userLocation.distanceTo(location)
-                        if (distance <= maxDistance) {
-                            activity.copy(id = doc.id) // Legger til ID
-                        } else null
-                    } else null
-                }
-                onUpdate(activities)
+                    override fun onError(errorMessage: String?) {
+                        cont.resume(null)
+                    }
+                })
             }
+        } else {
+            // For lower API levels, use deprecated getFromLocationName method
+            withContext(Dispatchers.IO) {
+                try {
+                    @Suppress("DEPRECATION")
+                    val addresses = geocoder.getFromLocationName(address, 1)
+                    addresses?.firstOrNull()?.let {
+                        Location("").apply {
+                            latitude = it.latitude
+                            longitude = it.longitude
+                        }
+                    }
+                } catch (e: IOException) {
+                    Log.e("ActivityServiceImpl", "Error getting location: ${e.message}")
+                    null
+                }
+            }
+        }
     }
-
 
 
     override suspend fun getAllActivitiesByCreator(creatorId: String): List<EditActivity> {

@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace = "com.example.soclub"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.soclub"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -33,11 +33,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -85,36 +85,36 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     // Hilt - til dependency injection
-    implementation("com.google.dagger:hilt-android:2.49")
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
-    implementation("androidx.preference:preference-ktx:1.2.1")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation("com.google.firebase:firebase-crashlytics-buildtools:3.0.0")
+    implementation(libs.hilt.android)
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.preference.ktx)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.firebase.crashlytics.buildtools)
 
 
-    ksp("com.google.dagger:hilt-compiler:2.47")
+    ksp(libs.hilt.compiler)
 
     // Firebase
-    implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
-    implementation("com.google.firebase:firebase-analytics-ktx")
-    implementation("com.google.firebase:firebase-auth-ktx")
-    implementation("com.google.firebase:firebase-auth:23.0.0")
-    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics.ktx)
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore.ktx)
 
     // Material
-    implementation("androidx.compose.material:material:1.0.5")
-    implementation("androidx.compose.material:material-icons-extended:1.0.5")
-    implementation("androidx.compose.material3:material3:1.1.0")
+    implementation(libs.androidx.material)
+    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.material3)
 
     // coil
-    implementation ("io.coil-kt:coil-compose:2.4.0")
+    implementation (libs.coil.compose)
 
     // google maps
-    implementation ("com.google.android.gms:play-services-maps:18.0.0")
-    implementation ("com.google.maps.android:maps-compose:2.0.0")
+    implementation (libs.play.services.maps)
+    implementation (libs.maps.compose)
 
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
-    implementation ("androidx.work:work-runtime-ktx:2.8.1")
+    implementation(libs.kotlinx.coroutines.core)
+    implementation (libs.androidx.work.runtime.ktx)
 
 }
