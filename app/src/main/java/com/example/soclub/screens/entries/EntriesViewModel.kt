@@ -37,6 +37,10 @@ class EntriesScreenViewModel @Inject constructor(
     private val _isLoadingInactive = MutableStateFlow(false)
     val isLoadingInactive: StateFlow<Boolean> = _isLoadingInactive
 
+    private val _isProcessingCancellation = MutableStateFlow<String?>(null)
+    val isProcessingCancellation: StateFlow<String?> = _isProcessingCancellation
+
+
     init {
         listenForActivityUpdates()
         listenForNotActiveActivityUpdates()
@@ -70,6 +74,8 @@ class EntriesScreenViewModel @Inject constructor(
 
     fun cancelRegistration(activityId: String) {
         viewModelScope.launch {
+            _isProcessingCancellation.value = activityId // Start kanselleringsprosessen
+
             val userId = accountService.currentUserId
             val activityTitle = _activeActivities.value.find { it.id == activityId }?.title ?: "Aktivitet"
 
@@ -95,7 +101,12 @@ class EntriesScreenViewModel @Inject constructor(
 
                 // Display a Toast message for user feedback
                 Toast.makeText(context, "Aktivitet kansellert", Toast.LENGTH_LONG).show()
+            } else {
+                // Håndter feil (du kan legge til feilhåndtering her hvis ønskelig)
             }
+
+            _isProcessingCancellation.value = null // Fullfør kanselleringsprosessen
         }
     }
 }
+

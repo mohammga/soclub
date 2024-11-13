@@ -75,6 +75,8 @@ fun ActivityDetailScreen(
     val errorMessage = viewModel.errorMessage.collectAsState().value
     val context = LocalContext.current
     val isCreator = viewModel.isCreator.collectAsState().value
+    val isProcessingRegistration = viewModel.isProcessingRegistration.collectAsState().value
+
 
     LaunchedEffect(activityId, category) {
         if (activityId != null && category != null) {
@@ -110,6 +112,7 @@ fun ActivityDetailScreen(
                                 isRegistered = isRegistered,
                                 isCreator = isCreator,
                                 canRegister = canRegister,
+                                isProcessingRegistration = isProcessingRegistration,
                                 ageGroup = activity?.ageGroup ?: 0,
                                 onRegisterClick = {
                                     if (activityId != null && category != null) {
@@ -159,6 +162,7 @@ fun ActivityDetailsContent(
     isCreator: Boolean,
     canRegister: Boolean,
     ageGroup: Int,
+    isProcessingRegistration: Boolean,
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
@@ -237,6 +241,7 @@ fun ActivityDetailsContent(
             maxParticipants = activity?.maxParticipants ?: 0,
             ageGroup = ageGroup,
             onRegisterClick = onRegisterClick,
+            isProcessingRegistration = isProcessingRegistration,
             onUnregisterClick = onUnregisterClick
         )
     }
@@ -424,21 +429,27 @@ fun ActivityRegisterButton(
     currentParticipants: Int,
     maxParticipants: Int,
     ageGroup: Int,
+    isProcessingRegistration: Boolean,
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
 ) {
-  
     val isFull = currentParticipants >= maxParticipants
 
     val buttonText = when {
-        isFull -> ""
+        isProcessingRegistration -> {
+            if (isRegistered) {
+                stringResource(R.string.unregistering_you) // "Melder deg ut..."
+            } else {
+                stringResource(R.string.registering_you) // "Melder deg..."
+            }
+        }
+        isFull -> stringResource(R.string.no_places_left)
         isCreator -> stringResource(R.string.own_activity)
         !canRegister -> stringResource(R.string.under_age_limit, ageGroup)
         isRegistered -> stringResource(R.string.unregister)
         else -> stringResource(R.string.registerr)
     }
 
-    //DENNE DELEN MÅ BRUKE RIKTIG FARGER
     val buttonColor = when {
         isFull -> Color.Gray
         isCreator || !canRegister -> Color.Gray
@@ -446,7 +457,7 @@ fun ActivityRegisterButton(
         else -> Color.Black
     }
 
-    val buttonEnabled = !isCreator && canRegister && !isFull
+    val buttonEnabled = !isCreator && canRegister && !isFull && !isProcessingRegistration
 
     Button(
         onClick = {
@@ -463,11 +474,7 @@ fun ActivityRegisterButton(
             .height(48.dp),
         enabled = buttonEnabled
     ) {
-        if (isFull) {
-            Text(text = stringResource(R.string.no_places_left), color = Color.White)
-        } else {
-            Text(text = buttonText, color = Color.White)
-        }
+        Text(text = buttonText, color = Color.White)
     }
 }
 

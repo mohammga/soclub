@@ -39,6 +39,10 @@ class EditProfileViewModel @Inject constructor(
     private val storageService: StorageService // Inject StorageService
 ) : ViewModel() {
 
+    var isSaving: MutableState<Boolean> = mutableStateOf(false)
+        private set
+
+
     var uiState: MutableState<EditProfileState> = mutableStateOf(EditProfileState())
         private set
 
@@ -115,6 +119,7 @@ class EditProfileViewModel @Inject constructor(
         )
 
         if (hasError) return
+        isSaving.value = true
 
         val firstname = uiState.value.firstname
         val lastname = uiState.value.lastname
@@ -149,6 +154,7 @@ class EditProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 accountService.updateProfile(firstname = firstname, lastname = lastname, imageUrl = imageUrl) { error ->
+                    isSaving.value = false
                     if (error == null) {
                         Toast.makeText(context, R.string.profile_han_been_changed, Toast.LENGTH_SHORT).show()
                         viewModelScope.launch {
@@ -162,6 +168,7 @@ class EditProfileViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
+                isSaving.value = false
                 uiState.value = uiState.value.copy(firstnameError = R.string.error_profile_creation)
             }
         }

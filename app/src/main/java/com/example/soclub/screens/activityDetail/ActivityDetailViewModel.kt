@@ -62,6 +62,10 @@ class ActivityDetailViewModel @Inject constructor(
     val requestAlarmPermission: LiveData<Boolean> = _requestAlarmPermission
 
 
+    private val _isProcessingRegistration = MutableStateFlow(false)
+    val isProcessingRegistration: StateFlow<Boolean> = _isProcessingRegistration
+
+
     private fun checkAndRequestExactAlarmPermission() {
         _requestAlarmPermission.value = true
     }
@@ -125,6 +129,8 @@ class ActivityDetailViewModel @Inject constructor(
 
     fun updateRegistrationForActivity(activityId: String, isRegistering: Boolean) {
         viewModelScope.launch {
+            _isProcessingRegistration.value = true // Start registreringsprosessen
+
             val userId = accountService.currentUserId
             val status = if (isRegistering) "aktiv" else "notAktiv"
 
@@ -138,7 +144,7 @@ class ActivityDetailViewModel @Inject constructor(
 
                     val startTimeMillis = getActivityStartTimeInMillis(currentActivity)
                     if (isRegistering && startTimeMillis != null) {
-                        // Schedule notifications for 24hr, 12hr, and 1hr before the activity
+                        // Schedule notifications...
                         scheduleNotificationForActivity(
                             activityTitle = currentActivity.title,
                             activityId = activityId,
@@ -157,7 +163,7 @@ class ActivityDetailViewModel @Inject constructor(
                             isRegistration = true
                         )
                     } else if (!isRegistering) {
-                        // Cancel all scheduled notifications for this activity
+                        // Cancel notifications...
                         cancelNotificationForActivity(context, activityId)
                         // Immediate cancellation notification
                         scheduleReminder(
@@ -171,9 +177,10 @@ class ActivityDetailViewModel @Inject constructor(
                             isRegistration = false
                         )
                     }
-
                 }
             }
+
+            _isProcessingRegistration.value = false // Fullfør registreringsprosessen
         }
     }
 

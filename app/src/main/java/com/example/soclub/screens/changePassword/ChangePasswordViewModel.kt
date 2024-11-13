@@ -34,6 +34,10 @@ class ChangePasswordViewModel @Inject constructor(
     private val accountService: AccountService
 ) : ViewModel() {
 
+    var isProcessing: MutableState<Boolean> = mutableStateOf(false)
+        private set
+
+
     var uiState: MutableState<ChangePasswordState> = mutableStateOf(ChangePasswordState())
         private set
 
@@ -99,10 +103,12 @@ class ChangePasswordViewModel @Inject constructor(
         )
 
         if (hasError) return
+        isProcessing.value = true
 
         viewModelScope.launch {
             try {
                 accountService.changePassword(oldPassword, newPassword) { error ->
+                    isProcessing.value = false
                     if (error == null) {
                         uiState.value = ChangePasswordState()
                         Toast.makeText(context, context.getString(R.string.password_change), Toast.LENGTH_LONG).show()
@@ -111,6 +117,7 @@ class ChangePasswordViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
+                isProcessing.value = false
                 uiState.value = uiState.value.copy(generalError = R.string.error_could_not_change_password)
             }
         }

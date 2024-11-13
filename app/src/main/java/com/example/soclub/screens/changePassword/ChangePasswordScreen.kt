@@ -22,6 +22,7 @@ import com.example.soclub.R
 @Composable
 fun ChangePasswordScreen(viewModel: ChangePasswordViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState
+    val isProcessing by viewModel.isProcessing
     val context = LocalContext.current
 
     Scaffold(
@@ -38,7 +39,8 @@ fun ChangePasswordScreen(viewModel: ChangePasswordViewModel = hiltViewModel()) {
                         value = uiState.oldPassword,
                         onNewValue = viewModel::onOldPasswordChange,
                         error = uiState.oldPasswordError?.let { stringResource(id = it) },
-                        supportingText = stringResource(id = R.string.old_password_supporting_text)
+                        supportingText = stringResource(id = R.string.old_password_supporting_text),
+                        enabled = !isProcessing
                     )
                 }
 
@@ -48,7 +50,8 @@ fun ChangePasswordScreen(viewModel: ChangePasswordViewModel = hiltViewModel()) {
                         value = uiState.newPassword,
                         onNewValue = viewModel::onNewPasswordChange,
                         error = uiState.newPasswordError?.let { stringResource(id = it) },
-                        supportingText = stringResource(id = R.string.new_password_supporting_text)
+                        supportingText = stringResource(id = R.string.new_password_supporting_text),
+                        enabled = !isProcessing
                     )
                 }
 
@@ -58,7 +61,8 @@ fun ChangePasswordScreen(viewModel: ChangePasswordViewModel = hiltViewModel()) {
                         value = uiState.confirmPassword,
                         onNewValue = viewModel::onConfirmPasswordChange,
                         error = uiState.confirmPasswordError?.let { stringResource(id = it) },
-                        supportingText = stringResource(id = R.string.confirm_new_password_supporting_text)
+                        supportingText = stringResource(id = R.string.confirm_new_password_supporting_text),
+                        enabled = !isProcessing
                     )
                 }
 
@@ -74,7 +78,13 @@ fun ChangePasswordScreen(viewModel: ChangePasswordViewModel = hiltViewModel()) {
                 item {
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    ChangePasswordButton(viewModel, context)
+
+                    ChangePasswordButton(
+                        viewModel = viewModel,
+                        context = context,
+                        enabled = !isProcessing,
+                        isProcessing = isProcessing
+                    )
                 }
             }
         }
@@ -87,7 +97,8 @@ fun PasswordField(
     value: String,
     onNewValue: (String) -> Unit,
     error: String? = null,
-    supportingText: String? = null
+    supportingText: String? = null,
+    enabled: Boolean = true  // Legg til denne linjen
 ) {
     var isVisible by remember { mutableStateOf(true) }
     var isVisibleToggled by remember { mutableStateOf(false) }
@@ -108,11 +119,17 @@ fun PasswordField(
         label = { Text(label) },
         placeholder = { Text(label) },
         trailingIcon = {
-            IconButton(onClick = {
-                isVisible = !isVisible
-                if (!isVisibleToggled) isVisibleToggled = true
-            }) {
-                Icon(painter = icon, contentDescription = if (isVisible) stringResource(id = R.string.hide_password) else stringResource(id = R.string.show_password))
+            IconButton(
+                onClick = {
+                    isVisible = !isVisible
+                    if (!isVisibleToggled) isVisibleToggled = true
+                },
+                enabled = enabled  // Deaktiver ikonet når feltet er deaktivert
+            ) {
+                Icon(
+                    painter = icon,
+                    contentDescription = if (isVisible) stringResource(id = R.string.hide_password) else stringResource(id = R.string.show_password)
+                )
             }
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -124,23 +141,35 @@ fun PasswordField(
             } else {
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
-        }
+        },
+        enabled = enabled  // Sett enabled på tekstfeltet
     )
 }
+
 
 @Composable
 private fun ChangePasswordButton(
     viewModel: ChangePasswordViewModel,
-    context: android.content.Context
+    context: android.content.Context,
+    enabled: Boolean,
+    isProcessing: Boolean
 ) {
+    val buttonText = if (isProcessing) {
+        stringResource(id = R.string.updating_password_button)  // "Oppdaterer passord..."
+    } else {
+        stringResource(id = R.string.update_password_button)  // "Oppdater passord"
+    }
+
     Button(
         onClick = {
             viewModel.onChangePasswordClick(context)
         },
         modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp)
+            .height(48.dp),
+        enabled = enabled
     ) {
-        Text(text = stringResource(id = R.string.update_password_button))
+        Text(text = buttonText)
     }
 }
+

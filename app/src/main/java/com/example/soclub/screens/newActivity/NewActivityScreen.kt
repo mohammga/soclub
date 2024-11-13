@@ -44,9 +44,7 @@ fun NewActivityScreen(
     val uiState by viewModel.uiState
     val locationSuggestions by remember { derivedStateOf { uiState.locationSuggestions } }
     val addressSuggestions by remember { derivedStateOf { uiState.addressSuggestions } }
-
-
-    // State to trigger recomposition when updated
+    val isPublishing by viewModel.isPublishing
     var locationConfirmed by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -58,7 +56,8 @@ fun NewActivityScreen(
             item {
                 ImageUploadSection(
                     selectedImageUri = uiState.selectedImageUri,
-                    onImageSelected = viewModel::onImageSelected
+                    onImageSelected = viewModel::onImageSelected,
+                    enabled = !isPublishing
                 )
             }
 
@@ -66,7 +65,8 @@ fun NewActivityScreen(
                 TitleField(
                     value = uiState.title,
                     onNewValue = viewModel::onTitleChange,
-                    error = uiState.titleError
+                    error = uiState.titleError,
+                    enabled = !isPublishing
                 )
             }
 
@@ -74,7 +74,8 @@ fun NewActivityScreen(
                 DescriptionField(
                     value = uiState.description,
                     onNewValue = viewModel::onDescriptionChange,
-                    error = uiState.descriptionError
+                    error = uiState.descriptionError,
+                    enabled = !isPublishing
                 )
             }
 
@@ -82,7 +83,8 @@ fun NewActivityScreen(
                 CategoryField(
                     value = uiState.category,
                     onNewValue = viewModel::onCategoryChange,
-                    error = uiState.categoryError
+                    error = uiState.categoryError,
+                    enabled = !isPublishing
                 )
             }
 
@@ -98,7 +100,8 @@ fun NewActivityScreen(
                         viewModel.onLocationSelected(suggestion)
                         locationConfirmed = true // Confirm location
                     },
-                    error = uiState.locationError
+                    error = uiState.locationError,
+                    enabled = !isPublishing
                 )
             }
 
@@ -114,7 +117,8 @@ fun NewActivityScreen(
                             viewModel.onAddressSelected(suggestion)
                         },
                         isEnabled = locationConfirmed,
-                        error = uiState.addressError
+                        error = uiState.addressError,
+                        enabled = !isPublishing
                     )
                 }
             }
@@ -123,7 +127,8 @@ fun NewActivityScreen(
                 item {
                     PostalCodeField(
                         value = uiState.postalCode,
-                        error = uiState.postalCodeError
+                        error = uiState.postalCodeError,
+                        enabled = !isPublishing
                     )
                 }
             }
@@ -132,7 +137,8 @@ fun NewActivityScreen(
                 DateField(
                     value = uiState.date?.toDate()?.time ?: 0L,
                     onNewValue = viewModel::onDateChange,
-                    error = uiState.dateError
+                    error = uiState.dateError,
+                    enabled = !isPublishing
                 )
             }
 
@@ -140,7 +146,8 @@ fun NewActivityScreen(
                 StartTimeField(
                     value = uiState.startTime,
                     onNewValue = viewModel::onStartTimeChange,
-                    error = uiState.startTimeError
+                    error = uiState.startTimeError,
+                    enabled = !isPublishing
                 )
             }
 
@@ -148,7 +155,8 @@ fun NewActivityScreen(
                 MaxParticipantsField(
                     value = uiState.maxParticipants,
                     onNewValue = viewModel::onMaxParticipantsChange,
-                    error = uiState.maxParticipantsError
+                    error = uiState.maxParticipantsError,
+                    enabled = !isPublishing
                 )
             }
 
@@ -156,19 +164,20 @@ fun NewActivityScreen(
                 AgeLimitField(
                     value = uiState.ageLimit,
                     onNewValue = viewModel::onAgeLimitChange,
-                    error = uiState.ageLimitError
+                    error = uiState.ageLimitError,
+                    enabled = !isPublishing
                 )
             }
 
             item { Spacer(modifier = Modifier.height(5.dp)) }
 
-            item { PublishButton(navController, viewModel) }
+            item { PublishButton(navController, viewModel, isPublishing) }
         }
     }
 }
 
 @Composable
-fun TitleField(value: String, onNewValue: (String) -> Unit, error: String?) {
+fun TitleField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
@@ -179,6 +188,7 @@ fun TitleField(value: String, onNewValue: (String) -> Unit, error: String?) {
             .padding(vertical = 8.dp),
         singleLine = true,
         isError = error != null,
+        enabled = enabled,
         supportingText = {
             if (error == null) {
                 Text(stringResource(id = R.string.title_supporting_text))
@@ -190,7 +200,7 @@ fun TitleField(value: String, onNewValue: (String) -> Unit, error: String?) {
 }
 
 @Composable
-fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?) {
+fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
@@ -202,6 +212,7 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?
             .height(150.dp), // Increase the height for a larger field
         maxLines = 10,
         isError = error != null,
+        enabled = enabled,
         supportingText = {
             if (error == null) {
                 Text(stringResource(id = R.string.description_supporting_text))
@@ -214,7 +225,7 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?) {
+fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     var expanded by remember { mutableStateOf(false) }
     val categories = listOf("Festivaler", "Klatring", "Mat", "Reise", "Trening")
     var selectedText by remember { mutableStateOf(value) }
@@ -242,6 +253,7 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?) {
             singleLine = true,
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
             isError = error != null,
+            enabled = enabled,
             supportingText = {
                 if (error == null) {
                     Text(stringResource(id = R.string.category_supporting_text))
@@ -275,7 +287,8 @@ fun LocationField(
     onNewValue: (String) -> Unit,
     suggestions: List<String>,
     onSuggestionClick: (String) -> Unit,
-    error: String?
+    error: String?,
+    enabled: Boolean
 ) {
     var expanded by remember { mutableStateOf(false) }
     var textFieldValue by remember { mutableStateOf(TextFieldValue(text = initialValue)) }
@@ -304,6 +317,7 @@ fun LocationField(
             },
             singleLine = true,
             isError = error != null,
+            enabled = enabled,
             supportingText = {
                 if (error == null) {
                     Text(stringResource(id = R.string.location_supporting_text))
@@ -343,7 +357,8 @@ fun AddressField(
     suggestions: List<String>,
     onSuggestionClick: (String) -> Unit,
     isEnabled: Boolean,
-    error: String?
+    error: String?,
+    enabled: Boolean
 ) {
     var expanded by remember { mutableStateOf(false) }
     var textFieldValue by remember { mutableStateOf(TextFieldValue(text = initialValue)) }
@@ -367,7 +382,6 @@ fun AddressField(
                 .menuAnchor(MenuAnchorType.PrimaryEditable)
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
-            enabled = isEnabled,
             trailingIcon = {
                 if (suggestions.isNotEmpty()) {
                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
@@ -375,6 +389,7 @@ fun AddressField(
             },
             singleLine = true,
             isError = error != null,
+            enabled = isEnabled,
             supportingText = {
                 if (error == null) {
                     Text(stringResource(id = R.string.address_supporting_text))
@@ -407,7 +422,7 @@ fun AddressField(
 }
 
 @Composable
-fun PostalCodeField(value: String, error: String?) {
+fun PostalCodeField(value: String, error: String?, enabled: Boolean) {
     OutlinedTextField(
         value = value,
         onValueChange = {},
@@ -420,6 +435,7 @@ fun PostalCodeField(value: String, error: String?) {
         singleLine = true,
         readOnly = true,
         isError = error != null,
+        enabled = enabled,
         supportingText = {
             if (error == null) {
                 Text(stringResource(id = R.string.postal_code_supporting_text))
@@ -432,11 +448,9 @@ fun PostalCodeField(value: String, error: String?) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
-    //LocalContext.current
+fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enabled: Boolean) {
     val context = LocalContext.current
     val currentTimeMillis = System.currentTimeMillis()
-    // Date picker state with initial value
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = value)
     val isDatePickerVisible = remember { mutableStateOf(false) }
     var internalError by remember { mutableStateOf<String?>(null) }
@@ -444,7 +458,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
     val formattedDate = if (value != 0L) {
         SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
     } else {
-        stringResource(R.string.choose_Dato)//"Velg dato"
+        stringResource(R.string.choose_Dato)
     }
 
     Box {
@@ -457,6 +471,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
                 .padding(vertical = 8.dp),
             readOnly = true,
             isError = error != null || internalError != null,
+            enabled = enabled,
             supportingText = {
                 val errorMessage = error ?: internalError
                 if (errorMessage == null) {
@@ -517,7 +532,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) {
+fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     val isTimePickerVisible = remember { mutableStateOf(false) }
     val timePickerState = rememberTimePickerState()
 
@@ -533,6 +548,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
                 .padding(vertical = 8.dp),
             readOnly = true,
             isError = error != null,
+            enabled = enabled,
             supportingText = {
                 if (error == null) {
                     Text(stringResource(R.string.choose_activity_starttime))
@@ -541,8 +557,6 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
                 }
             }
         )
-
-        // Invisible overlay box to intercept clicks
         Box(
             modifier = Modifier
                 .matchParentSize()
@@ -586,7 +600,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
 }
 
 @Composable
-fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: String?) {
+fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
@@ -598,6 +612,7 @@ fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: Str
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         singleLine = true,
         isError = error != null,
+        enabled = enabled,
         supportingText = {
             if (error == null) {
                 Text(stringResource(id = R.string.max_participants_supporting_text))
@@ -609,7 +624,7 @@ fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: Str
 }
 
 @Composable
-fun AgeLimitField(value: String, onNewValue: (String) -> Unit, error: String?) {
+fun AgeLimitField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
@@ -621,6 +636,7 @@ fun AgeLimitField(value: String, onNewValue: (String) -> Unit, error: String?) {
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         singleLine = true,
         isError = error != null,
+        enabled = enabled,
         supportingText = {
             if (error == null) {
                 Text(stringResource(id = R.string.age_limit_supporting_text))
@@ -635,7 +651,8 @@ fun AgeLimitField(value: String, onNewValue: (String) -> Unit, error: String?) {
 fun ImageUploadSection(
     selectedImageUri: Uri?,
     onImageSelected: (Uri?) -> Unit,
-    error: String? = null
+    error: String? = null,
+    enabled: Boolean
 ) {
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -739,13 +756,20 @@ fun ImageUploadSection(
 }
 
 @Composable
-fun PublishButton(navController: NavController, viewModel: NewActivityViewModel) {
+fun PublishButton(navController: NavController, viewModel: NewActivityViewModel, isPublishing: Boolean) {
+    val buttonText = if (isPublishing) {
+        stringResource(id = R.string.publishing_activity)
+    } else {
+        stringResource(id = R.string.publish_activity)
+    }
+
     Button(
         onClick = { viewModel.onPublishClick(navController) },
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp),
+        enabled = !isPublishing
     ) {
-        Text(text = stringResource(id = R.string.publish_activity))
+        Text(text = buttonText)
     }
 }

@@ -46,6 +46,7 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
     val isLoading by viewModel.isLoading
     val errorMessage by viewModel.errorMessage
     val context = LocalContext.current
+    val isSaving by viewModel.isSaving
 
     LaunchedEffect(Unit) {
         viewModel.loadUserProfile()
@@ -80,7 +81,9 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
 
                             ImageUploadSection(
                                 imageUri = uiState.imageUri,
-                                onImageSelected = viewModel::onImageSelected
+                                onImageSelected = viewModel::onImageSelected,
+                                enabled = !isSaving
+
                             )
 
                             Spacer(modifier = Modifier.height(16.dp))
@@ -92,7 +95,8 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                                 value = uiState.firstname,
                                 onValueChange = { viewModel.onNameChange(it) },
                                 error = uiState.firstnameError?.let { stringResource(id = it) },
-                                supportingText = stringResource(id = R.string.profile_firstname_supporting_text)
+                                supportingText = stringResource(id = R.string.profile_firstname_supporting_text),
+                                enabled = !isSaving
                             )
                         }
 
@@ -102,7 +106,8 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                                 value = uiState.lastname,
                                 onValueChange = { viewModel.onLastnameChange(it) },
                                 error = uiState.lastnameError?.let { stringResource(id = it) },
-                                supportingText = stringResource(id = R.string.profile_lastname_supporting_text)
+                                supportingText = stringResource(id = R.string.profile_lastname_supporting_text),
+                                enabled = !isSaving
                             )
                         }
 
@@ -113,7 +118,8 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                                 onClick = {
                                     viewModel.onSaveProfileClick(navController, context)
                                 },
-                                enabled = uiState.isDirty
+                                enabled = uiState.isDirty && !isSaving,  // Deaktiver knapp når lagring pågår
+                                isSaving = isSaving  // Send isSaving til SaveButton
                             )
                         }
                     }
@@ -129,7 +135,8 @@ fun ProfileTextField(
     value: String,
     onValueChange: (String) -> Unit,
     error: String? = null,
-    supportingText: String? = null
+    supportingText: String? = null,
+    enabled: Boolean = true
 ) {
     OutlinedTextField(
         value = value,
@@ -140,6 +147,7 @@ fun ProfileTextField(
             .padding(vertical = 8.dp),
         singleLine = true,
         isError = error != null,
+        enabled = enabled,
         supportingText = {
             if (error == null) {
                 supportingText?.let { Text(text = it) }
@@ -154,21 +162,22 @@ fun ProfileTextField(
 fun ImageUploadSection(
     imageUri: Uri?,
     onImageSelected: (Uri?) -> Unit,
-    error: String? = null
+    error: String? = null,
+    enabled: Boolean = true
 ) {
     val context = LocalContext.current
 
-    // Determine the appropriate permission for the Android version
+    // Bestem riktig tillatelse for Android-versjonen
     val galleryPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         Manifest.permission.READ_MEDIA_IMAGES
     } else {
         Manifest.permission.READ_EXTERNAL_STORAGE
     }
 
-    // State to track if the permission dialog should be shown
+    // Tilstand for å spore om tillatelsesdialogen skal vises
     var showPermissionDialog by remember { mutableStateOf(false) }
 
-    // Launcher to open gallery
+    // Launcher for å åpne galleriet
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -177,15 +186,15 @@ fun ImageUploadSection(
         }
     }
 
-    // Launcher to request permission
+    // Launcher for å be om tillatelse
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            // Permission granted, open gallery
+            // Tillatelse gitt, åpne galleriet
             galleryLauncher.launch("image/*")
         } else {
-            // Permission denied, show a message or handle accordingly
+            // Tillatelse nektet, vis en melding eller håndter det
             Toast.makeText(
                 context,
                 R.string.galleriPermissionisrequired,
@@ -194,28 +203,28 @@ fun ImageUploadSection(
         }
     }
 
-    // Function to handle click events
+    // Funksjon for å håndtere klikkhendelser
     val handleImageClick = {
         when {
             ContextCompat.checkSelfPermission(
                 context,
                 galleryPermission
             ) == PackageManager.PERMISSION_GRANTED -> {
-                // Permission granted, open gallery
+                // Tillatelse gitt, åpne galleriet
                 galleryLauncher.launch("image/*")
             }
             shouldShowRequestPermissionRationale(context, galleryPermission) -> {
-                // Show rationale dialog
+                // Vis begrunnelsesdialog
                 showPermissionDialog = true
             }
             else -> {
-                // Directly request permission
+                // Be direkte om tillatelse
                 permissionLauncher.launch(galleryPermission)
             }
         }
     }
 
-    // Rationale Dialog
+    // Begrunnelsesdialog
     if (showPermissionDialog) {
         AlertDialog(
             onDismissRequest = { showPermissionDialog = false },
@@ -247,7 +256,9 @@ fun ImageUploadSection(
                 .fillMaxWidth()
                 .height(300.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .clickable { handleImageClick() }
+                .let {
+                    if (enabled) it.clickable { handleImageClick() } else it
+                }
                 .padding(vertical = 8.dp)
         ) {
             if (imageUri != null) {
@@ -279,14 +290,16 @@ fun ImageUploadSection(
             text = stringResource(id = R.string.change_profile_picture),
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
-            modifier = Modifier.clickable { handleImageClick() }
+            modifier = if (enabled) Modifier.clickable { handleImageClick() } else Modifier
         )
 
         if (imageUri != null) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onImageSelected(null) },
+                    .let {
+                        if (enabled) it.clickable { onImageSelected(null) } else it
+                    },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -296,14 +309,14 @@ fun ImageUploadSection(
                         color = Color.Gray,
                         fontSize = 14.sp
                     ),
-                    modifier = Modifier.clickable { onImageSelected(null) }
+                    modifier = if (enabled) Modifier.clickable { onImageSelected(null) } else Modifier
                 )
 
                 Icon(
                     imageVector = Icons.Filled.Delete,
                     contentDescription = stringResource(id = R.string.remove_image),
                     tint = Color.Gray,
-                    modifier = Modifier.clickable { onImageSelected(null) }
+                    modifier = if (enabled) Modifier.clickable { onImageSelected(null) } else Modifier
                 )
             }
         } else {
@@ -318,14 +331,14 @@ fun ImageUploadSection(
                         color = Color.Gray,
                         fontSize = 14.sp
                     ),
-                    modifier = Modifier.clickable { handleImageClick() }
+                    modifier = if (enabled) Modifier.clickable { handleImageClick() } else Modifier
                 )
 
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = stringResource(id = R.string.upload_new_picture),
                     tint = Color.Gray,
-                    modifier = Modifier.clickable { handleImageClick() }
+                    modifier = if (enabled) Modifier.clickable { handleImageClick() } else Modifier
                 )
             }
         }
@@ -337,6 +350,7 @@ fun ImageUploadSection(
     }
 }
 
+
 // Helper function to check if we should show rationale
 fun shouldShowRequestPermissionRationale(context: Context, permission: String): Boolean {
     return if (context is ActivityResultRegistryOwner) {
@@ -347,7 +361,13 @@ fun shouldShowRequestPermissionRationale(context: Context, permission: String): 
 }
 
 @Composable
-fun SaveButton(onClick: () -> Unit, enabled: Boolean) {
+fun SaveButton(onClick: () -> Unit, enabled: Boolean, isSaving: Boolean) {
+    val buttonText = if (isSaving) {
+        stringResource(id = R.string.saving_changes_button)
+    } else {
+        stringResource(id = R.string.save_changes_button)
+    }
+
     Button(
         onClick = onClick,
         modifier = Modifier
@@ -356,6 +376,6 @@ fun SaveButton(onClick: () -> Unit, enabled: Boolean) {
         colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
         enabled = enabled
     ) {
-        Text(text = stringResource(id = R.string.save_changes_button), color = Color.White)
+        Text(text = buttonText, color = Color.White)
     }
 }
