@@ -38,7 +38,6 @@ data class EditActivityState(
     val postalCodeSuggestions: List<String> = emptyList(),
     val locationConfirmed: Boolean = false,
     val addressConfirmed: Boolean = false,
-    // Feilmeldinger
     val titleError: String? = null,
     val descriptionError: String? = null,
     val categoryError: String? = null,
@@ -61,6 +60,10 @@ class EditActivityViewModel @Inject constructor(
     private val application: Application
 ) : ViewModel() {
 
+    var isSaving = mutableStateOf(false)
+        private set
+
+
     var uiState = mutableStateOf(EditActivityState())
         private set
 
@@ -71,7 +74,7 @@ class EditActivityViewModel @Inject constructor(
         loadMunicipalities()
     }
 
-    // Funksjon for å laste inn kommuner
+
     private fun loadMunicipalities() {
         viewModelScope.launch {
             locationService.fetchMunicipalities().collect { fetchedMunicipalities ->
@@ -81,7 +84,6 @@ class EditActivityViewModel @Inject constructor(
         }
     }
 
-    // Funksjon for å laste inn aktivitet
     fun loadActivity(category: String, activityId: String) {
         viewModelScope.launch {
             try {
@@ -324,44 +326,44 @@ class EditActivityViewModel @Inject constructor(
             hasError = true
         }
         if (uiState.value.postalCode.isBlank()) {
-            postalCodeError = application.getString(R.string.you_most_select_postalCode)//"Postnummer er påkrevd"
+            postalCodeError = application.getString(R.string.you_most_select_postalCode)
             hasError = true
         }
         if (uiState.value.maxParticipants.isBlank()) {
-            maxParticipantsError = application.getString(R.string.maxParticipants_must_be_filled_error)//"Du må fylle inn maks antall deltakere"
+            maxParticipantsError = application.getString(R.string.maxParticipants_must_be_filled_error)
             hasError = true
         } else if (uiState.value.maxParticipants.toIntOrNull() == null) {
-            maxParticipantsError = application.getString(R.string.most_ny_a_nummber)//"Må være et tall"
+            maxParticipantsError = application.getString(R.string.most_ny_a_nummber)
             hasError = true
         }
         if (uiState.value.ageLimit.isBlank()) {
-            ageLimitError = application.getString(R.string.ageLimit_must_be_filled_error)//"Du må fylle inn aldersgrense"
+            ageLimitError = application.getString(R.string.ageLimit_must_be_filled_error)
             hasError = true
         } else if (uiState.value.ageLimit.toIntOrNull() == null) {
-            ageLimitError = application.getString(R.string.most_ny_a_nummber)//"Må være et tall"
+            ageLimitError = application.getString(R.string.most_ny_a_nummber)
             hasError = true
         }
 
         val selectedDate = uiState.value.date
         if (selectedDate == null) {
-            dateError = application.getString(R.string.you_most_select_date)//"Du må velge dato"
+            dateError = application.getString(R.string.you_most_select_date)
             hasError = true
         } else {
             val currentTimeMillis = System.currentTimeMillis()
             val selectedDateMillis = selectedDate.toDate().time
             val diff = selectedDateMillis - currentTimeMillis
             if (diff < 24 * 60 * 60 * 1000) { // 48 hours in milliseconds
-                dateError = application.getString(R.string.most_by_24_h)//"Datoen må være minst 24 timer fra nå"
+                dateError = application.getString(R.string.most_by_24_h)
                 hasError = true
             }
         }
 
         if (uiState.value.startTime.isBlank()) {
-            startTimeError = application.getString(R.string.you_most_select_start_time)//"Du må velge starttidspunkt"
+            startTimeError = application.getString(R.string.you_most_select_start_time)
             hasError = true
         }
 
-        // Oppdater UI-state med feilmeldinger
+
         uiState.value = uiState.value.copy(
             titleError = titleError,
             descriptionError = descriptionError,
@@ -379,12 +381,13 @@ class EditActivityViewModel @Inject constructor(
             return
         }
 
+        isSaving.value = true
+
         val creatorId = accountService.currentUserId
         val timestampDate = uiState.value.date ?: Timestamp.now()
         val startTime = uiState.value.startTime
 
         if (uiState.value.imageUrl.isNotBlank() && uiState.value.selectedImageUri != null) {
-            // Sjekk om URI er en lokal content URI
             if (uiState.value.selectedImageUri.toString().startsWith("content://")) {
                 storageService.uploadImage(
                     imageUri = uiState.value.selectedImageUri!!,
@@ -404,6 +407,7 @@ class EditActivityViewModel @Inject constructor(
                     onError = { error ->
                         uiState.value = uiState.value.copy(errorMessage = R.string.error_image_upload_failed)
                         Log.e("EditActivityViewModel", "Error uploading image: ${error.message}")
+                        isSaving.value = false
                     }
                 )
             } else {
@@ -486,11 +490,13 @@ class EditActivityViewModel @Inject constructor(
                 )
 
                 activityService.updateActivity(oldCategoryValue, uiState.value.category, activityId, updatedActivity)
+                isSaving.value = false
 
                 navController.navigate("home")
             } catch (e: Exception) {
                 uiState.value = uiState.value.copy(errorMessage = R.string.error_creating_activity)
                 Log.e("EditActivityViewModel", "Error updating activity: ${e.message}")
+                isSaving.value = false
             }
         }
     }
