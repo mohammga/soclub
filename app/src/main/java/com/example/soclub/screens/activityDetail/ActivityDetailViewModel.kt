@@ -20,14 +20,22 @@ import com.example.soclub.utils.scheduleReminder
 import dagger.hilt.android.qualifiers.ApplicationContext
 import com.google.firebase.firestore.ListenerRegistration
 import java.util.Calendar
+import com.google.firebase.firestore.FirebaseFirestore
+import com.example.soclub.models.User
+import kotlinx.coroutines.tasks.await
+import com.example.soclub.models.UserInfo
 
 
 @HiltViewModel
 class ActivityDetailViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val accountService: AccountService,
-    private val activityDetailService: ActivityDetailService
+    private val activityDetailService: ActivityDetailService,
+    private val firestore: FirebaseFirestore
 ) : ViewModel() {
+
+    private val _publisherUser = MutableStateFlow<UserInfo?>(null)
+    val publisherUser: StateFlow<UserInfo?> = _publisherUser
 
     private val _activities = MutableLiveData<List<Activity>>()
     val activities: LiveData<List<Activity>> = _activities
@@ -97,6 +105,7 @@ class ActivityDetailViewModel @Inject constructor(
                 if (loadedActivity != null) {
                     _isCreator.value = loadedActivity.creatorId == userId
                     _canRegister.value = userInfo.age >= loadedActivity.ageGroup && !_isCreator.value
+                    fetchPublisherInfo(loadedActivity.creatorId)
                 }
 
                 loadRegisteredParticipants(activityId)
@@ -119,6 +128,25 @@ class ActivityDetailViewModel @Inject constructor(
             }
         }
     }
+
+    private fun fetchPublisherInfo(creatorId: String?) {
+        if (creatorId.isNullOrEmpty() || creatorId == "admin") {
+            _publisherUser.value = null
+        } else {
+            viewModelScope.launch {
+                try {
+                    val userDoc = firestore.collection("users").document(creatorId).get().await()
+                    val userInfo = userDoc.toObject(UserInfo::class.java)
+                    _publisherUser.value = userInfo
+                } catch (e: Exception) {
+                    Log.e("ActivityDetailViewModel", "Error fetching publisher info", e)
+                    _publisherUser.value = null
+                }
+            }
+        }
+    }
+
+
     private fun loadRegisteredParticipants(activityId: String) {
         viewModelScope.launch {
             val count = activityDetailService.getRegisteredParticipantsCount(activityId)
