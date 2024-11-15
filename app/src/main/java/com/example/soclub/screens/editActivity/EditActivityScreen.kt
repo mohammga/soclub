@@ -55,6 +55,7 @@ fun EditActivityScreen(
     category: String
 ) {
     val uiState by viewModel.uiState
+    val isSaving by viewModel.isSaving
     LocalContext.current
 
     val locationSuggestions by remember { derivedStateOf { uiState.locationSuggestions } }
@@ -75,7 +76,8 @@ fun EditActivityScreen(
             item {
                 ImageUploadSection(
                     selectedImageUri = uiState.selectedImageUri,
-                    onImageSelected = viewModel::onImageSelected
+                    onImageSelected = viewModel::onImageSelected,
+                    enabled = !isSaving
                 )
             }
 
@@ -83,7 +85,8 @@ fun EditActivityScreen(
                 TitleField(
                     value = uiState.title,
                     onNewValue = viewModel::onTitleChange,
-                    error = uiState.titleError
+                    error = uiState.titleError,
+                    enabled = !isSaving
                 )
             }
 
@@ -91,7 +94,8 @@ fun EditActivityScreen(
                 DescriptionField(
                     value = uiState.description,
                     onNewValue = viewModel::onDescriptionChange,
-                    error = uiState.descriptionError
+                    error = uiState.descriptionError,
+                    enabled = !isSaving
                 )
             }
 
@@ -99,7 +103,8 @@ fun EditActivityScreen(
                 CategoryField(
                     value = uiState.category,
                     onNewValue = viewModel::onCategoryChange,
-                    error = uiState.categoryError
+                    error = uiState.categoryError,
+                    enabled = !isSaving
                 )
             }
 
@@ -115,7 +120,8 @@ fun EditActivityScreen(
                         viewModel.onLocationSelected(suggestion)
                         locationConfirmed = true
                     },
-                    error = uiState.locationError
+                    error = uiState.locationError,
+                    enabled = !isSaving
                 )
             }
 
@@ -127,7 +133,8 @@ fun EditActivityScreen(
                         suggestions = addressSuggestions,
                         onSuggestionClick = { suggestion -> viewModel.onAddressSelected(suggestion) },
                         isEnabled = uiState.locationConfirmed,
-                        error = uiState.addressError
+                        error = uiState.addressError,
+                        enabled = !isSaving
                     )
                 }
             }
@@ -145,7 +152,8 @@ fun EditActivityScreen(
                 DateField(
                     value = uiState.date?.toDate()?.time ?: 0L,
                     onNewValue = viewModel::onDateChange,
-                    error = uiState.dateError
+                    error = uiState.dateError,
+                    enabled = !isSaving
                 )
             }
 
@@ -153,7 +161,8 @@ fun EditActivityScreen(
                 StartTimeField(
                     value = uiState.startTime,
                     onNewValue = viewModel::onStartTimeChange,
-                    error = uiState.startTimeError
+                    error = uiState.startTimeError,
+                    enabled = !isSaving
                 )
             }
 
@@ -161,7 +170,8 @@ fun EditActivityScreen(
                 MaxParticipantsField(
                     value = uiState.maxParticipants,
                     onNewValue = viewModel::onMaxParticipantsChange,
-                    error = uiState.maxParticipantsError
+                    error = uiState.maxParticipantsError,
+                    enabled = !isSaving
                 )
             }
 
@@ -169,21 +179,29 @@ fun EditActivityScreen(
                 AgeLimitField(
                     value = uiState.ageLimit,
                     onNewValue = viewModel::onAgeLimitChange,
-                    error = uiState.ageLimitError
+                    error = uiState.ageLimitError,
+                    enabled = !isSaving
                 )
             }
 
             item { Spacer(modifier = Modifier.height(16.dp)) }
 
             item {
-                Button(
+//                Button(
+//                    onClick = { viewModel.onSaveClick(navController, activityId, category) },
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .height(48.dp),
+//                ) {
+//                    Text(text = stringResource(R.string.save_changes_button))
+//                }
+
+
+                SaveChangesButton(
                     onClick = { viewModel.onSaveClick(navController, activityId, category) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                ) {
-                    Text(text = stringResource(R.string.save_changes_button))//"Lagre endringer"
-                }
+                    enabled = !isSaving,
+                    isSaving = isSaving
+                )
             }
 
             item { Spacer(modifier = Modifier.height(8.dp)) }
@@ -194,9 +212,10 @@ fun EditActivityScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
-                    colors = ButtonDefaults.outlinedButtonColors()
+                    colors = ButtonDefaults.outlinedButtonColors(),
+                    enabled = !isSaving
                 ) {
-                    Text(text = stringResource(R.string.delete_aktivity), color = Color.Red)//Slett aktivitet"
+                    Text(text = stringResource(R.string.delete_aktivity), color = Color.Red)
                 }
             }
         }
@@ -236,7 +255,7 @@ fun DeleteConfirmationDialog(
 }
 
 @Composable
-fun TitleField(value: String, onNewValue: (String) -> Unit, error: String?) {
+fun TitleField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
@@ -258,7 +277,7 @@ fun TitleField(value: String, onNewValue: (String) -> Unit, error: String?) {
 }
 
 @Composable
-fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?) {
+fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
@@ -282,7 +301,7 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?) {
+fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     var expanded by remember { mutableStateOf(false) }
     val categories = listOf("Festivaler", "Klatring", "Mat", "Reise", "Trening")
 
@@ -333,7 +352,8 @@ fun LocationField(
     onNewValue: (String) -> Unit,
     suggestions: List<String>,
     onSuggestionClick: (String) -> Unit,
-    error: String?
+    error: String?,
+    enabled: Boolean
 ) {
     var expanded by remember { mutableStateOf(false) }
     var textFieldValue by remember { mutableStateOf(TextFieldValue(text = initialValue)) }
@@ -401,7 +421,8 @@ fun AddressField(
     suggestions: List<String>,
     onSuggestionClick: (String) -> Unit,
     isEnabled: Boolean,
-    error: String?
+    error: String?,
+    enabled: Boolean
 ) {
     var expanded by remember { mutableStateOf(false) }
     var textFieldValue by remember { mutableStateOf(TextFieldValue(text = initialValue)) }
@@ -490,7 +511,7 @@ fun PostalCodeField(value: String, error: String?) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
+fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enabled: Boolean) {
     val context = LocalContext.current
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = value)
     val isDatePickerVisible = remember { mutableStateOf(false) }
@@ -570,7 +591,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?) {
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) {
+fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     val isTimePickerVisible = remember { mutableStateOf(false) }
     val timePickerState = rememberTimePickerState()
 
@@ -639,7 +660,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?) 
 }
 
 @Composable
-fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: String?) {
+fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
@@ -662,7 +683,7 @@ fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: Str
 }
 
 @Composable
-fun AgeLimitField(value: String, onNewValue: (String) -> Unit, error: String?) {
+fun AgeLimitField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
         value = value,
         onValueChange = { onNewValue(it) },
@@ -688,7 +709,8 @@ fun AgeLimitField(value: String, onNewValue: (String) -> Unit, error: String?) {
 fun ImageUploadSection(
     selectedImageUri: Uri?,
     onImageSelected: (Uri?) -> Unit,
-    error: String? = null
+    error: String? = null,
+    enabled: Boolean
 ) {
     val context = LocalContext.current
 
@@ -865,7 +887,7 @@ fun ImageUploadSection(
     }
 }
 
-// Helper function to check if rationale should be shown
+
 @SuppressLint("RestrictedApi")
 fun shouldShowRequestPermissionRationale(context: Context, permission: String): Boolean {
     return if (context is ComponentActivity) {
@@ -874,4 +896,29 @@ fun shouldShowRequestPermissionRationale(context: Context, permission: String): 
         false
     }
 }
+
+
+@Composable
+fun SaveChangesButton(
+    onClick: () -> Unit,
+    enabled: Boolean,
+    isSaving: Boolean
+) {
+    val buttonText = if (isSaving) {
+        stringResource(R.string.saving_changes_button)  // "Endringene lagres..."
+    } else {
+        stringResource(R.string.save_changes_button)    // "Lagre endringer"
+    }
+
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp),
+        enabled = enabled
+    ) {
+        Text(text = buttonText)
+    }
+}
+
 

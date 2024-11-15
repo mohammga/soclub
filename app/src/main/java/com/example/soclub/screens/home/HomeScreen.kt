@@ -206,21 +206,18 @@ fun CategoryActivitiesPager(
     ) { page ->
         val selectedCategory = categories[page]
 
-        // Determine if "Nærme Aktiviteter" is selected and if location permission is granted
         val isNearestActivitiesSelected = selectedCategory == "Nærme Aktiviteter" && hasLocationPermission
 
-        // Fetch nearest activities when GPS is enabled and "Nærme Aktiviteter" is selected
         LaunchedEffect(isNearestActivitiesSelected) {
             if (isNearestActivitiesSelected) {
                 viewModel.getNearestActivities()
             }
         }
 
-        // Choose activities to display based on selected category and GPS access
         val activitiesToShow = if (isNearestActivitiesSelected) {
-            activities // Use nearest activities if GPS access is granted
+            activities
         } else {
-            groupedActivities[selectedCategory] ?: emptyList() // Otherwise, use grouped activities
+            groupedActivities[selectedCategory] ?: emptyList()
         }
 
         Column(modifier = Modifier.fillMaxSize()) {
@@ -234,27 +231,26 @@ fun CategoryActivitiesPager(
                 ) {
                     CircularProgressIndicator()
                 }
+            } else if (activitiesToShow.isNotEmpty()) {
+                // Display the list of activities
+                ActivityList(
+                    activities = activitiesToShow,
+                    selectedCategory = selectedCategory,
+                    navController = navController
+                )
             } else {
-                if (activitiesToShow.isNotEmpty()) {
-                    // Display the list of activities
-                    ActivityList(
-                        activities = activitiesToShow,
-                        selectedCategory = selectedCategory,
-                        navController = navController
-                    )
-                } else {
-                    // Display a message if no activities are available
-                    Text(
-                        text = "Ingen aktiviteter tilgjengelig for $selectedCategory.",
-                        modifier = Modifier.padding(16.dp),
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                // Display a message if no activities are available
+                Text(
+                    text = "Ingen aktiviteter tilgjengelig for $selectedCategory.",
+                    modifier = Modifier.padding(16.dp),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }
 }
+
 
 @Composable
 fun CitySelectionItem(city: String, isSelected: Boolean, onCitySelected: (Boolean) -> Unit) {

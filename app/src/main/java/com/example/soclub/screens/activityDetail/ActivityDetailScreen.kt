@@ -48,9 +48,13 @@ import android.widget.Toast
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import com.google.firebase.Timestamp
 import java.util.Locale
+import com.example.soclub.models.UserInfo
+import androidx.compose.foundation.shape.CircleShape
+
 
 fun openGoogleMaps(context: Context, gmmIntentUri: String) {
     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(gmmIntentUri))
@@ -76,6 +80,7 @@ fun ActivityDetailScreen(
     val context = LocalContext.current
     val isCreator = viewModel.isCreator.collectAsState().value
     val isProcessingRegistration = viewModel.isProcessingRegistration.collectAsState().value
+    val publisherUser = viewModel.publisherUser.collectAsState().value
 
 
     LaunchedEffect(activityId, category) {
@@ -114,6 +119,7 @@ fun ActivityDetailScreen(
                                 canRegister = canRegister,
                                 isProcessingRegistration = isProcessingRegistration,
                                 ageGroup = activity?.ageGroup ?: 0,
+                                publisherUser = publisherUser,
                                 onRegisterClick = {
                                     if (activityId != null && category != null) {
                                         viewModel.updateRegistrationForActivity(activityId, true)
@@ -162,6 +168,7 @@ fun ActivityDetailsContent(
     isCreator: Boolean,
     canRegister: Boolean,
     ageGroup: Int,
+    publisherUser: UserInfo?,
     isProcessingRegistration: Boolean,
     onRegisterClick: () -> Unit,
     onUnregisterClick: () -> Unit
@@ -172,14 +179,20 @@ fun ActivityDetailsContent(
     Column(modifier = Modifier.padding(16.dp)) {
         ActivityTitle(activity?.title ?: stringResource(R.string.activity_no_title))
 
+        PublisherInfo(publisherUser, activity?.createdAt)
+
         Spacer(modifier = Modifier.height(16.dp))
 
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.Start
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier
+                .weight(1f)
+                .padding(end = 8.dp)
+            ) {
                 InfoRow(
                     icon = Icons.Default.Event,
                     mainText = activity?.date?.let { formatDateWithoutTime(it) } ?: "Ukjent dato",
@@ -200,7 +213,8 @@ fun ActivityDetailsContent(
                     subText = "Deltakere"
                 )
             }
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(1f)
+                .padding(end = 8.dp)) {
                 InfoRow(
                     icon = Icons.Default.AccessTime,
                     mainText = activity?.startTime ?: "Ukjent starttid",
@@ -227,7 +241,7 @@ fun ActivityDetailsContent(
         ActivityGPSImage(context = context, destinationLocation = fullLocation)
 
         Text(
-            text = "Siste endret: ${activity?.lastUpdated?.let { formatDate(it) } ?: "Ukjent"}",
+            text = "Sist endret: ${activity?.lastUpdated?.let { formatDate(it) } ?: "Ukjent"}",
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             fontSize = 12.sp,
             modifier = Modifier.padding(vertical = 8.dp)
@@ -259,6 +273,79 @@ fun formatDateWithoutTime(date: Timestamp): String {
     return sdf.format(date.toDate())
 }
 
+
+@Composable
+fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
+    val context = LocalContext.current
+    val formattedDate2 = remember(createdAt) {
+        createdAt?.let { formatDate(it) } ?: "Ukjent dato"
+    }
+
+    if (publisherUser != null) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(vertical = 8.dp)
+        ) {
+            // Circular image
+            val painter = if (publisherUser.imageUrl.isNotEmpty()) {
+                rememberAsyncImagePainter(publisherUser.imageUrl)
+            } else {
+                painterResource(id = R.drawable.user)  // Default image
+            }
+
+            Image(
+                painter = painter,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(CircleShape)
+                    .background(Color.Gray),
+                contentScale = ContentScale.Crop
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Column {
+                val fullName = "${publisherUser.firstname} ${publisherUser.lastname}"
+                Text(
+                    text = fullName,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = "Forfatter",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+
+                Text(
+                    text = "Publisert $formattedDate2",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Button(
+                onClick = {
+                    val intent = Intent(Intent.ACTION_SENDTO).apply {
+                        data = Uri.parse("mailto:${publisherUser.email}")
+                    }
+                    if (intent.resolveActivity(context.packageManager) != null) {
+                        context.startActivity(intent)
+                    } else {
+                        Toast.makeText(context, "Ingen e-postapp funnet", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Text(text = "Kontakt", color = Color.White)
+            }
+        }
+    }
+}
 
 
 @Composable
@@ -365,7 +452,7 @@ fun ActivityGPSImage(context: Context, destinationLocation: String) {
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             ActivityCompat.requestPermissions(
-                context as android.app.Activity, // Bruker fullt kvalifisert navn
+                context as android.app.Activity,
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
                 lc
             )
@@ -373,7 +460,6 @@ fun ActivityGPSImage(context: Context, destinationLocation: String) {
             return@LaunchedEffect
         }
 
-        // Få siste plassering hvis tillatelse er gitt
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
                 userLocation.value = location
@@ -438,9 +524,9 @@ fun ActivityRegisterButton(
     val buttonText = when {
         isProcessingRegistration -> {
             if (isRegistered) {
-                stringResource(R.string.unregistering_you) // "Melder deg ut..."
+                stringResource(R.string.unregistering_you)
             } else {
-                stringResource(R.string.registering_you) // "Melder deg..."
+                stringResource(R.string.registering_you)
             }
         }
         isFull -> stringResource(R.string.no_places_left)
@@ -481,14 +567,19 @@ fun ActivityRegisterButton(
 
 @Composable
 fun InfoRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     mainText: String,
     subText: String
 ) {
+    val backgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+
     Row(
         modifier = Modifier
-            .padding(vertical = 8.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .padding(vertical = 4.dp) // Juster etter behov
+            .clip(RoundedCornerShape(8.dp))
+            .background(backgroundColor)
+            .padding(horizontal = 8.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -496,7 +587,7 @@ fun InfoRow(
                 .padding(end = 8.dp)
                 .size(40.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                .background(backgroundColor) // Bruker samme bakgrunnsfarge
                 .padding(8.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -523,8 +614,9 @@ fun InfoRow(
     }
 }
 
+
 @Composable
-fun ElevatedCardExample(icon: androidx.compose.ui.graphics.vector.ImageVector) {
+fun ElevatedCardExample(icon: ImageVector) {
     ElevatedCard(
         modifier = Modifier.size(50.dp),
         colors = CardDefaults.elevatedCardColors(containerColor = Color.LightGray)
@@ -542,4 +634,3 @@ fun ElevatedCardExample(icon: androidx.compose.ui.graphics.vector.ImageVector) {
         }
     }
 }
-
