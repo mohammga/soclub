@@ -48,6 +48,7 @@ import android.widget.Toast
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Groups
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import com.google.firebase.Timestamp
 import java.util.Locale
@@ -177,9 +178,13 @@ fun ActivityDetailsContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.Start
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier
+                .weight(1f)
+                .padding(end = 8.dp)
+            ) {
                 InfoRow(
                     icon = Icons.Default.Event,
                     mainText = activity?.date?.let { formatDateWithoutTime(it) } ?: "Ukjent dato",
@@ -200,7 +205,8 @@ fun ActivityDetailsContent(
                     subText = "Deltakere"
                 )
             }
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(1f)
+                .padding(end = 8.dp)) {
                 InfoRow(
                     icon = Icons.Default.AccessTime,
                     mainText = activity?.startTime ?: "Ukjent starttid",
@@ -227,7 +233,7 @@ fun ActivityDetailsContent(
         ActivityGPSImage(context = context, destinationLocation = fullLocation)
 
         Text(
-            text = "Siste endret: ${activity?.lastUpdated?.let { formatDate(it) } ?: "Ukjent"}",
+            text = "Sist endret: ${activity?.lastUpdated?.let { formatDate(it) } ?: "Ukjent"}",
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             fontSize = 12.sp,
             modifier = Modifier.padding(vertical = 8.dp)
@@ -481,22 +487,29 @@ fun ActivityRegisterButton(
 
 @Composable
 fun InfoRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     mainText: String,
     subText: String
 ) {
+    val backgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+
     Row(
         modifier = Modifier
-            .padding(vertical = 8.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .padding(vertical = 4.dp) // Juster etter behov
+            .clip(RoundedCornerShape(8.dp))
+            .background(backgroundColor)
+            .padding(horizontal = 8.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Hvis du ønsker at ikonet skal ha en egen bakgrunn, kan du beholde denne delen.
+        // Ellers kan du fjerne bakgrunnsfargen her for å unngå dobbel bakgrunn.
         Box(
             modifier = Modifier
                 .padding(end = 8.dp)
                 .size(40.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                .background(backgroundColor) // Bruker samme bakgrunnsfarge
                 .padding(8.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -522,6 +535,7 @@ fun InfoRow(
         }
     }
 }
+
 
 @Composable
 fun ElevatedCardExample(icon: androidx.compose.ui.graphics.vector.ImageVector) {
