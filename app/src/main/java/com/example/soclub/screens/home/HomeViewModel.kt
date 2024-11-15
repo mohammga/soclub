@@ -23,6 +23,7 @@ import java.io.IOException
 import java.util.*
 import javax.inject.Inject
 import kotlin.coroutines.resume
+import kotlinx.coroutines.delay
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -208,11 +209,14 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
+
     @SuppressLint("MissingPermission")
     fun getNearestActivities() {
         if (hasLoadedNearestActivities) return
 
         _isLoading.value = true
+        val startTime = System.currentTimeMillis()
 
         viewModelScope.launch {
             try {
@@ -228,7 +232,7 @@ class HomeViewModel @Inject constructor(
                         }
 
                         val activitiesWithDistance = nonExpiredActivities.mapNotNull { activity ->
-                            val location = getLocationFromAddress(activity.location) // Call inside coroutine
+                            val location = getLocationFromAddress(activity.location)
                             location?.let {
                                 val distance = userLocation.distanceTo(location)
                                 activity to distance
@@ -238,6 +242,16 @@ class HomeViewModel @Inject constructor(
                         val nearestActivities = activitiesWithDistance.sortedBy { it.second }.take(10).map { it.first }
                         _activities.postValue(nearestActivities)
                         _hasLoadedActivities.postValue(true)
+
+                        // Ensure the loading indicator is displayed for at least 2 seconds
+                        val elapsedTime = System.currentTimeMillis() - startTime
+                        val delayTime = 2000L - elapsedTime
+                        if (delayTime > 0) {
+                            delay(delayTime)
+                        }
+
+                        // Set isLoading to false after data is loaded
+                        _isLoading.postValue(false)
                     }
                 }
 
@@ -245,11 +259,11 @@ class HomeViewModel @Inject constructor(
             } catch (e: Exception) {
                 _activities.postValue(emptyList())
                 Log.e("HomeViewModel", "Error fetching nearest activities: ${e.message}")
-            } finally {
                 _isLoading.postValue(false)
             }
         }
     }
+
 
     private suspend fun getLocationFromAddress(address: String): Location? {
         val geocoder = Geocoder(getApplication<Application>().applicationContext, Locale.getDefault())
