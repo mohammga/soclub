@@ -197,8 +197,9 @@ fun ActivityDetailsContent(
             ) {
                 InfoRow(
                     icon = Icons.Default.Event,
-                    mainText = activity?.date?.let { formatDateWithoutTime(it) } ?: "Ukjent dato",
-                    subText = "Dato"
+                    mainText = activity?.date?.let { formatDateWithoutTime(it) } ?: stringResource(R.string.unknown_date),
+                    //subText = "Dato"
+                    subText = stringResource(R.string.date_label)
                 )
                 InfoRow(
                     icon = Icons.Default.People,
@@ -212,20 +213,21 @@ fun ActivityDetailsContent(
                             activity?.maxParticipants ?: 0
                         )
                     },
-                    subText = "Deltakere"
+                    //subText = "Deltakere"
+                    subText = stringResource(R.string.participants_label)
                 )
             }
             Column(modifier = Modifier.weight(1f)
                 .padding(end = 8.dp)) {
                 InfoRow(
                     icon = Icons.Default.AccessTime,
-                    mainText = activity?.startTime ?: "Ukjent starttid",
-                    subText = "Starttid"
+                    mainText = activity?.startTime ?:  stringResource(R.string.unknown_start_time),
+                    subText = stringResource(R.string.start_time_label)
                 )
                 InfoRow(
                     icon = Icons.Default.Groups,
-                    mainText = "${activity?.ageGroup ?: "Alle"}+",
-                    subText = "Aldersgruppe"
+                    mainText = "${activity?.ageGroup ?: stringResource(R.string.alle_age_group)}+",
+                    subText = stringResource(R.string.agelimt_label)
                 )
             }
         }
@@ -243,7 +245,8 @@ fun ActivityDetailsContent(
         ActivityGPSImage(context = context, destinationLocation = fullLocation)
 
         Text(
-            text = "Sist endret: ${activity?.lastUpdated?.let { formatDate(it) } ?: "Ukjent"}",
+           // text = "Sist endret: ${activity?.lastUpdated?.let { formatDate(it) } ?: "Ukjent"}",
+            stringResource(R.string.last_updated, activity?.lastUpdated?.let { formatDate(it) } ?: stringResource(R.string.unknown)),
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             fontSize = 12.sp,
             modifier = Modifier.padding(vertical = 8.dp)
@@ -280,7 +283,7 @@ fun formatDateWithoutTime(date: Timestamp): String {
 fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
     val context = LocalContext.current
     val formattedDate2 = remember(createdAt) {
-        createdAt?.let { formatDate(it) } ?: "Ukjent dato"
+        createdAt?.let { formatDate(it) } ?: context.getString(R.string.unknown_date) //"Ukjent dato"
     }
 
     if (publisherUser != null) {
@@ -324,13 +327,14 @@ fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
                         )
 
                         Text(
-                            text = "Forfatter",
+                            text = stringResource(R.string.author),//Forfatter
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
 
                         Text(
-                            text = "Publisert $formattedDate2",
+                            //text = "Publisert $formattedDate2",
+                            text = stringResource(R.string.published, formattedDate2),
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
@@ -439,7 +443,7 @@ fun ActivityDescription(description: String) {
     }
 
     Text(
-        text = "Beskrivelse",
+        text = stringResource(R.string.description_label),//Beskrivelse"
         fontSize = 24.sp,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(top = 16.dp)
