@@ -179,6 +179,8 @@ fun ActivityDetailsContent(
     Column(modifier = Modifier.padding(16.dp)) {
         ActivityTitle(activity?.title ?: stringResource(R.string.activity_no_title))
 
+        Spacer(modifier = Modifier.height(16.dp))
+
         PublisherInfo(publisherUser, activity?.createdAt)
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -282,70 +284,90 @@ fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
     }
 
     if (publisherUser != null) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(vertical = 8.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Circular image
-            val painter = if (publisherUser.imageUrl.isNotEmpty()) {
-                rememberAsyncImagePainter(publisherUser.imageUrl)
-            } else {
-                painterResource(id = R.drawable.user)  // Default image
-            }
-
-            Image(
-                painter = painter,
-                contentDescription = null,
+            // Informasjonsboks
+            Column(
                 modifier = Modifier
-                    .size(50.dp)
-                    .clip(CircleShape)
-                    .background(Color.Gray),
-                contentScale = ContentScale.Crop
-            )
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(8.dp))
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Circular image
+                    val painter = if (publisherUser.imageUrl.isNotEmpty()) {
+                        rememberAsyncImagePainter(publisherUser.imageUrl)
+                    } else {
+                        painterResource(id = R.drawable.user) // Default image
+                    }
 
-            Spacer(modifier = Modifier.width(8.dp))
+                    Image(
+                        painter = painter,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clip(CircleShape)
+                            .background(Color.Gray),
+                        contentScale = ContentScale.Crop
+                    )
 
-            Column {
-                val fullName = "${publisherUser.firstname} ${publisherUser.lastname}"
-                Text(
-                    text = fullName,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                    Spacer(modifier = Modifier.width(8.dp))
 
-                Text(
-                    text = "Forfatter",
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
+                    Column {
+                        val fullName = "${publisherUser.firstname} ${publisherUser.lastname}"
+                        Text(
+                            text = fullName,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
 
-                Text(
-                    text = "Publisert $formattedDate2",
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
+                        Text(
+                            text = "Forfatter",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+
+                        Text(
+                            text = "Publisert $formattedDate2",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(16.dp))
 
+            // Knappboks
             Button(
                 onClick = {
-                    val intent = Intent(Intent.ACTION_SENDTO).apply {
-                        data = Uri.parse("mailto:${publisherUser.email}")
-                    }
-                    if (intent.resolveActivity(context.packageManager) != null) {
-                        context.startActivity(intent)
+                    val email = publisherUser.email
+                    if (email.isNotEmpty()) {
+                        val intent = Intent(Intent.ACTION_SENDTO).apply {
+                            data = Uri.parse("mailto:$email")
+                        }
+                        if (intent.resolveActivity(context.packageManager) != null) {
+                            context.startActivity(intent)
+                        } else {
+                            Toast.makeText(context, "Ingen e-postapp funnet", Toast.LENGTH_SHORT).show()
+                        }
                     } else {
-                        Toast.makeText(context, "Ingen e-postapp funnet", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "E-postadresse mangler", Toast.LENGTH_SHORT).show()
                     }
                 },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text(text = "Kontakt", color = Color.White)
+                Text(text = "Kontakt")
             }
         }
     }
 }
+
 
 
 @Composable
@@ -537,10 +559,10 @@ fun ActivityRegisterButton(
     }
 
     val buttonColor = when {
-        isFull -> Color.Gray
-        isCreator || !canRegister -> Color.Gray
-        isRegistered -> Color.Red
-        else -> Color.Black
+        isFull -> MaterialTheme.colorScheme.secondary
+        isCreator || !canRegister -> MaterialTheme.colorScheme.secondary
+        isRegistered -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.primary
     }
 
     val buttonEnabled = !isCreator && canRegister && !isFull && !isProcessingRegistration
@@ -560,7 +582,7 @@ fun ActivityRegisterButton(
             .height(48.dp),
         enabled = buttonEnabled
     ) {
-        Text(text = buttonText, color = Color.White)
+        Text(text = buttonText)
     }
 }
 
@@ -585,9 +607,8 @@ fun InfoRow(
         Box(
             modifier = Modifier
                 .padding(end = 8.dp)
-                .size(40.dp)
+                .size(48.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(backgroundColor) // Bruker samme bakgrunnsfarge
                 .padding(8.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -595,7 +616,7 @@ fun InfoRow(
                 imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(32.dp)
             )
         }
         Column {

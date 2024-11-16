@@ -5,10 +5,8 @@ import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.StringRes
-import androidx.compose.material.Text
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController

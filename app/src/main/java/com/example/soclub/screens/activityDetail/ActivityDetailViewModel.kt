@@ -21,7 +21,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import com.google.firebase.firestore.ListenerRegistration
 import java.util.Calendar
 import com.google.firebase.firestore.FirebaseFirestore
-import com.example.soclub.models.User
 import kotlinx.coroutines.tasks.await
 import com.example.soclub.models.UserInfo
 

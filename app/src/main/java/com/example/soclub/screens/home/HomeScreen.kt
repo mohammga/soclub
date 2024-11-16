@@ -39,12 +39,9 @@ import com.example.soclub.models.Activity
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import java.text.SimpleDateFormat
-import java.util.*
 
 
 
