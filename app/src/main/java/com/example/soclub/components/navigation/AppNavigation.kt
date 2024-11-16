@@ -1,14 +1,10 @@
 package com.example.soclub.components.navigation
 
 import android.util.Log
-import com.example.soclub.screens.ads.AdsScreen
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -22,33 +18,39 @@ import com.example.soclub.components.navigation.navBars.BottomNavBar
 import com.example.soclub.components.navigation.navBars.HomeTopBar
 import com.example.soclub.components.navigation.navBars.TopBar
 import com.example.soclub.components.navigation.navBars.getCurrentScreen
-import com.example.soclub.screens.newActivity.NewActivityScreen
 import com.example.soclub.screens.activityDetail.ActivityDetailScreen
+import com.example.soclub.screens.ads.AdsScreen
 import com.example.soclub.screens.changePassword.ChangePasswordScreen
 import com.example.soclub.screens.editActivity.EditActivityScreen
 import com.example.soclub.screens.editPermission.EditPermissionScreen
 import com.example.soclub.screens.editProfile.EditProfileScreen
 import com.example.soclub.screens.entries.EntriesScreen
 import com.example.soclub.screens.home.HomeScreen
+import com.example.soclub.screens.newActivity.NewActivityScreen
 import com.example.soclub.screens.notifications.NotificationsScreen
 import com.example.soclub.screens.notifications.NotificationsViewModel
 import com.example.soclub.screens.profile.ProfileScreen
 import com.example.soclub.screens.resetPassword.ResetPasswordScreen
 import com.example.soclub.screens.signin.SigninScreen
-import com.example.soclub.screens.start.StartScreen
 import com.example.soclub.screens.signup.SignupScreen
+import com.example.soclub.screens.start.StartScreen
 import com.example.soclub.screens.termsPrivacy.TermsPrivacyScreen
 import com.example.soclub.service.impl.AccountServiceImpl
 import com.example.soclub.service.module.FirebaseModule
+import com.example.soclub.ui.theme.ThemeMode
 
 @Composable
-fun AppNavigation(navController: NavHostController, notificationsViewModel: NotificationsViewModel = hiltViewModel()) {
+fun AppNavigation(
+    navController: NavHostController,
+    themeMode: ThemeMode,
+    onThemeChange: (ThemeMode) -> Unit,
+    notificationsViewModel: NotificationsViewModel = hiltViewModel()
+) {
     val currentScreen = getCurrentScreen(navController)
 
     val notificationCount by notificationsViewModel.notificationCount.collectAsState()
     Log.d("AppNavigation", "Notification count: $notificationCount")
 
-        // Definer profil- og detaljerelaterte skjermer
     val profileScreens = setOf(
         AppScreens.PROFILE.name,
         AppScreens.EDIT_PROFILE.name,
@@ -58,7 +60,6 @@ fun AppNavigation(navController: NavHostController, notificationsViewModel: Noti
         "editActivity"
     )
 
-    // Tolk `ActivityDetailScreen` som `HOME`
     val adjustedCurrentScreen = when {
         currentScreen.startsWith("detail") -> AppScreens.HOME.name
         currentScreen in profileScreens || currentScreen.startsWith("editActivity") -> AppScreens.PROFILE.name
@@ -78,7 +79,6 @@ fun AppNavigation(navController: NavHostController, notificationsViewModel: Noti
                 currentScreen == AppScreens.SIGNUP.name -> {
                     TopBar(navController, title = "", showBackButton = true)
                 }
-
                 currentScreen == AppScreens.TERMS_PRIVACY.name -> {
                     TopBar(navController, title = stringResource(R.string.terms), showBackButton = true)
                 }
@@ -113,7 +113,7 @@ fun AppNavigation(navController: NavHostController, notificationsViewModel: Noti
                     TopBar(navController, title = stringResource(R.string.editpermission), showBackButton = true)
                 }
                 currentScreen == AppScreens.ENTRIES.name -> {
-                    TopBar(navController, title = stringResource(R.string.myEntries) , showBackButton = false)
+                    TopBar(navController, title = stringResource(R.string.myEntries), showBackButton = false)
                 }
                 currentScreen.startsWith("editActivity") -> {
                     TopBar(navController, title = stringResource(R.string.editAktvititi), showBackButton = true)
@@ -168,7 +168,12 @@ fun AppNavigation(navController: NavHostController, notificationsViewModel: Noti
             composable(AppScreens.PROFILE.name) { ProfileScreen(navController) }
             composable(AppScreens.CHANGE_PASSWORD.name) { ChangePasswordScreen() }
             composable(AppScreens.EDIT_PROFILE.name) { EditProfileScreen(navController) }
-            composable(AppScreens.EDIT_PERMISSION.name) { EditPermissionScreen() }
+            composable(AppScreens.EDIT_PERMISSION.name) {
+                EditPermissionScreen(
+                    themeMode = themeMode,
+                    onThemeChange = onThemeChange,
+                )
+            }
             composable(AppScreens.NOTIFICATIONS.name) { NotificationsScreen() }
             composable(AppScreens.NEW_ACTIVITY.name) { NewActivityScreen(navController) }
             composable(AppScreens.ADS.name) { AdsScreen(navController) }
@@ -193,4 +198,3 @@ fun AppNavigation(navController: NavHostController, notificationsViewModel: Noti
         }
     }
 }
-
