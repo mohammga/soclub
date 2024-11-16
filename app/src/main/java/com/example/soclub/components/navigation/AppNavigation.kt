@@ -89,11 +89,7 @@ fun AppNavigation(navController: NavHostController, notificationsViewModel: Noti
                     TopBar(navController, title = "", showBackButton = true)
                 }
                 currentScreen == AppScreens.HOME.name -> {
-
-                    HomeTopBar(title = "SoClub")
-
-                    //HomeTopBar(navController, title = stringResource(R.string.appname))
-
+                    HomeTopBar(title = stringResource(R.string.appname))
                 }
                 currentScreen == AppScreens.PROFILE.name -> {
                     TopBar(navController, title = stringResource(R.string.profile), showBackButton = false)
