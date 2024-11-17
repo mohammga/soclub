@@ -1,4 +1,416 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Generelle strenger -->
+    <string name="location_permission_not_granted">Location Permission not granted</string>
+
+    <string name="home">Forside</string>
+    <string name="notifications">Varslinger</string>
+    <string name="new_activity">Ny annonse</string>
+    <string name="entries">Påmeldinger</string>
+    <string name="profile">Profil</string>
+
+    <!--StartScreen -->
     <string name="app_name">SoClub</string>
+    <string name="welcome_message">Meld deg på for å få tilgang til det beste av SoClub.
+    </string>
+    <string name="signing_in">Logger inn...</string>
+    <string name="or_text">eller</string>
+    <string name="sign_in_button">Logg inn</string>
+    <string name="continue_with_email_button">Fortsett med e-postadresse</string>
+    <string name="registering">Registrerer...</string>
+    <string name="logging_in">Logger inn...</string>
+    <string name="sending_email">Sender e-post...</string>
+    <string name="logging_out_button">Logger ut...</string>
+
+    <!--SigninScreen-->
+    <string name="welcome_back">Velkommen tilbake.</string>
+    <string name="reset">Har du glemt passordet?</string>
+    <string name="hide_password">Skjul passord</string>
+    <string name="show_password">Vis passord</string>
+    <string name="email">E-postadresse</string>
+    <string name="password">Passord</string>
+
+    <!--SigninViewModel-->
+    <string name="error_please_insert_valid_email">Vennligst skriv inn en gyldig e-post</string>
+    <string name="error_invalid_password_details">Passordet må ha minst seks tegn, inkludere en liten bokstav, en stor bokstav og ett siffer.</string>
+    <string name="signing_in_as">Logger inn som %1$s...</string>
+    <string name="error_could_not_log_in">Kunne ikke logge inn</string>
+    <string name="error_enter_reset_email">Vennligst skriv inn e-postadressen du vil tilbakestille</string>
+    <string name="error_invalid_email_address">Vennligst skriv inn en gyldig e-postadresse</string>
+    <string name="password_reset_email_sent">Passordtilbakestillingsmail sendt, vennligst sjekk innboksen din</string>
+    <string name="error_could_not_send_reset_email">Kunne ikke sende tilbakestillingsmail</string>
+
+    <!--SignupScreen-->
+    <string name="join_us">Bli SoClub-medlem.</string>
+    <string name="placeholder_firstname">Fornavn</string>
+    <string name="placeholder_lastname">Etternavn</string>
+    <string name="placeholder_email">E-postadresse</string>
+    <string name="placeholder_password">Passord</string>
+    <string name="terms_and_conditions">Ved å fortsette, godtar du Vilkår for bruk og retningslinjer for personvern.</string>
+    <string name="already_have_account">Har du allerede en konto?</string>
+    <string name="sign_in">Logg inn</string>
+    <string name="register">Registrer deg</string>
+
+    <!--SignupViewModel-->
+    <string name="error_email_required">E-post er påkrevd</string>
+    <string name="error_password_required">Passord er påkrevd</string>
+    <string name="error_new_password_required">Det nye passordet er påkrevd</string>
+    <string name="error_old_password_required">Det gamle passordet er påkrevd</string>
+    <string name="error_confirm_password_required">Det bekreftede passordet er påkrevd</string>
+    <string name="placeholder_age">Alder</string>
+
+    <string name="error_invalid_email">Ugyldig e-post</string>
+    <string name="error_invalid_password">Passordet er ugyldig</string>
+    <string name="error_invalid_name">Navnet kan bare inneholde bokstaver</string>
+    <string name="error_invalid_firstname">Fornavnet kan bare inneholde bokstaver</string>
+    <string name="error_invalid_lastname">Etternavnet kan bare inneholde bokstaver</string>
+
+    <string name="error_invalid_age">Alder må være et gyldig tall</string>
+    <string name="error_age_minimum">Du må være minst 16 år</string>
+    <string name="error_account_creation">Kunne ikke opprette konto</string>
+
+    <string name="error_password_too_short">Passordet må være minst 8 tegn langt</string>
+    <string name="error_password_missing_uppercase">Passordet må inneholde minst en stor bokstav</string>
+    <string name="error_password_missing_lowercase">Passordet må inneholde minst en liten bokstav</string>
+    <string name="error_password_missing_digit">Passordet må inneholde minst ett tall</string>
+    <string name="error_password_contains_whitespace">Passordet må ikke inneholde mellomrom</string>
+
+
+    <!--ResetPasswordScreen-->
+    <string name="reset_password_text">Skriv inn e-postadressen du brukte til å registrere deg.</string>
+    <string name="reset_password_info">Vi sender deg en e-postmelding med tilbakestilling av passord.</string>
+    <string name="send_email">Send e-post</string>
+
+    <!--ProfileScreen-->
+    <string name="profile_picture_description">Profilbilde</string>
+    <string name="edit_profile_button">Rediger profil</string>
+    <string name="account_info_section">Min konto</string>
+    <string name="label_name">Navn</string>
+    <string name="label_email">E-post</string>
+    <string name="label_ads">Mine annonser</string>
+    <string name="label_password">Passord</string>
+    <string name="label_permissions">Tillatelser og preferanser</string>
+    <string name="logout_button">Logg ut</string>
+    <string name="loading">Kunne ikke hente informasjon</string>
+
+    <!-- EditProfileScreen -->
+    <string name="edit_profile_screen_title">Rediger profil</string>
+    <string name="profile_firstname_label">Fornavn</string>
+    <string name="profile_email_label">E-postadresse</string>
+    <string name="change_profile_picture">Bytt Profilbilde</string>
+    <string name="change_ad_picture">Bytt Annonsebilde</string>
+    <string name="upload_new_picture">Last opp et nytt bilde</string>
+    <string name="save_changes_button">Lagre endringer</string>
+    <string name="profile_info_updated">Personlig info er endret</string>
+    <string name="take_new_picture">Personlig info er endret</string>
+    <string name="error_profile_creation">Kunne ikke endre informasjon</string>
+    <string name="error_profile_info">Kunne ikke hente bruker informasjon</string>
+    <string name="profile_lastname_label">Etternavn</string>
+    <string name="error_last_name_required">Etternavn er påkrevd</string>
+    <string name="error_first_name_required">Fornavn er påkrevd</string>
+    <!-- ChangePasswordScreen -->
+    <string name="change_password_screen_title">Endre passord</string>
+    <string name="old_password_label">Gammelt passord</string>
+    <string name="new_password_label">Nytt passord</string>
+    <string name="confirm_new_password_label">Bekreft nytt passord</string>
+    <string name="update_password_button">Oppdater passord</string>
+    <string name="password_mismatch_error">Passordene stemmer ikke overens</string>
+    <string name="password_change">Passordet er endret</string>
+    <string name="error_could_not_change_password">Kunne ikke endre passordet</string>
+
+
+
+    <!-- editPermissionScreen  -->
+    <string name="change_location_screen_title">Plassering</string>
+    <string name="change_location_Promission_screen">Tillat tilgang til å kunne bruke plassering</string>
+    <string name="change_Gallery_screen_title">Galleri</string>
+    <string name="change_Gallery_promission_screen">Tillat tilgang til å kunne bruke galleri</string>
+    <string name="change_notificationPermission_screen_title">Varsling</string>
+    <string name="change_notificationPermission_Promission_screen">Tillat tilgang til å kunne sende varslinger</string>
+
+
+    <!-- ActivityDetailScreen -->
+    <string name="snackbar_registration_success">Påmeldingen var vellykket.</string>
+    <string name="snackbar_full_capacity">Påmeldingen var vellykket. Alle plasser er nå fylt opp.</string>
+    <string name="snackbar_unregistered">Du har nå meldt deg ut av aktiviteten.</string>
+    <string name="activity_no_title">Ingen tittel</string>
+    <string name="unknown_location">Ukjent</string>
+    <string name="unknown_address">Ukjent adresse</string>
+    <string name="unknown_description">Ingen beskrivelse</string>
+    <string name="participants_max">Maks %1$d</string>
+    <string name="participants_registered">%1$d av %3$d deltaker%2$s</string>
+    <string name="age_group">Aldersgruppe: %1$s</string>
+    <string name="under_age_limit">Du er under aldersgrensen (%1$d)</string>
+    <string name="registerr">Meld deg på</string>
+    <string name="unregister">Meld deg ut</string>
+
+
+
+
+    <!-- aktivityDetalierscreen  -->
+    <string name="own_activity">Egen aktivitet</string>
+
+    <string name="error_age_required">Alder er påkrevd</string>
+
+    <!-- AdsScreen  -->
+    <string name="ingen_publiserte_annonser">Du har ingen publiserte annonser</string>
+    <string name="Endre_annonse">Endre annonse</string>
+
+    <string name="registering_you">Melder deg...</string>
+    <string name="unregistering_you">Melder deg ut...</string>
+    <string name="cancelling_you">Kansellerer deg...</string>
+    <string name="saving_changes_button">Lagrer endringene...</string>
+    <string name="updating_password_button">Oppdaterer passord...</string>
+    <string name="publishing_activity">Publiserer...</string>
+
+
+
+
+
+
+
+
+
+
+
+    <!-- newaktiviti  -->
+    <string name="create_activity">Opprett Aktivitet</string>
+    <string name="placeholder_title">Annonseoverskrift</string>
+    <string name="placeholder_description">Beskrivelse</string>
+    <string name="placeholder_location">Poststed</string>
+    <string name="placeholder_max_participants">Maks Antall Deltakere</string>
+    <string name="placeholder_age_limit">Aldersgrense</string>
+    <string name="placeholder_category">Velg kategori</string>
+    <string name="cancel">Avbryt</string>
+    <string name="error_age_limit_exceeded">Aldersgrensen kan ikke være over 100</string>
+
+    <string name="error_description_required">Beskrivelse er påkrevd</string>
+    <string name="error_location_required">Sted er påkrevd</string>
+    <string name="error_address_required">Adresse er påkrevd</string>
+    <string name="error_postal_code_required">Postnummer er påkrevd</string>
+    <string name="error_max_participants_required">Antall deltakere er påkrevd</string>
+    <string name="error_invalid_age_limit">Ugyldig aldersgrense. Må være fra 16 til 100.</string>
+
+
+
+
+
+    <!---->
+    <string name="select_image_source">Velg bilde kilde</string>
+    <string name="choose_image_source">Velg om du vil ta et bilde eller velge fra galleriet</string>
+    <string name="take_photo">Ta bilde</string>
+    <string name="choose_from_gallery">Velg fra galleri</string>
+    <string name="selected_image">valgt bilde</string>
+
+
+
+    <!-- Error messages -->
+    <string name="error_title_required">Annonseoverskrift er påkrevd</string>
+    <string name="error_category_required">Kategori er påkrevd</string>
+    <string name="upload_image">Last opp bilde</string>
+    <string name="choose_image">Velg bilde</string>
+    <string name="change_image">Endre bilde</string>
+
+    <string name="error_image_required">Bilde er påkrevd</string>
+
+
+    <string name="error_date_required">Dato er påkrevd</string>
+    <string name="error_start_time_required">Start tid er påkrevd</string>
+    <string name="error_age_limit_required">maks alder er påkrevd</string>
+    <string name="error_all_fields_required">Du må fylle alle feltene</string>
+
+
+
+
+    <!-- Button text -->
+    <string name="publish_activity">Publiser</string>
+    <string name="error_invalid_max_participants">Ugyldig antall deltakere. Må være fra 1 til 100.</string>
+    <string name="remove_image">Fjern bilde</string>
+    <string name="label_age">Alder</string>
+
+
+
+    <string name="title_label">Annonseoverskrift</string>
+    <string name="title_supporting_text">Skriv inn en beskrivende tittel for aktiviteten.</string>
+    <string name="description_label">Beskrivelse</string>
+    <string name="description_supporting_text">Gi detaljer om aktiviteten din.</string>
+    <string name="category_label">Kategori</string>
+    <string name="category_supporting_text">Velg en passende kategori for aktiviteten.</string>
+    <string name="date_label">Dato</string>
+    <string name="date_supporting_text">Velg en dato for aktiviteten.</string>
+
+    <string name="location_label">Sted</string>
+    <string name="location_supporting_text">Skriv inn stedet der aktiviteten skal finne sted.</string>
+
+    <string name="address_label">Adresse</string>
+    <string name="address_supporting_text">Skriv inn adressen for aktiviteten.</string>
+
+    <string name="postal_code_label">Postnummer</string>
+    <string name="postal_code_supporting_text">Oppgi postnummeret for stedet.</string>
+
+    <string name="start_time_label">Starttidspunkt</string>
+    <string name="start_time_supporting_text">Velg starttidspunkt for aktiviteten.</string>
+
+    <string name="max_participants_label">Maks antall deltakere</string>
+    <string name="max_participants_supporting_text">Oppgi maks antall deltakere.</string>
+
+    <string name="age_limit_label">Aldersgrense</string>
+    <string name="age_limit_supporting_text">Angi aldersgrensen for aktiviteten.</string>
+
+    //change password
+    <string name="old_password_supporting_text">Skriv inn ditt nåværende passord.</string>
+    <string name="new_password_supporting_text">Skriv inn ditt nye passord.</string>
+    <string name="confirm_new_password_supporting_text">Skriv inn ditt nye passord igjen for å bekrefte.</string>
+
+    //edit profile
+    <string name="profile_firstname_supporting_text">Skriv inn ditt fornavn.</string>
+    <string name="profile_lastname_supporting_text">Skriv inn ditt etternavn.</string>
+
+
+    //signin
+    <string name="email_supporting_text">Skriv inn din e-postadresse.</string>
+    <string name="password_supporting_text">Skriv inn passordet ditt.</string>
+
+    //signup
+    <string name="firstname_supporting_text">Skriv inn ditt fornavn.</string>
+    <string name="lastname_supporting_text">Skriv inn ditt etternavn.</string>
+    <string name="age_label">Alder</string>
+    <string name="age_supporting_text">Skriv inn din alder.</string>
+    <string name="email_label">E-postadresse</string>
+    <string name="password_label">Passord</string>
+
+    //reset
+    <string name="email_placeholder">Skriv inn e-postadresse</string>
+    <string name="email_reset_supporting_text">Vi sender en lenke for å tilbakestille passordet ditt.</string>
+    <string name="email_error_invalid">Ugyldig e-postadresse</string>
+    <string name="email_error_required">E-postadresse er påkrevd</string>
+
+
+    <string name="firstname_label">Fornavn</string>
+    <string name="lastname_label">Etternavn</string>
+    <string name="error_user_already_registered">Det finnes allerede en bruker med denne e-postadressen</string>
+    <string name="error_loading_kommuner">Kunne ikke laste inn kommuner. Vennligst prøv igjen senere.\n</string>
+    <string name="error_image_upload_failed">Kunne ikke laste opp bilde</string>
+    <string name="error_creating_activity">Kunne ikke lage aktiviteten</string>
+
+    <string name="registration_success_login">Registrering vellykket, logger inn som %1$s\n</string>
+    <string name="success_login">Logger inn som %1$s\n</string>
+    <string name="sign_out_success">Du har logget ut</string>
+    <string name="activity_created_success">Aktivitet opprettet vellykket</string>
+    <string name="activity_updated_success">Aktiviteten ble oppdatert vellykket</string>
+
+    <string name="error_message">Det skjedde en feil. Vennligst prøv igjen senere</string>
+    <string name="select_start_time">Velg starttidspunkt</string>
+    <string name="choose_Dato">Velg dato</string>
+    <string name="Aktive">Aktive</string>
+    <string name="Kansellerte">Kansellerte</string>
+    <string name="No_Aktivirty_is_activ">Det er ingen aktiviteter som er aktive</string>
+    <string name="No_Aktivirty_is_cancelled">Det er ingen aktiviteter som er kansellerte</string>
+    <string name="kanseller">Kanseller</string>
+    <string name="filter_by_area">Filtrer etter område</string>
+    <string name="Show_hits">Vis treff</string>
+    <string name="Reset">Nullstill</string>
+    <string name="No_Aktivirty_is_Near">Ingen aktiviteter tilgjengelig for Nærme Aktiviteter</string>
+    <string name="choose_start_time">Velg starttidspunkt</string>
+    <string name="you_must_fyll_the_titel">Du må fylle inn tittel</string>
+    <string name="no_connection">Ingen internett forbindelse</string>
+    <string name="try_again">Prøv igjen</string>
+    <string name="no_notifications">Ingen varslinger</string>
+    <string name="delete_Notification">Delete Notification</string>
+    <string name="no_title">Ingen tittel</string>
+
+
+    <string name="registration_successful">Påmeldingen var vellykket.</string>
+    <string name="registration_successful_filled">Påmeldingen var vellykket. Alle plasser er nå fylt opp.</string>
+    <string name="unregistered_successful">Du har nå meldt deg ut av aktiviteten.</string>
+    <string name="delete">Slett</string>
+    <string name="unknown_eror">En ukjent feil oppsto</string>
+    <string name="unknown_title">Ukjent tittel</string>
+    <string name="editAktvititi">Endre aktivitet</string>
+    <string name="myEntries">Mine Påmeldinger</string>
+    <string name="editpermission">Tillatelser og preferanser</string>
+    <string name="change_password">Endre passord</string>
+    <string name="change_profile">Endre Profil</string>
+    <string name="add_activity">Legg til aktivitet</string>
+    <string name="myAdd">Mine annonser</string>
+    <string name="appname">SoClub</string>
+    <string name="terms">Vilkår for bruk og personvern</string>
+    <string name="activity">Aktivitet</string>
+    <string name="galleriPermissionisrequired">Tillatelse er nødvendig for å velge et bilde.</string>
+    <string name="choose_activity_Dato">Velg dato for aktiviteten</string>
+    <string name="ok">OK</string>
+    <string name="choose_activity_starttime">Velg starttid for aktiviteten</string>
+    <string name="allow_premision_gallery">Tillat tilgang til galleri</string>
+    <string name="this_app_need_gallery_premision">Denne appen trenger tilgang til galleriet ditt for å velge et bilde</string>
+    <string name="profile_han_been_changed">Profilinformasjon ble endret</string>
+    <string name="cancelled">Kansellerte</string>
+    <string name="unknown_dato">Ukjent dato</string>
+    <string name="this_terms">Disse vilkårene regulerer din bruk av applikasjonen vår. Ved å bruke appen, godtar du å overholde disse vilkårene.</string>
+    <string name="use_of_the_Service">1. Bruk av Tjenesten</string>
+    <string name="fair_use">Du må bruke tjenesten i samsvar med gjeldende lover og regler.</string>
+    <string name="privacy">2. Personvern</string>
+    <string name="processes_personal_data">Vi samler inn og behandler personopplysninger i henhold til vår personvernerklæring.</string>
+    <string name="disclaimer">3. Ansvarsfraskrivelse</string>
+    <string name="the_service_is_offered">Tjenesten tilbys \\\"som den er\\\", og vi fraskriver oss ethvert ansvar for eventuelle feil eller mangler.</string>
+    <string name="Content_Property">4. Innhold og Eiendomsrett</string>
+    <string name="in_app">Alt innhold i applikasjonen er beskyttet av opphavsrett og andre eiendomsrettigheter. Reproduksjon eller distribusjon av innholdet uten tillatelse er ikke tillatt.</string>
+    <string name="changes_Terms">5. Endringer i Vilkår</string>
+    <string name="change_terms_any_time">Vi forbeholder oss retten til å endre vilkårene når som helst. Brukere vil bli varslet om vesentlige endringer.</string>
+    <string name="user_rights">6. Brukerrettigheter</string>
+    <string name="se_delet">Du har rett til å be om innsyn, korrigering eller sletting av dine personopplysninger i henhold til vår personvernerklæring.</string>
+    <string name="consent">7. Samtykke</string>
+    <string name="you_give_your_consent">Ved å bruke applikasjonen gir du ditt samtykke til at vi behandler dine personopplysninger i tråd med vår personvernerklæring.</string>
+    <string name="data_processing">8. Databehandlingsansvarlig</string>
+    <string name="data_processing_in_app">Databehandlingsansvarlig for denne applikasjonen er Firebase (Google). Kontakt oss ved spørsmål om personvern.</string>
+    <string name="transfer_third_country">9. Overføring til Tredjeland</string>
+    <string name="no_transfer_third_country">Personopplysninger overføres ikke til tredjeland uten tilstrekkelige sikkerhetstiltak i samsvar med GDPR.</string>
+    <string name="data_storage">10. Datalagring</string>
+    <string name="we_store_personal_data_as_long_as_necessary_accordance_with_the_law">Vi lagrer personopplysninger så lenge det er nødvendig for å oppfylle formålet med behandlingen og i henhold til gjeldende lover.</string>
+    <string name="the_complaint">11. Klagerett</string>
+    <string name="you_have_the_right_to_file_a_complaint">Du har rett til å sende en klage til en tilsynsmyndighet, som f.eks. Datatilsynet, dersom du mener at personvernrettighetene dine er brutt.</string>
+    <string name="no_places_left">Ingen ledige plasser igjen</string>
+    <string name="error_age_limit_exceeded_message">Aldersgrensen kan ikke overstige 100</string>
+    <string name="title_required_error">Du må fylle inn tittel</string>
+    <string name="title_must_be_filled_error">Du må fylle inn tittel</string>
+    <string name="description_must_be_filled_error">Du må fylle inn beskrivelse</string>
+    <string name="you_most_select_category">Du må velge kategori</string>
+    <string name="you_most_select_location">Du må velge sted</string>
+    <string name="you_most_select_address">Du må velge adresse</string>
+    <string name="you_most_select_postalCode">Postnummer er påkrevd</string>
+    <string name="maxParticipants_must_be_filled_error">Du må fylle inn maks antall deltakere</string>
+    <string name="most_ny_a_nummber">Må være et tall</string>
+    <string name="ageLimit_must_be_filled_error">Du må fylle inn aldersgrense</string>
+    <string name="you_most_select_date">Du må velge dato</string>
+    <string name="you_most_select_start_time">Du må velge starttidspunkt</string>
+    <string name="notification_deleted">Varsling slettet</string>
+    <string name="notification_deleted_error">Feil ved sletting av varsling. Vennligst prøv igjen senere.</string>
+    <string name="signup_message">Du er påmeldt til aktiviteten %1$s</string>
+    <string name="you_canceld_message">Du har meldt deg ut av aktiviteten %1$s</string>
+    <string name="error_fetch_municipalities">Failed to fetch municipalities</string>
+    <string name="most_by_24_h">Datoen må være minst 24 timer fra nå</string>
+    <string name="age_limt_100">Aldersgrensen kan ikke overstige 100</string>
+    <string name="date_most_by_24_fn">Velg dato for aktiviteten (minst 24 timer fra nå)</string>
+    <string name="delete_aktivity">Slett aktivitet</string>
+    <string name="confirm_deletion">Bekreft sletting</string>
+    <string name="sure_you_want_to_delete">Er du sikker på at du vil slette denne aktiviteten? Denne handlingen kan ikke angres.</string>
+    <string name="date_expiered">Du kan ikke velge en dato som har gått.</string>
+    <string name="exact_alarm_permission_title">Enable Exact Alarms</string>
+    <string name="exact_alarm_permission_message">To provide timely notifications, please allow exact alarms.</string>
+    <string name="allow">Allow</string>
+    <string name="cancel_eng">Cancel</string>
+    <string name="default_notification_message">Påminnelse om din aktivitet</string>
+    <string name="notification_title">Aktivitetspåminnelse</string>
+
+
+    <string name="notification_registration">Du er påmeldt til aktiviteten: %1$s</string>
+    <string name="notification_cancellation">Du har avmeldt deg fra aktiviteten: %1$s</string>
+    <string name="notification_2_minutes">Aktiviteten starter om 2 minutter: %1$s</string>
+    <string name="notification_1_hour">Aktiviteten starter om 1 time: %1$s</string>
+    <string name="notification_12_hours">Aktiviteten starter om 12 timer: %1$s</string>
+    <string name="notification_24_hours">Aktiviteten starter om 24 timer: %1$s</string>
+    <string name="notification_default">Påminnelse om din aktivitet: %1$s</string>
+    <string name="error_user_not_logged_in">User not logged in</string>
+    <string name="error_user_data_not_found">User data not found</string>
+    <string name="user_null_after_registration">User is null after registration</string>
+    <string name="theme">Velg mellom system, lyst og mørkt tema</string>
 </resources>

@@ -13,12 +13,19 @@
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 
-
     <uses-permission android:name="android.permission.VIBRATE" />
     <!-- For Android versions below 33 -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"
         tools:ignore="SelectedPhotoAccess" />
+
+    <!-- Declare the email intent query -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="mailto" />
+        </intent>
+    </queries>
 
     <application
         android:name=".FirebaseApp"
@@ -43,6 +50,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:configChanges="uiMode"
             android:theme="@style/Theme.SoClub">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -50,5 +58,4 @@
             </intent-filter>
         </activity>
     </application>
-
 </manifest>

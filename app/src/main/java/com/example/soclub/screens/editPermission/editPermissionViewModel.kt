@@ -20,20 +20,18 @@ import javax.inject.Inject
 class EditPermissionViewModel @Inject constructor() : ViewModel() {
 
     private val _locationPermission = MutableStateFlow(false)
-    private val _galleryPermission = MutableStateFlow(false) // Renamed from camera to gallery
+    private val _galleryPermission = MutableStateFlow(false)
     private val _notificationPermission = MutableStateFlow(false)
 
     val locationPermission: StateFlow<Boolean> = _locationPermission
-    val galleryPermission: StateFlow<Boolean> = _galleryPermission // Renamed from cameraPermission
+    val galleryPermission: StateFlow<Boolean> = _galleryPermission
     val notificationPermission: StateFlow<Boolean> = _notificationPermission
 
-    // Function to check permission status
     @SuppressLint("InlinedApi")
     fun checkPermissions(context: Context) {
         viewModelScope.launch {
             _locationPermission.value = checkPermissionStatus(context, Manifest.permission.ACCESS_FINE_LOCATION)
 
-            // Check for gallery permission based on Android version
             _galleryPermission.value = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 checkPermissionStatus(context, Manifest.permission.READ_MEDIA_IMAGES) ||
                         checkPermissionStatus(context, Manifest.permission.READ_MEDIA_VIDEO)
@@ -41,11 +39,14 @@ class EditPermissionViewModel @Inject constructor() : ViewModel() {
                 checkPermissionStatus(context, Manifest.permission.READ_EXTERNAL_STORAGE)
             }
 
-            _notificationPermission.value = checkPermissionStatus(context, Manifest.permission.POST_NOTIFICATIONS)
+            _notificationPermission.value = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                checkPermissionStatus(context, Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                true // Tillatelse er automatisk gitt på eldre versjoner
+            }
         }
     }
 
-    // Function to open settings
     fun navigateToSettings(context: Context) {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
             data = android.net.Uri.fromParts("package", context.packageName, null)
@@ -53,13 +54,7 @@ class EditPermissionViewModel @Inject constructor() : ViewModel() {
         context.startActivity(intent)
     }
 
-
-
     private fun checkPermissionStatus(context: Context, permission: String): Boolean {
         return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
     }
-
-
-
-
 }
