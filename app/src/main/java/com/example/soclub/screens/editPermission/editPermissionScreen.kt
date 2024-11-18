@@ -163,17 +163,17 @@ fun ThemeSwitch(themeMode: ThemeMode, onThemeChange: (ThemeMode) -> Unit) {
         modifier = Modifier.padding(vertical = 10.dp)
     ) {
         ThemeChip(
-            label = "System",
+            label = stringResource(R.string.system),//System
             isSelected = themeMode == ThemeMode.SYSTEM,
             onClick = { onThemeChange(ThemeMode.SYSTEM) }
         )
         ThemeChip(
-            label = "Lyst",
+            label = stringResource(R.string.light),//Lyst
             isSelected = themeMode == ThemeMode.LIGHT,
             onClick = { onThemeChange(ThemeMode.LIGHT) }
         )
         ThemeChip(
-            label = "Mørkt",
+            label = stringResource(R.string.darke),//Mørkt
             isSelected = themeMode == ThemeMode.DARK,
             onClick = { onThemeChange(ThemeMode.DARK) }
         )
