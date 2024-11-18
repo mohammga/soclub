@@ -389,4 +389,10 @@
     <string name="unknown">Ukjent</string>
     <string name="author">Forfatter</string>
     <string name="published">Publisert %s</string>
+    <string name="contact">Kontakt</string>
+    <string name="no_email_app_found">Ingen e-postapp funnet</string>
+    <string name="email_missing">E-postadresse mangler</string>
+    <string name="system">System</string>
+    <string name="light">Lyst</string>
+    <string name="darke">Mørkt</string>
 </resources>

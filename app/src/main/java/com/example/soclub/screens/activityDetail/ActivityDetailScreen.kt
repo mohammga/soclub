@@ -355,10 +355,12 @@ fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
                         if (intent.resolveActivity(context.packageManager) != null) {
                             context.startActivity(intent)
                         } else {
-                            Toast.makeText(context, "Ingen e-postapp funnet", Toast.LENGTH_SHORT).show()
+                            // Toast.makeText(context, "Ingen e-postapp funnet", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.no_email_app_found), Toast.LENGTH_SHORT).show()
                         }
                     } else {
-                        Toast.makeText(context, "E-postadresse mangler", Toast.LENGTH_SHORT).show()
+                        //Toast.makeText(context, "E-postadresse mangler", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.email_missing), Toast.LENGTH_SHORT).show()
                     }
                 },
                 modifier = Modifier
@@ -366,7 +368,7 @@ fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text(text = "Kontakt")
+                Text(text = stringResource(R.string.contact))//Kontakt
             }
         }
     }
