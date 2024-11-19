@@ -380,19 +380,21 @@
     <string name="error_user_data_not_found">User data not found</string>
     <string name="user_null_after_registration">User is null after registration</string>
     <string name="theme">Choose between system, light, and dark theme</string>
-    <string name="participants_label">Deltakere</string>
-    <string name="agelimt_label">Aldersgruppe</string>
-    <string name="unknown_date">Ukjent dato</string>
-    <string name="unknown_start_time">Ukjent starttid</string>
-    <string name="alle_age_group">Alle</string>
-    <string name="last_updated">Siste endret: %s</string>
-    <string name="unknown">Ukjent</string>
-    <string name="author">Forfatter</string>
-    <string name="published">Publisert %s</string>
-    <string name="contact">Kontakt</string>
-    <string name="no_email_app_found">Ingen e-postapp funnet</string>
-    <string name="email_missing">E-postadresse mangler</string>
+
+    <string name="participants_label">Participants</string>
+    <string name="agelimt_label">Age Group</string>
+    <string name="unknown_date">Unknown Date</string>
+    <string name="unknown_start_time">Unknown Start Time</string>
+    <string name="alle_age_group">All</string>
+    <string name="last_updated">Last Updated: %s</string>
+    <string name="unknown">Unknown</string>
+    <string name="author">Author</string>
+    <string name="published">Published %s</string>
+    <string name="contact">Contact</string>
+    <string name="no_email_app_found">No Email App Found</string>
+    <string name="email_missing">Email Address Missing</string>
     <string name="system">System</string>
-    <string name="light">Lyst</string>
-    <string name="darke">Mørkt</string>
+    <string name="light">Light</string>
+    <string name="darke">Dark</string>
+
 </resources>
