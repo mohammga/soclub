@@ -204,18 +204,13 @@ fun ActivityDetailsContent(
                 InfoRow(
                     icon = Icons.Default.People,
                     mainText = if (currentParticipants == 0) {
-                        stringResource(R.string.participants_max, activity?.maxParticipants ?: 0)
+                        "${0} of ${activity?.maxParticipants ?: 0}"
                     } else {
-                        stringResource(
-                            R.string.participants_registered,
-                            currentParticipants,
-                            if (currentParticipants > 1) "e" else "e",
-                            activity?.maxParticipants ?: 0
-                        )
+                        "$currentParticipants of ${activity?.maxParticipants ?: 0}"
                     },
-                    //subText = "Deltakere"
                     subText = stringResource(R.string.participants_label)
                 )
+
             }
             Column(modifier = Modifier.weight(1f)
                 .padding(end = 8.dp)) {
@@ -510,7 +505,7 @@ fun ActivityGPSImage(context: Context, destinationLocation: String) {
                         val startLng = location.longitude
 
                         val gmmIntentUri = "https://www.google.com/maps/dir/?api=1" +
-                                "&origin=$startLat,$startLng" + // Startposisjon
+                                "&origin=$startLat,$startLng" +
                                 "&destination=${Uri.encode(destinationLocation)}"
 
                         openGoogleMaps(context, gmmIntentUri)
@@ -604,7 +599,7 @@ fun InfoRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp) // Juster etter behov
+            .padding(vertical = 4.dp)
             .clip(RoundedCornerShape(8.dp))
             .background(backgroundColor)
             .padding(horizontal = 8.dp, vertical = 8.dp),
