@@ -41,7 +41,6 @@ interface AccountService {
      * @param email The user's email address.
      * @param password The user's password.
      * @param onResult A callback invoked upon completion.
-     *
      * Passes `null` if authentication is successful, or a [Throwable] if an error occurs.
      */
     suspend fun authenticateWithEmail(
