@@ -84,6 +84,12 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+
+    testImplementation (libs.mockk.mockk)
+    testImplementation (libs.kotlinx.coroutines.test)
+    testImplementation (libs.slf4j.slf4j.simple)
+    testImplementation (libs.byte.buddy)
+
     // Hilt - til dependency injection
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)

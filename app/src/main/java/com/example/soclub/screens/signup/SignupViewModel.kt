@@ -51,13 +51,13 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
         uiState.value = uiState.value.copy(firstname = formattedFirstName, firstNameError = null)
     }
 
-    fun onLastNameChange(newValue: String) {
+    infix fun onLastNameChange(newValue: String) {
         val formattedLastName = newValue.replace(" ", "").replaceFirstChar { it.uppercaseChar() }
         uiState.value = uiState.value.copy(lastname = formattedLastName, lastNameError = null)
     }
 
 
-    fun onPasswordChange(newValue: String) {
+    infix fun onPasswordChange(newValue: String) {
         uiState.value = uiState.value.copy(password = newValue, passwordError = null)
     }
 
