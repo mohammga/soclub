@@ -63,7 +63,8 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                 errorMessage != null -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = errorMessage ?: "An unknown error occurred",
+                            //text = errorMessage ?: "An unknown error occurred",
+                            text = errorMessage ?: stringResource(id = R.string.unknown_error_occurred),
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodyMedium
                         )

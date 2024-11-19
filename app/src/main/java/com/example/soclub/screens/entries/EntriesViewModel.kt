@@ -4,6 +4,7 @@ import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.soclub.R
 import com.example.soclub.models.Activity
 import com.example.soclub.service.EntriesService
 import com.example.soclub.service.AccountService
@@ -100,7 +101,9 @@ class EntriesScreenViewModel @Inject constructor(
                 cancelNotificationForActivity(context, activityId)
 
                 // Display a Toast message for user feedback
-                Toast.makeText(context, "Aktivitet kansellert", Toast.LENGTH_LONG).show()
+                //Toast.makeText(context, "Aktivitet kansellert", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(R.string.activity_cancelled), Toast.LENGTH_LONG).show()
+
             } else {
                 // Håndter feil (du kan legge til feilhåndtering her hvis ønskelig)
             }

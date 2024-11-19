@@ -45,6 +45,8 @@ class AccountServiceImpl @Inject constructor(
         return documentSnapshot.toObject(UserInfo::class.java) ?: throw Exception("User data not found")
     }
 
+
+
     override suspend fun authenticateWithEmail(
         email: String,
         password: String,

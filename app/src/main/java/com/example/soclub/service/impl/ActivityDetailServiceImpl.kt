@@ -1,5 +1,7 @@
 package com.example.soclub.service.impl
 
+import android.content.Context
+import com.example.soclub.R
 import com.example.soclub.models.Activity
 import com.example.soclub.service.ActivityDetailService
 import com.google.firebase.Timestamp
@@ -12,6 +14,7 @@ import com.google.firebase.firestore.ListenerRegistration
 
 class ActivityDetailServiceImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
+
 ) : ActivityDetailService {
 
 
@@ -29,7 +32,7 @@ class ActivityDetailServiceImpl @Inject constructor(
         val creatorId = documentSnapshot.getString("creatorId") ?: ""
 
         // Hent andre nødvendige felt
-        val fullLocation = activity?.location ?: "Ukjent"
+        val fullLocation = activity?.location ?:"Ukjent"
         val restOfAddress = fullLocation.substringBeforeLast(" ", "Ukjent")
         val date = documentSnapshot.getTimestamp("date")
         val startTime = documentSnapshot.getString("startTime") ?: "Ukjent tid"
