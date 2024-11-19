@@ -1,5 +1,6 @@
 package com.example.soclub.screens.termsPrivacy
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
@@ -10,11 +11,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.soclub.R
 
-//import androidx.navigation.NavController
-//import androidx.navigation.compose.rememberNavController
-//import com.example.soclub.R
-
-
+/**
+ * Composable function representing the Terms and Privacy screen.
+ *
+ * This screen displays the application's Terms of Service and Privacy Policy.
+ * It organizes the content into sections with titles and corresponding descriptions.
+ */
 @Composable
 fun TermsPrivacyScreen() {
     LazyColumn(
@@ -23,8 +25,6 @@ fun TermsPrivacyScreen() {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-
-
         item {
             Text(
                 text = stringResource(R.string.this_terms),
@@ -32,136 +32,93 @@ fun TermsPrivacyScreen() {
             )
         }
         item {
-            Text(
-                text = stringResource(R.string.use_of_the_Service),
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = stringResource(R.string.fair_use),
-                style = MaterialTheme.typography.bodyMedium
+            SectionTitleAndContent(
+                title = R.string.use_of_the_Service,
+                content = R.string.fair_use
             )
         }
-
         item {
-            Text(
-                text = stringResource(R.string.privacy),
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = stringResource(R.string.processes_personal_data),
-                style = MaterialTheme.typography.bodyMedium
+            SectionTitleAndContent(
+                title = R.string.privacy,
+                content = R.string.processes_personal_data
             )
         }
-
         item {
-            Text(
-                text = stringResource(R.string.disclaimer),
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = stringResource(R.string.the_service_is_offered),
-                style = MaterialTheme.typography.bodyMedium
+            SectionTitleAndContent(
+                title = R.string.disclaimer,
+                content = R.string.the_service_is_offered
             )
         }
-
         item {
-            Text(
-                text = stringResource(R.string.Content_Property),
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = stringResource(R.string.in_app),
-                style = MaterialTheme.typography.bodyMedium
+            SectionTitleAndContent(
+                title = R.string.Content_Property,
+                content = R.string.in_app
             )
         }
-
         item {
-            Text(
-                text = stringResource(R.string.changes_Terms ),
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = stringResource(R.string.change_terms_any_time),
-                style = MaterialTheme.typography.bodyMedium
+            SectionTitleAndContent(
+                title = R.string.changes_Terms,
+                content = R.string.change_terms_any_time
             )
         }
-
         item {
-            Text(
-                text = stringResource(R.string.user_rights),
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = stringResource(R.string.se_delet),
-                style = MaterialTheme.typography.bodyMedium
+            SectionTitleAndContent(
+                title = R.string.user_rights,
+                content = R.string.se_delet
             )
         }
-
         item {
-            Text(
-                text = stringResource( R.string.consent) ,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = stringResource(R.string.you_give_your_consent),
-                style = MaterialTheme.typography.bodyMedium
+            SectionTitleAndContent(
+                title = R.string.consent,
+                content = R.string.you_give_your_consent
             )
         }
-
         item {
-            Text(
-                text = stringResource(R.string.data_processing),
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = stringResource(R.string.data_processing_in_app),
-                style = MaterialTheme.typography.bodyMedium
+            SectionTitleAndContent(
+                title = R.string.data_processing,
+                content = R.string.data_processing_in_app
             )
         }
-
         item {
-            Text(
-                text = stringResource(R.string.transfer_third_country) ,//"",
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = stringResource(R.string.no_transfer_third_country),
-                style = MaterialTheme.typography.bodyMedium
+            SectionTitleAndContent(
+                title = R.string.transfer_third_country,
+                content = R.string.no_transfer_third_country
             )
         }
-
         item {
-            Text(
-                text = stringResource(R.string.data_storage),
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = stringResource(R.string.we_store_personal_data_as_long_as_necessary_accordance_with_the_law),
-                style = MaterialTheme.typography.bodyMedium
+            SectionTitleAndContent(
+                title = R.string.data_storage,
+                content = R.string.we_store_personal_data_as_long_as_necessary_accordance_with_the_law
             )
         }
-
         item {
-            Text(
-                text = stringResource(R.string.the_complaint),
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = stringResource(R.string.you_have_the_right_to_file_a_complaint),
-                style = MaterialTheme.typography.bodyMedium
+            SectionTitleAndContent(
+                title = R.string.the_complaint,
+                content = R.string.you_have_the_right_to_file_a_complaint
             )
         }
     }
-
 }
+
+/**
+ * Composable function for displaying a section with a title and corresponding content.
+ *
+ * @param title The string resource ID for the section title.
+ * @param content The string resource ID for the section content.
+ */
+@Composable
+fun SectionTitleAndContent(@StringRes title: Int, @StringRes content: Int) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(title),
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = stringResource(content),
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
+

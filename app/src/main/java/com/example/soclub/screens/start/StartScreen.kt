@@ -13,12 +13,18 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.soclub.R
 
+/**
+ * Composable function representing the Start screen.
+ *
+ * This screen serves as the entry point for users, providing options to sign in or sign up.
+ * It includes a welcome message, buttons to continue with email sign-up, sign in, and a divider with "OR" text.
+ *
+ * @param navController The [NavController] used for navigating between different screens.
+ */
 @Composable
 fun StartScreen(navController: NavController) {
     LazyColumn(
@@ -47,6 +53,12 @@ fun StartScreen(navController: NavController) {
     }
 }
 
+/**
+ * Composable function for the "OR" divider.
+ *
+ * Displays a horizontal line with "OR" text centered between two lines,
+ * providing a visual separation between different sign-in options.
+ */
 @Composable
 fun OrDivider() {
     Row(
@@ -55,7 +67,7 @@ fun OrDivider() {
     ) {
         HorizontalDivider(modifier = Modifier.weight(1f))
         Text(
-            text = stringResource(id = R.string.or_text), // legg til denne strengen i resources
+            text = stringResource(id = R.string.or_text), // Ensure this string is added in resources
             modifier = Modifier.padding(horizontal = 8.dp),
             style = MaterialTheme.typography.bodyMedium
         )
@@ -63,6 +75,13 @@ fun OrDivider() {
     }
 }
 
+/**
+ * Composable function for the Sign-In button.
+ *
+ * When clicked, navigates the user to the Sign-In screen.
+ *
+ * @param navController The [NavController] used for navigation.
+ */
 @Composable
 fun SignInButton(navController: NavController) {
     Button(
@@ -77,7 +96,14 @@ fun SignInButton(navController: NavController) {
     }
 }
 
-
+/**
+ * Composable function for the Welcome message.
+ *
+ * Displays a welcoming title and a clickable text for terms and conditions.
+ * When the terms and conditions text is clicked, navigates the user to the Terms and Privacy screen.
+ *
+ * @param navController The [NavController] used for navigation.
+ */
 @Composable
 fun WelcomeMessage(navController: NavController) {
     Column(
@@ -108,6 +134,13 @@ fun WelcomeMessage(navController: NavController) {
     }
 }
 
+/**
+ * Composable function for the "Continue with Email" button.
+ *
+ * When clicked, navigates the user to the Sign-Up screen.
+ *
+ * @param navController The [NavController] used for navigation.
+ */
 @Composable
 fun ContinueWithEmailButton(navController: NavController) {
     Button(
@@ -122,8 +155,18 @@ fun ContinueWithEmailButton(navController: NavController) {
     }
 }
 
-@Preview(showBackground = true)
+/**
+ * Composable function for a horizontal divider line.
+ *
+ * Draws a simple horizontal line to be used within the UI layout.
+ *
+ * @param modifier The [Modifier] to be applied to the divider.
+ */
 @Composable
-fun StartScreenPreview() {
-    StartScreen(rememberNavController())
+fun HorizontalDivider(modifier: Modifier = Modifier) {
+    HorizontalDivider(
+        modifier = modifier,
+        thickness = 1.dp,
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+    )
 }

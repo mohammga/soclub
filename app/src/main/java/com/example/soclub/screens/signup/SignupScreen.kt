@@ -1,5 +1,6 @@
 package com.example.soclub.screens.signup
 
+import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
@@ -22,10 +23,20 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.soclub.R
 
+/**
+ * Composable function representing the Sign-Up screen.
+ *
+ * This screen allows new users to input their first name, last name, age, email, and password to create an account.
+ * It includes input fields for each of these details, a button to submit the registration, and a button to navigate back to the Sign-In screen.
+ *
+ * @param navController The [NavController] used for navigation between screens.
+ * @param viewModel The [SignupViewModel] managing the UI state and handling sign-up logic.
+ */
 @Composable
 fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState
     val isLoading by viewModel.isLoading
+    val context = LocalContext.current
 
     LazyColumn(
         modifier = Modifier
@@ -98,7 +109,7 @@ fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hilt
         }
 
         item {
-            SignUpButton(navController, viewModel, isLoading)
+            SignUpButton(navController, viewModel, context, isLoading)
             Spacer(modifier = Modifier.height(16.dp))
         }
 
@@ -108,6 +119,14 @@ fun SignupScreen(navController: NavController, viewModel: SignupViewModel = hilt
     }
 }
 
+/**
+ * Composable function for the first name input field.
+ *
+ * @param value The current value of the first name input.
+ * @param onNewValue Callback invoked when the first name input changes.
+ * @param error Optional error message to display below the input field.
+ * @param enabled Determines whether the input field is enabled for user interaction.
+ */
 @Composable
 fun FirstNameField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -131,6 +150,14 @@ fun FirstNameField(value: String, onNewValue: (String) -> Unit, error: String?, 
     )
 }
 
+/**
+ * Composable function for the last name input field.
+ *
+ * @param value The current value of the last name input.
+ * @param onNewValue Callback invoked when the last name input changes.
+ * @param error Optional error message to display below the input field.
+ * @param enabled Determines whether the input field is enabled for user interaction.
+ */
 @Composable
 fun LastNameField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -154,6 +181,14 @@ fun LastNameField(value: String, onNewValue: (String) -> Unit, error: String?, e
     )
 }
 
+/**
+ * Composable function for the age input field.
+ *
+ * @param value The current value of the age input.
+ * @param onNewValue Callback invoked when the age input changes.
+ * @param error Optional error message to display below the input field.
+ * @param enabled Determines whether the input field is enabled for user interaction.
+ */
 @Composable
 fun AgeField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -178,17 +213,25 @@ fun AgeField(value: String, onNewValue: (String) -> Unit, error: String?, enable
     )
 }
 
+/**
+ * Composable function for the email input field.
+ *
+ * @param value The current value of the email input.
+ * @param onNewValue Callback invoked when the email input changes.
+ * @param error Optional error message to display below the input field.
+ * @param enabled Determines whether the input field is enabled for user interaction.
+ */
 @Composable
 fun EmailField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
+        singleLine = true,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
         value = value,
         onValueChange = { onNewValue(it) },
         label = { Text(stringResource(id = R.string.email_label)) },
         placeholder = { Text(stringResource(id = R.string.placeholder_email)) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        singleLine = true,
         isError = error != null,
         enabled = enabled,
         supportingText = {
@@ -201,8 +244,21 @@ fun EmailField(value: String, onNewValue: (String) -> Unit, error: String?, enab
     )
 }
 
+/**
+ * Composable function for the password input field.
+ *
+ * @param value The current value of the password input.
+ * @param onNewValue Callback invoked when the password input changes.
+ * @param error Optional error message to display below the input field.
+ * @param enabled Determines whether the input field is enabled for user interaction.
+ */
 @Composable
-fun PasswordField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
+fun PasswordField(
+    value: String,
+    onNewValue: (String) -> Unit,
+    error: String?,
+    enabled: Boolean
+) {
     var isVisible by remember { mutableStateOf(true) }
 
     val icon = if (isVisible) painterResource(R.drawable.ic_visibility_on) else painterResource(R.drawable.ic_visibility_off)
@@ -235,9 +291,18 @@ fun PasswordField(value: String, onNewValue: (String) -> Unit, error: String?, e
     )
 }
 
+/**
+ * Composable function for the sign-up button.
+ *
+ * This button initiates the sign-up process by invoking the [SignupViewModel]'s [SignupViewModel.onSignUpClick] method.
+ *
+ * @param navController The [NavController] used for navigation after successful sign-up.
+ * @param viewModel The [SignupViewModel] managing the sign-up logic.
+ * @param context The [Context] used for displaying Toast messages.
+ * @param isLoading Indicates whether a sign-up operation is currently in progress.
+ */
 @Composable
-private fun SignUpButton(navController: NavController, viewModel: SignupViewModel, isLoading: Boolean) {
-    val context = LocalContext.current
+private fun SignUpButton(navController: NavController, viewModel: SignupViewModel, context: Context, isLoading: Boolean) {
     Button(
         onClick = { viewModel.onSignUpClick(navController, context) },
         modifier = Modifier
@@ -249,6 +314,13 @@ private fun SignUpButton(navController: NavController, viewModel: SignupViewMode
     }
 }
 
+/**
+ * Composable function for the sign-in button.
+ *
+ * This button navigates the user back to the Sign-In screen.
+ *
+ * @param navController The [NavController] used for navigation.
+ */
 @Composable
 fun SignInButton(navController: NavController) {
     OutlinedButton(

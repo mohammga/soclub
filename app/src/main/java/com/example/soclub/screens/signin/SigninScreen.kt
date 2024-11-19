@@ -33,6 +33,16 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import com.example.soclub.R
 
+/**
+ * Composable function representing the Sign-In screen.
+ *
+ * This screen allows users to input their email and password to sign in.
+ * It includes fields for email and password, buttons for signing in and navigating to the sign-up screen,
+ * and a link for resetting the password.
+ *
+ * @param navController The [NavController] used for navigation between screens.
+ * @param viewModel The [SigninViewModel] managing the UI state and handling sign-in logic.
+ */
 @Composable
 fun SigninScreen(navController: NavController, viewModel: SigninViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState
@@ -97,6 +107,14 @@ fun SigninScreen(navController: NavController, viewModel: SigninViewModel = hilt
     }
 }
 
+/**
+ * Composable function for the email input field.
+ *
+ * @param value The current value of the email input.
+ * @param onNewValue Callback invoked when the email input changes.
+ * @param error Optional error message to display below the input field.
+ * @param enabled Determines whether the input field is enabled for user interaction.
+ */
 @Composable
 fun EmailField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -120,6 +138,14 @@ fun EmailField(value: String, onNewValue: (String) -> Unit, error: String?, enab
     )
 }
 
+/**
+ * Composable function for the password input field.
+ *
+ * @param value The current value of the password input.
+ * @param onNewValue Callback invoked when the password input changes.
+ * @param error Optional error message to display below the input field.
+ * @param enabled Determines whether the input field is enabled for user interaction.
+ */
 @Composable
 fun PasswordField(
     value: String,
@@ -159,6 +185,14 @@ fun PasswordField(
     )
 }
 
+/**
+ * Composable function for the sign-in button.
+ *
+ * @param navController The [NavController] used for navigation.
+ * @param viewModel The [SigninViewModel] managing the sign-in logic.
+ * @param context The [Context] used for displaying Toast messages.
+ * @param isLoading Indicates whether a sign-in operation is currently in progress.
+ */
 @Composable
 private fun SignInButton(navController: NavController, viewModel: SigninViewModel, context: Context, isLoading: Boolean) {
     Button(
@@ -172,6 +206,13 @@ private fun SignInButton(navController: NavController, viewModel: SigninViewMode
     }
 }
 
+/**
+ * Composable function for the sign-up button.
+ *
+ * This button navigates the user to the sign-up screen.
+ *
+ * @param navController The [NavController] used for navigation.
+ */
 @Composable
 fun SignUpButton(navController: NavController) {
     OutlinedButton(
@@ -186,6 +227,13 @@ fun SignUpButton(navController: NavController) {
     }
 }
 
+/**
+ * Composable function for the reset password text link.
+ *
+ * This text is clickable and navigates the user to the reset password screen.
+ *
+ * @param navController The [NavController] used for navigation.
+ */
 @Composable
 fun ResetPasswordText(navController: NavController) {
     Row(

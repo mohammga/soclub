@@ -15,6 +15,21 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * Represents the state of the registration screen for new users.
+ *
+ * @property email The user's input email address.
+ * @property firstname The user's first name.
+ * @property lastname The user's last name.
+ * @property password The user's input password.
+ * @property age The user's input age.
+ * @property emailError Optional resource ID for email validation error messages.
+ * @property firstNameError Optional resource ID for first name validation error messages.
+ * @property lastNameError Optional resource ID for last name validation error messages.
+ * @property passwordError Optional resource ID for password validation error messages.
+ * @property ageError Optional resource ID for age validation error messages.
+ * @property generalError Optional resource ID for general error messages.
+ */
 data class RegistrationNewUserState(
     val email: String = "",
     val firstname: String = "",
@@ -29,21 +44,48 @@ data class RegistrationNewUserState(
     @StringRes val generalError: Int? = null
 )
 
+/**
+ * ViewModel for handling the logic of the registration screen for new users.
+ *
+ * This ViewModel manages the state of the registration UI, handles user input,
+ * performs validation, and communicates with [AccountService] to create new accounts.
+ *
+ * @property accountService The service responsible for account-related operations.
+ */
 @HiltViewModel
 class SignupViewModel @Inject constructor(private val accountService: AccountService) : ViewModel() {
 
+    /**
+     * The current UI state of the registration screen.
+     */
     var uiState = mutableStateOf(RegistrationNewUserState())
         private set
 
-    var isLoading = mutableStateOf(false) // Ny tilstand for å spore registreringsstatus
+    /**
+     * Indicates whether a registration operation is currently in progress.
+     */
+    var isLoading = mutableStateOf(false) // New state to track registration status
         private set
 
-
+    /**
+     * Updates the email value in the UI state.
+     *
+     * Converts the input to lowercase and clears any existing email error.
+     *
+     * @param newValue The new email input from the user.
+     */
     fun onEmailChange(newValue: String) {
         val lowerCaseEmail = newValue.lowercase()
         uiState.value = uiState.value.copy(email = lowerCaseEmail, emailError = null)
     }
 
+    /**
+     * Updates the first name value in the UI state.
+     *
+     * Formats the first name by capitalizing the first letter of each word and clears any existing first name error.
+     *
+     * @param newValue The new first name input from the user.
+     */
     fun onFirstNameChange(newValue: String) {
         val formattedFirstName = newValue
             .split(" ")
@@ -51,20 +93,50 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
         uiState.value = uiState.value.copy(firstname = formattedFirstName, firstNameError = null)
     }
 
+    /**
+     * Updates the last name value in the UI state.
+     *
+     * Removes spaces and capitalizes the first letter of the last name, then clears any existing last name error.
+     *
+     * @param newValue The new last name input from the user.
+     */
     fun onLastNameChange(newValue: String) {
         val formattedLastName = newValue.replace(" ", "").replaceFirstChar { it.uppercaseChar() }
         uiState.value = uiState.value.copy(lastname = formattedLastName, lastNameError = null)
     }
 
-
+    /**
+     * Updates the password value in the UI state.
+     *
+     * Clears any existing password error.
+     *
+     * @param newValue The new password input from the user.
+     */
     fun onPasswordChange(newValue: String) {
         uiState.value = uiState.value.copy(password = newValue, passwordError = null)
     }
 
+    /**
+     * Updates the age value in the UI state.
+     *
+     * Clears any existing age error.
+     *
+     * @param newValue The new age input from the user.
+     */
     fun onAgeChange(newValue: String) {
         uiState.value = uiState.value.copy(age = newValue, ageError = null)
     }
 
+    /**
+     * Handles the sign-up action when the user clicks the sign-up button.
+     *
+     * Performs input validation, displays appropriate error messages,
+     * and attempts to create a new account using [AccountService].
+     * Upon successful registration, navigates to the home screen.
+     *
+     * @param navController [NavController] used for navigation.
+     * @param context [Context] used for displaying Toast messages.
+     */
     fun onSignUpClick(navController: NavController, context: Context) {
         var hasError = false
         var firstNameError: Int? = null
@@ -73,6 +145,7 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
         var emailError: Int? = null
         var passwordError: Int? = null
 
+        // Validate first name
         if (uiState.value.firstname.isBlank()) {
             firstNameError = R.string.error_first_name_required
             hasError = true
@@ -81,6 +154,7 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
             hasError = true
         }
 
+        // Validate last name
         if (uiState.value.lastname.isBlank()) {
             lastNameError = R.string.error_last_name_required
             hasError = true
@@ -89,6 +163,7 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
             hasError = true
         }
 
+        // Validate age
         if (uiState.value.age.isBlank()) {
             ageError = R.string.error_age_required
             hasError = true
@@ -100,6 +175,7 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
             hasError = true
         }
 
+        // Validate email
         if (uiState.value.email.isBlank()) {
             emailError = R.string.error_email_required
             hasError = true
@@ -108,6 +184,7 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
             hasError = true
         }
 
+        // Validate password
         if (uiState.value.password.isBlank()) {
             passwordError = R.string.error_password_required
             hasError = true
@@ -128,6 +205,7 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
             hasError = true
         }
 
+        // Update UI state with validation errors, if any
         uiState.value = uiState.value.copy(
             firstNameError = firstNameError,
             lastNameError = lastNameError,
@@ -137,11 +215,13 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
             generalError = null // Reset general error on each new attempt
         )
 
+        // If there are validation errors, abort the sign-up process
         if (hasError) return
 
-        // Start registreringsprosessen
+        // Start the registration process
         isLoading.value = true
 
+        // Launch a coroutine for the registration process
         viewModelScope.launch {
             try {
                 val convertedAge = uiState.value.age.toIntOrNull() ?: 0
@@ -152,10 +232,10 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
                     uiState.value.lastname,
                     convertedAge
                 ) { error ->
-                    isLoading.value = false // Fullfør registreringsprosessen
+                    isLoading.value = false // Complete the registration process
 
                     if (error == null) {
-                        // Sucessmelding, naviger til Hjem
+                        // Show success message and navigate to Home
                         Toast.makeText(
                             context,
                             context.getString(
@@ -164,15 +244,17 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
                             ),
                             Toast.LENGTH_LONG
                         ).show()
-                        // Tilbakestill inputfeltene etter suksessfull registrering
+                        // Reset input fields after successful registration
                         uiState.value = RegistrationNewUserState()
                         navController.navigate(AppScreens.HOME.name)
                     } else {
+                        // Update UI state with a general account creation error
                         uiState.value =
                             uiState.value.copy(generalError = R.string.error_account_creation)
                     }
                 }
             } catch (e: Exception) {
+                // Handle any exceptions that occur during account creation
                 isLoading.value = false
                 uiState.value = uiState.value.copy(generalError = R.string.error_account_creation)
             }
