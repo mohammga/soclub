@@ -273,6 +273,7 @@ fun ImageUploadSection(
                     contentScale = ContentScale.Crop
                 )
             } else {
+                // Vis standardbilde når imageUri er null
                 Image(
                     painter = painterResource(id = R.drawable.user),
                     contentDescription = stringResource(id = R.string.profile_picture_description),
@@ -285,7 +286,8 @@ fun ImageUploadSection(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+
+            Spacer(modifier = Modifier.height(16.dp))
 
         Text(
             text = stringResource(id = R.string.change_profile_picture),
