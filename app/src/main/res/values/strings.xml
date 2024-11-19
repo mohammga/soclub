@@ -380,4 +380,19 @@
     <string name="error_user_data_not_found">User data not found</string>
     <string name="user_null_after_registration">User is null after registration</string>
     <string name="theme">Choose between system, light, and dark theme</string>
+    <string name="participants_label">Deltakere</string>
+    <string name="agelimt_label">Aldersgruppe</string>
+    <string name="unknown_date">Ukjent dato</string>
+    <string name="unknown_start_time">Ukjent starttid</string>
+    <string name="alle_age_group">Alle</string>
+    <string name="last_updated">Siste endret: %s</string>
+    <string name="unknown">Ukjent</string>
+    <string name="author">Forfatter</string>
+    <string name="published">Publisert %s</string>
+    <string name="contact">Kontakt</string>
+    <string name="no_email_app_found">Ingen e-postapp funnet</string>
+    <string name="email_missing">E-postadresse mangler</string>
+    <string name="system">System</string>
+    <string name="light">Lyst</string>
+    <string name="darke">Mørkt</string>
 </resources>
