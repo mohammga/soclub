@@ -452,5 +452,15 @@
     <string name="channel_id">\naktivitets påminnelses kanal</string>
     <string name="channel_name">Aktivitets påminnelses varsler</string>
     <string name="channel_description">Varsler for aktivitetspåminnelser og oppdateringer</string>
+    <string name="unknown_time">Ukjent tid</string>
+    <string name="error_fetch_activity">Failed to fetch activity: %1$s</string>
+    <string name="error_activity_not_found">Finner ikke aktivitet</string>
+    <string name="error_user_registration">Kunne ikke kontrollere brukerregistrering: %1$s</string>
+    <string name="status_active">aktiv</string>
+    <string name="error_update_registration_status">Mislyktes i å oppdatere registreringsstatus: %1$s</string>
+    <string name="error_get_registered_participants_count">Mislyktes i å hente antall registrerte deltakere: %1$s</string>
+    <string name="error_listening_registration_updates">Feil ved lytting til registreringsoppdateringer: %1$s</string>
+    <string name="error_listening_activity_updates">Feil ved lytting til aktivitetsoppdateringer: %1$s</string>
+    <string name="error_parsing_activity_data">Kunne ikke analysere aktivitetsdata</string>
 
 </resources>
