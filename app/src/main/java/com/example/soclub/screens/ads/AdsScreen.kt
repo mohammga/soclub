@@ -26,8 +26,6 @@ import java.util.Locale
 import android.icu.text.SimpleDateFormat
 import com.google.firebase.Timestamp
 
-
-
 @Composable
 fun AdsScreen(
     navController: NavController,
