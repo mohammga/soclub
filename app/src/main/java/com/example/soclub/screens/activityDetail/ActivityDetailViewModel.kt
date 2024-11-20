@@ -147,7 +147,7 @@ class ActivityDetailViewModel @Inject constructor(
      *
      * @param creatorId The unique identifier of the creator.
      */
-    private fun fetchPublisherInfo(creatorId: String?) {
+    fun fetchPublisherInfo(creatorId: String?) {
         if (creatorId.isNullOrEmpty() || creatorId == "admin") {
             _publisherUser.value = null
         } else {
@@ -169,7 +169,7 @@ class ActivityDetailViewModel @Inject constructor(
      *
      * @param activityId The unique identifier of the activity.
      */
-    private fun loadRegisteredParticipants(activityId: String) {
+    fun loadRegisteredParticipants(activityId: String) {
         viewModelScope.launch {
             val count = activityDetailService.getRegisteredParticipantsCount(activityId)
             _currentParticipants.value = count
