@@ -47,6 +47,14 @@ import android.widget.Toast
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.core.content.ContextCompat
 
+/**
+ * Main screen for editing an activity.
+ *
+ * @param navController Navigation controller for navigating between screens.
+ * @param activityId The unique ID of the activity to be edited.
+ * @param viewModel ViewModel containing the logic and state for the screen.
+ * @param category The category of the activity being edited.
+ */
 @Composable
 fun EditActivityScreen(
     navController: NavController,
@@ -222,6 +230,12 @@ fun EditActivityScreen(
     }
 }
 
+/**
+ * Dialog for confirming the deletion of an activity.
+ *
+ * @param onConfirm Callback invoked when the user confirms the deletion.
+ * @param onDismiss Callback invoked when the user dismisses the dialog.
+ */
 @Composable
 fun DeleteConfirmationDialog(
     onConfirm: () -> Unit,
@@ -244,6 +258,14 @@ fun DeleteConfirmationDialog(
     )
 }
 
+/**
+ * Text field for entering the title of the activity.
+ *
+ * @param value The current value of the title.
+ * @param onNewValue Callback invoked when the title value changes.
+ * @param error Error message displayed if there is an error.
+ * @param enabled Flag indicating whether the field is editable.
+ */
 @Composable
 fun TitleField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -266,6 +288,14 @@ fun TitleField(value: String, onNewValue: (String) -> Unit, error: String?, enab
     )
 }
 
+/**
+ * Text field for entering the description of the activity.
+ *
+ * @param value The current value of the description.
+ * @param onNewValue Callback invoked when the description value changes.
+ * @param error Error message displayed if there is an error.
+ * @param enabled Flag indicating whether the field is editable.
+ */
 @Composable
 fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -289,6 +319,14 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?
     )
 }
 
+/**
+ * Dropdown field for selecting the category of the activity.
+ *
+ * @param value The current value of the category.
+ * @param onNewValue Callback invoked when the category value changes.
+ * @param error Error message displayed if there is an error.
+ * @param enabled Flag indicating whether the field is editable.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
@@ -335,6 +373,16 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?, e
     }
 }
 
+/**
+ * Dropdown field for selecting or entering the location of the activity.
+ *
+ * @param initialValue The initial value of the location.
+ * @param onNewValue Callback invoked when the location value changes.
+ * @param suggestions List of location suggestions displayed in the dropdown.
+ * @param onSuggestionClick Callback invoked when a suggestion is selected.
+ * @param error Error message displayed if there is an error.
+ * @param enabled Flag indicating whether the field is editable.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocationField(
@@ -403,6 +451,17 @@ fun LocationField(
     }
 }
 
+/**
+ * Dropdown field for selecting or entering the address of the activity.
+ *
+ * @param initialValue The initial value of the address.
+ * @param onNewValue Callback invoked when the address value changes.
+ * @param suggestions List of address suggestions displayed in the dropdown.
+ * @param onSuggestionClick Callback invoked when a suggestion is selected.
+ * @param isEnabled Flag indicating whether the field is visible.
+ * @param error Error message displayed if there is an error.
+ * @param enabled Flag indicating whether the field is editable.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddressField(
@@ -475,6 +534,12 @@ fun AddressField(
     }
 }
 
+/**
+ * Text field for displaying the postal code of the activity.
+ *
+ * @param value The current value of the postal code.
+ * @param error Error message displayed if there is an error.
+ */
 @Composable
 fun PostalCodeField(value: String, error: String?) {
     OutlinedTextField(
@@ -499,6 +564,14 @@ fun PostalCodeField(value: String, error: String?) {
     )
 }
 
+/**
+ * Field for selecting the date of the activity using a date picker dialog.
+ *
+ * @param value The current date value in milliseconds.
+ * @param onNewValue Callback invoked when a new date is selected.
+ * @param error Error message displayed if there is an error.
+ * @param enabled Flag indicating whether the field is editable.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enabled: Boolean) {
@@ -574,7 +647,14 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enab
     }
 }
 
-
+/**
+ * Field for selecting the start time of the activity using a time picker dialog.
+ *
+ * @param value The current value of the start time.
+ * @param onNewValue Callback invoked when a new time is selected.
+ * @param error Error message displayed if there is an error.
+ * @param enabled Flag indicating whether the field is editable.
+ */
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -645,6 +725,14 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?, 
     }
 }
 
+/**
+ * Field for entering the maximum number of participants for the activity.
+ *
+ * @param value The current value of the maximum participants.
+ * @param onNewValue Callback invoked when the value changes.
+ * @param error Error message displayed if there is an error.
+ * @param enabled Flag indicating whether the field is editable.
+ */
 @Composable
 fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -668,6 +756,15 @@ fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: Str
     )
 }
 
+
+/**
+ * Field for entering the age limit for the activity.
+ *
+ * @param value The current value of the age limit.
+ * @param onNewValue Callback invoked when the value changes.
+ * @param error Error message displayed if there is an error.
+ * @param enabled Flag indicating whether the field is editable.
+ */
 @Composable
 fun AgeLimitField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -691,6 +788,14 @@ fun AgeLimitField(value: String, onNewValue: (String) -> Unit, error: String?, e
     )
 }
 
+/**
+ * Section for uploading and managing an image for the activity.
+ *
+ * @param selectedImageUri The URI of the currently selected image.
+ * @param onImageSelected Callback invoked when a new image is selected.
+ * @param error Error message displayed if there is an error.
+ * @param enabled Flag indicating whether the section is enabled.
+ */
 @Composable
 fun ImageUploadSection(
     selectedImageUri: Uri?,
@@ -861,6 +966,13 @@ fun ImageUploadSection(
     }
 }
 
+/**
+ * Determines whether the app should show a rationale for requesting a specific permission.
+ *
+ * @param context The current context.
+ * @param permission The permission being requested.
+ * @return `true` if a rationale should be shown, otherwise `false`.
+ */
 
 @SuppressLint("RestrictedApi")
 fun shouldShowRequestPermissionRationale(context: Context, permission: String): Boolean {
@@ -871,7 +983,13 @@ fun shouldShowRequestPermissionRationale(context: Context, permission: String): 
     }
 }
 
-
+/**
+ * Button for saving changes made to the activity.
+ *
+ * @param onClick Callback invoked when the button is clicked.
+ * @param enabled Flag indicating whether the button is enabled.
+ * @param isSaving Flag indicating whether the save operation is in progress.
+ */
 @Composable
 fun SaveChangesButton(
     onClick: () -> Unit,

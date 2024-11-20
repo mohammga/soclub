@@ -31,6 +31,15 @@ import com.example.soclub.R
 import com.example.soclub.components.navigation.AppScreens
 import com.example.soclub.models.UserInfo
 
+/**
+ * Composable for displaying the profile screen.
+ *
+ * This screen shows user profile information, options to edit the profile, and account settings.
+ * It also allows users to log out of the application.
+ *
+ * @param navController The navigation controller for navigating between screens.
+ * @param viewModel The ViewModel that provides user data and handles actions for this screen.
+ */
 @Composable
 fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel = hiltViewModel()) {
     val userInfo = viewModel.userInfo
@@ -71,6 +80,11 @@ fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel 
     }
 }
 
+/**
+ * Displays the user's profile image.
+ *
+ * @param imageUrl The URL of the user's profile image.
+ */
 @Composable
 fun ProfileImage(imageUrl: String?) {
     if (imageUrl.isNullOrEmpty()) {
@@ -94,6 +108,12 @@ fun ProfileImage(imageUrl: String?) {
     }
 }
 
+/**
+ * Displays the user's full name.
+ *
+ * @param firstname The user's first name.
+ * @param lastname The user's last name.
+ */
 @Composable
 fun ProfileName(firstname: String, lastname: String) {
     val fullName = if (firstname.isNotEmpty() && lastname.isNotEmpty()) {
@@ -109,6 +129,12 @@ fun ProfileName(firstname: String, lastname: String) {
     )
 }
 
+/**
+ * Button for navigating to the edit profile screen.
+ *
+ * @param navController The navigation controller for navigating to the edit profile screen.
+ * @param isLoggingOut A flag indicating whether the user is in the process of logging out.
+ */
 @Composable
 fun EditProfileButton(navController: NavHostController, isLoggingOut: Boolean) {
     Button(
@@ -121,6 +147,13 @@ fun EditProfileButton(navController: NavHostController, isLoggingOut: Boolean) {
     }
 }
 
+/**
+ * Displays a section for account information with clickable rows for different actions.
+ *
+ * @param navController The navigation controller for navigating to other screens.
+ * @param userInfo The user's account information.
+ * @param isLoggingOut A flag indicating whether the user is in the process of logging out.
+ */
 @Composable
 fun AccountInfoSection(navController: NavHostController, userInfo: UserInfo?, isLoggingOut: Boolean) {
     Column(
@@ -152,6 +185,13 @@ fun AccountInfoSection(navController: NavHostController, userInfo: UserInfo?, is
     }
 }
 
+/**
+ * Button for logging out the user.
+ *
+ * @param navController The navigation controller for navigating to the login screen.
+ * @param viewModel The ViewModel handling logout functionality.
+ * @param isLoggingOut A flag indicating whether the user is in the process of logging out.
+ */
 @Composable
 fun LogoutButton(navController: NavHostController, viewModel: ProfileViewModel, isLoggingOut: Boolean) {
     val context = LocalContext.current
@@ -172,6 +212,14 @@ fun LogoutButton(navController: NavHostController, viewModel: ProfileViewModel, 
     }
 }
 
+/**
+ * Displays a row of information with optional interaction.
+ *
+ * @param label The label of the row.
+ * @param value The value displayed in the row.
+ * @param enabled A flag indicating whether the row is clickable.
+ * @param onClick An optional click listener for the row.
+ */
 @Composable
 fun ProfileInfoRow(label: String, value: String = "", enabled: Boolean = true, onClick: (() -> Unit)? = null) {
     Row(
@@ -198,10 +246,4 @@ fun ProfileInfoRow(label: String, value: String = "", enabled: Boolean = true, o
             )
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ProfileScreenPreview() {
-    ProfileScreen(rememberNavController())
 }

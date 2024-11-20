@@ -14,6 +14,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for managing the Ads screen.
+ *
+ * - Fetches activities created by the current user.
+ * - Handles loading state and error messages.
+ *
+ * @param context Application context for accessing resources.
+ * @param activityService Service for fetching activity data.
+ * @param accountService Service for accessing account-related information.
+ */
 @HiltViewModel
 class AdsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -21,15 +31,53 @@ class AdsViewModel @Inject constructor(
     private val accountService: AccountService
 ) : ViewModel() {
 
+    /**
+     * Represents the loading state of the Ads screen.
+     * True when data is being fetched; false otherwise.
+     */
     private val _isLoading = MutableStateFlow(true)
-    val isLoading: StateFlow<Boolean> = _isLoading
 
+    /**
+     * Holds any error messages encountered during data fetching.
+     * Null if no errors occurred.
+     */
     private val _errorMessage = MutableStateFlow<String?>(null)
+
+    /**
+     * Holds the list of activities created by the current user.
+     * Initially an empty list.
+     */
+    private val _activities = MutableStateFlow<List<EditActivity>>(emptyList())
+
+
+    /**
+     * Exposes the loading state as an immutable flow.
+     * Observed by the UI to display loading indicators.
+     */
     val errorMessage: StateFlow<String?> = _errorMessage
 
-    private val _activities = MutableStateFlow<List<EditActivity>>(emptyList())
+
+    /**
+     * Exposes the error message as an immutable flow.
+     * Observed by the UI to display error messages.
+     */
+    val isLoading: StateFlow<Boolean> = _isLoading
+
+    /**
+     * Exposes the list of activities as an immutable flow.
+     * Observed by the UI to display the activities created by the user.
+     */
     val activities: StateFlow<List<EditActivity>> = _activities
 
+
+    /**
+     * Fetches the list of activities created by the current user.
+     *
+     * - Retrieves the creator ID from the account service.
+     * - Fetches activities from the activity service.
+     * - Updates the `_activities` state with the fetched activities.
+     * - Handles any errors that occur during the fetching process.
+     */
     fun fetchActivitiesByCreator() {
         val creatorId = accountService.currentUserId
         viewModelScope.launch {
