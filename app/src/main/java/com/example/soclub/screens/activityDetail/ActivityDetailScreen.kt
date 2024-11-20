@@ -431,6 +431,7 @@ fun InfoRow(
                 modifier = Modifier.size(32.dp)
             )
         }
+
         Column {
             Text(
                 text = subText,
@@ -443,6 +444,33 @@ fun InfoRow(
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 fontSize = 12.sp
             )
+
+          
+          =======
+    }
+}
+
+
+
+@Composable
+fun ActivityImage(imageUrl: String) {
+    val painter = if (imageUrl.isNotBlank()) {
+        rememberAsyncImagePainter(model = imageUrl)
+    } else {
+        painterResource(id = R.drawable.placeholder)
+    }
+
+    Image(
+        painter = painter,
+        contentDescription = "Activity Image",
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .padding(vertical = 8.dp),
+        contentScale = ContentScale.Crop
+    )
+
         }
     }
 }

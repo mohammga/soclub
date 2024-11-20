@@ -761,7 +761,7 @@ fun ImageUploadSection(
             },
             dismissButton = {
                 TextButton(onClick = { showPermissionDialog = false }) {
-                    Text("Avbryt")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )

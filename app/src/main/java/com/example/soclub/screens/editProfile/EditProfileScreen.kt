@@ -63,7 +63,8 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                 errorMessage != null -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = errorMessage ?: "An unknown error occurred",
+                            //text = errorMessage ?: "An unknown error occurred",
+                            text = errorMessage ?: stringResource(id = R.string.unknown_error_occurred),
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -261,6 +262,7 @@ fun ImageUploadSection(
                     contentScale = ContentScale.Crop
                 )
             } else {
+                // Vis standardbilde når imageUri er null
                 Image(
                     painter = painterResource(id = R.drawable.user),
                     contentDescription = stringResource(id = R.string.profile_picture_description),
@@ -273,7 +275,8 @@ fun ImageUploadSection(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+
+            Spacer(modifier = Modifier.height(16.dp))
 
         Text(
             text = stringResource(id = R.string.change_profile_picture),
