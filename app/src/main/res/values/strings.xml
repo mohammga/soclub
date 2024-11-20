@@ -486,6 +486,13 @@
     <string name="error_fetch_all_activities_failed">Kunne ikke hente alle aktiviteter: %1$s</string>
     <string name="error_fetch_grouped_activities_failed">Kunne ikke hente grupperte aktiviteter: %1$s</string>
     <string name="error_fetch_registered_users_failed">Kunne ikke hente registrerte brukere: %1$s</string>
+    <string name="error_fetching_active_activities">Feil ved henting av aktive aktiviteter: %1$s</string>
+    <string name="error_get_active_activities">Kunne ikke hente aktive aktiviteter for brukeren: %1$s</string>
+    <string name="error_missing_activity_id">Mangler activityId i registreringsdokumentet</string>
+    <string name="error_fetching_not_active_activities">Feil ved henting av ikke-aktive aktiviteter: %1$s</string>
+    <string name="error_get_not_active_activities">Kunne ikke hente ikke-aktive aktiviteter for brukeren: %1$s</string>
+
+
 
 
 
