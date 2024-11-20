@@ -118,8 +118,8 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                                 onClick = {
                                     viewModel.onSaveProfileClick(navController, context)
                                 },
-                                enabled = uiState.isDirty && !isSaving,  // Deaktiver knapp når lagring pågår
-                                isSaving = isSaving  // Send isSaving til SaveButton
+                                enabled = uiState.isDirty && !isSaving,
+                                isSaving = isSaving
                             )
                         }
                     }
@@ -166,18 +166,14 @@ fun ImageUploadSection(
     enabled: Boolean = true
 ) {
     val context = LocalContext.current
-
-    // Bestem riktig tillatelse for Android-versjonen
     val galleryPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         Manifest.permission.READ_MEDIA_IMAGES
     } else {
         Manifest.permission.READ_EXTERNAL_STORAGE
     }
 
-    // Tilstand for å spore om tillatelsesdialogen skal vises
     var showPermissionDialog by remember { mutableStateOf(false) }
 
-    // Launcher for å åpne galleriet
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -186,15 +182,13 @@ fun ImageUploadSection(
         }
     }
 
-    // Launcher for å be om tillatelse
+
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            // Tillatelse gitt, åpne galleriet
             galleryLauncher.launch("image/*")
         } else {
-            // Tillatelse nektet, vis en melding eller håndter det
             Toast.makeText(
                 context,
                 R.string.galleriPermissionisrequired,
@@ -203,28 +197,23 @@ fun ImageUploadSection(
         }
     }
 
-    // Funksjon for å håndtere klikkhendelser
     val handleImageClick = {
         when {
             ContextCompat.checkSelfPermission(
                 context,
                 galleryPermission
             ) == PackageManager.PERMISSION_GRANTED -> {
-                // Tillatelse gitt, åpne galleriet
                 galleryLauncher.launch("image/*")
             }
             shouldShowRequestPermissionRationale(context, galleryPermission) -> {
-                // Vis begrunnelsesdialog
                 showPermissionDialog = true
             }
             else -> {
-                // Be direkte om tillatelse
                 permissionLauncher.launch(galleryPermission)
             }
         }
     }
 
-    // Begrunnelsesdialog
     if (showPermissionDialog) {
         AlertDialog(
             onDismissRequest = { showPermissionDialog = false },
@@ -350,8 +339,6 @@ fun ImageUploadSection(
     }
 }
 
-
-// Helper function to check if we should show rationale
 fun shouldShowRequestPermissionRationale(context: Context, permission: String): Boolean {
     return if (context is ActivityResultRegistryOwner) {
         ActivityCompat.shouldShowRequestPermissionRationale(context as ComponentActivity, permission)

@@ -1,4 +1,3 @@
-// Fil: MainActivity.kt
 package com.example.soclub
 
 import android.os.Bundle

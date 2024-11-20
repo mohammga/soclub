@@ -148,12 +148,12 @@ fun showToast(context: Context, isRegistering: Boolean, activity: Activity?, cur
 
     val message = if (isRegistering) {
         if (remainingSlots > 0) {
-            context.getString(R.string.registration_successful)//"Påmeldingen var vellykket."
+            context.getString(R.string.registration_successful)
         } else {
-            context.getString(R.string.registration_successful_filled)//"Påmeldingen var vellykket. Alle plasser er nå fylt opp."
+            context.getString(R.string.registration_successful_filled)
         }
     } else {
-        context.getString(R.string.unregistered_successful)//"Du har nå meldt deg ut av aktiviteten."
+        context.getString(R.string.unregistered_successful)
     }
 
     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -240,7 +240,6 @@ fun ActivityDetailsContent(
         ActivityGPSImage(context = context, destinationLocation = fullLocation)
 
         Text(
-           // text = "Sist endret: ${activity?.lastUpdated?.let { formatDate(it) } ?: "Ukjent"}",
             stringResource(R.string.last_updated, activity?.lastUpdated?.let { formatDate(it) } ?: stringResource(R.string.unknown)),
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             fontSize = 12.sp,
@@ -278,7 +277,7 @@ fun formatDateWithoutTime(date: Timestamp): String {
 fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
     val context = LocalContext.current
     val formattedDate2 = remember(createdAt) {
-        createdAt?.let { formatDate(it) } ?: context.getString(R.string.unknown_date) //"Ukjent dato"
+        createdAt?.let { formatDate(it) } ?: context.getString(R.string.unknown_date)
     }
 
     if (publisherUser != null) {
@@ -287,14 +286,12 @@ fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Informasjonsboks
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(8.dp))
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Circular image
                     val painter = if (publisherUser.imageUrl.isNotEmpty()) {
                         rememberAsyncImagePainter(publisherUser.imageUrl)
                     } else {
@@ -328,7 +325,6 @@ fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
                         )
 
                         Text(
-                            //text = "Publisert $formattedDate2",
                             text = stringResource(R.string.published, formattedDate2),
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
@@ -339,7 +335,6 @@ fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Knappboks
             Button(
                 onClick = {
                     val email = publisherUser.email
@@ -350,11 +345,9 @@ fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
                         if (intent.resolveActivity(context.packageManager) != null) {
                             context.startActivity(intent)
                         } else {
-                            // Toast.makeText(context, "Ingen e-postapp funnet", Toast.LENGTH_SHORT).show()
                             Toast.makeText(context, context.getString(R.string.no_email_app_found), Toast.LENGTH_SHORT).show()
                         }
                     } else {
-                        //Toast.makeText(context, "E-postadresse mangler", Toast.LENGTH_SHORT).show()
                         Toast.makeText(context, context.getString(R.string.email_missing), Toast.LENGTH_SHORT).show()
                     }
                 },
@@ -363,7 +356,7 @@ fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text(text = stringResource(R.string.contact))//Kontakt
+                Text(text = stringResource(R.string.contact))
             }
         }
     }
@@ -440,7 +433,7 @@ fun ActivityDescription(description: String) {
     }
 
     Text(
-        text = stringResource(R.string.description_label),//Beskrivelse"
+        text = stringResource(R.string.description_label),
         fontSize = 24.sp,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(top = 16.dp)

@@ -17,26 +17,22 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         if (context == null) return
 
-        createNotificationChannel(context)  // Ensure the channel exists
+        createNotificationChannel(context)
 
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            val message = intent?.getStringExtra("message") ?: context.getString(R.string.default_notification_message)//"Påminnelse om din aktivitet"
+            val message = intent?.getStringExtra("message") ?: context.getString(R.string.default_notification_message)
             val activityId = intent?.getStringExtra("activityId") ?: return
             val userId = intent.getStringExtra("userId") ?: return
-
-            // Display the notification to the user
             val notification = NotificationCompat.Builder(context, "activity_reminder_channel")
-                .setContentTitle(context.getString(R.string.notification_title))//Aktivitetspåminnelse
+                .setContentTitle(context.getString(R.string.notification_title))
                 .setContentText(message)
-                .setSmallIcon(R.drawable.ic_stat_name) // Use a relevant icon
+                .setSmallIcon(R.drawable.ic_stat_name)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true)
                 .build()
 
             NotificationManagerCompat.from(context).notify(System.currentTimeMillis().toInt(), notification)
-
-            // Save the notification to Firestore when it's actually triggered
-            saveNotificationToDatabase(userId, activityId, message)
+            saveNotificationToDatabase(context, userId, activityId, message)
         } else {
             Log.e("Permission Error", "Notification permission not granted.")
         }

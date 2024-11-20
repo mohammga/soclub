@@ -109,13 +109,11 @@ class ActivityDetailViewModel @Inject constructor(
 
                 loadRegisteredParticipants(activityId)
 
-                // Sett opp sanntidslytting på aktivitetens data
-                activityListener?.remove()  // Fjern eventuell tidligere lytter for å unngå duplikater
+                activityListener?.remove()
                 activityListener = activityDetailService.listenForActivityUpdates(category, activityId) { updatedActivity ->
                     _activity.value = updatedActivity
                 }
 
-                // Sett opp sanntidslytting på antall deltakere
                 registrationListener = activityDetailService.listenToRegistrationUpdates(activityId) { count ->
                     _currentParticipants.value = count
                 }
@@ -156,7 +154,7 @@ class ActivityDetailViewModel @Inject constructor(
 
     fun updateRegistrationForActivity(activityId: String, isRegistering: Boolean) {
         viewModelScope.launch {
-            _isProcessingRegistration.value = true // Start registreringsprosessen
+            _isProcessingRegistration.value = true
 
             val userId = accountService.currentUserId
             val status = if (isRegistering) "aktiv" else "notAktiv"
@@ -171,14 +169,12 @@ class ActivityDetailViewModel @Inject constructor(
 
                     val startTimeMillis = getActivityStartTimeInMillis(currentActivity)
                     if (isRegistering && startTimeMillis != null) {
-                        // Schedule notifications...
                         scheduleNotificationForActivity(
                             activityTitle = currentActivity.title,
                             activityId = activityId,
                             startTimeMillis = startTimeMillis,
                             userId = userId
                         )
-                        // Immediate registration notification
                         scheduleReminder(
                             context = context,
                             reminderTime = System.currentTimeMillis(),
@@ -190,9 +186,7 @@ class ActivityDetailViewModel @Inject constructor(
                             isRegistration = true
                         )
                     } else if (!isRegistering) {
-                        // Cancel notifications...
                         cancelNotificationForActivity(context, activityId)
-                        // Immediate cancellation notification
                         scheduleReminder(
                             context = context,
                             reminderTime = System.currentTimeMillis(),
@@ -207,7 +201,7 @@ class ActivityDetailViewModel @Inject constructor(
                 }
             }
 
-            _isProcessingRegistration.value = false // Fullfør registreringsprosessen
+            _isProcessingRegistration.value = false
         }
     }
 
@@ -242,13 +236,10 @@ class ActivityDetailViewModel @Inject constructor(
 
         checkAndRequestExactAlarmPermission()
 
-        // Calculate times for 24 hours, 12 hours, 1 hour, and 2 minutes before the activity
-//        val twoMinutesBefore = startTimeMillis - (2 * 60 * 1000)
         val oneHourBefore = startTimeMillis - (60 * 60 * 1000)
         val twelveHoursBefore = startTimeMillis - (12 * 60 * 60 * 1000)
         val twentyFourHoursBefore = startTimeMillis - (24 * 60 * 60 * 1000)
 
-        // Schedule each reminder with a custom message
         if (twentyFourHoursBefore > currentTimeMillis) {
             scheduleReminder(
                 context = context,
@@ -256,7 +247,7 @@ class ActivityDetailViewModel @Inject constructor(
                 activityTitle = activityTitle,
                 activityId = "${activityId}_24hr",
                 userId = userId,
-                saveToDatabase = false  // Don't save to Firestore immediately
+                saveToDatabase = false
             )
         }
 
@@ -267,7 +258,7 @@ class ActivityDetailViewModel @Inject constructor(
                 activityTitle = activityTitle,
                 activityId = "${activityId}_12hr",
                 userId = userId,
-                saveToDatabase = false  // Don't save to Firestore immediately
+                saveToDatabase = false
             )
         }
 
@@ -278,21 +269,9 @@ class ActivityDetailViewModel @Inject constructor(
                 activityTitle = activityTitle,
                 activityId = "${activityId}_1hr",
                 userId = userId,
-                saveToDatabase = false  // Don't save to Firestore immediately
+                saveToDatabase = false
             )
         }
-
-//        if (twoMinutesBefore > currentTimeMillis) {
-//            scheduleReminder(
-//                context = context,
-//                reminderTime = twoMinutesBefore,
-//                activityTitle = activityTitle,
-//                activityId = "${activityId}_2min",
-//                userId = userId,
-//                saveToDatabase = false  // Set to false if you don’t want to save each notification to Firestore immediately
-//            )
-//        }
     }
-
 
 }

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -49,7 +50,7 @@ fun AppNavigation(
     val currentScreen = getCurrentScreen(navController)
 
     val notificationCount by notificationsViewModel.notificationCount.collectAsState()
-    Log.d("AppNavigation", "Notification count: $notificationCount")
+
 
     val profileScreens = setOf(
         AppScreens.PROFILE.name,
@@ -66,9 +67,10 @@ fun AppNavigation(
         else -> currentScreen
     }
 
+    val context = LocalContext.current
     val auth = remember { FirebaseModule.auth() }
     val firestore = remember { FirebaseModule.firestore() }
-    val accountService = remember { AccountServiceImpl(auth, firestore) }
+    val accountService = remember { AccountServiceImpl(auth, firestore, context) }
 
     Scaffold(
         topBar = {

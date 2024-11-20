@@ -98,7 +98,7 @@ fun PasswordField(
     onNewValue: (String) -> Unit,
     error: String? = null,
     supportingText: String? = null,
-    enabled: Boolean = true  // Legg til denne linjen
+    enabled: Boolean = true
 ) {
     var isVisible by remember { mutableStateOf(true) }
     var isVisibleToggled by remember { mutableStateOf(false) }
@@ -124,7 +124,7 @@ fun PasswordField(
                     isVisible = !isVisible
                     if (!isVisibleToggled) isVisibleToggled = true
                 },
-                enabled = enabled  // Deaktiver ikonet når feltet er deaktivert
+                enabled = enabled
             ) {
                 Icon(
                     painter = icon,
@@ -142,7 +142,7 @@ fun PasswordField(
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         },
-        enabled = enabled  // Sett enabled på tekstfeltet
+        enabled = enabled
     )
 }
 
@@ -155,9 +155,9 @@ private fun ChangePasswordButton(
     isProcessing: Boolean
 ) {
     val buttonText = if (isProcessing) {
-        stringResource(id = R.string.updating_password_button)  // "Oppdaterer passord..."
+        stringResource(id = R.string.updating_password_button)
     } else {
-        stringResource(id = R.string.update_password_button)  // "Oppdater passord"
+        stringResource(id = R.string.update_password_button)
     }
 
     Button(

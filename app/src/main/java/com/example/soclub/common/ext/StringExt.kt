@@ -1,13 +1,10 @@
 package com.example.soclub.common.ext
 
-import android.util.Patterns
-import java.util.regex.Pattern
-
 private const val MIN_PASS_LENGTH = 8
-private const val PASS_PATTERN = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=\\S+$).{4,}$"
 
 fun String.isValidEmail(): Boolean {
-    return Patterns.EMAIL_ADDRESS.matcher(this).matches()
+    val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$"
+    return Regex(emailRegex).matches(this)
 }
 
 fun String.isPasswordLongEnough(): Boolean {
@@ -30,15 +27,6 @@ fun String.containsNoWhitespace(): Boolean {
     return !this.contains(" ")
 }
 
-fun String.isValidPassword(): Boolean {
-    return this.isPasswordLongEnough() &&
-            this.containsUpperCase() &&
-            this.containsLowerCase() &&
-            this.containsDigit() &&
-            this.containsNoWhitespace()
-}
-
-
 fun String.isValidName(): Boolean {
     return this.matches(Regex("^[A-Za-zÆØÅæøå ]+$"))
 }
@@ -47,6 +35,7 @@ fun String.isAgeNumeric(): Boolean {
     return this.toIntOrNull() != null
 }
 
+//participants og age og alt i edit og create validations må legges her
 fun String.isValidParticipants(): Boolean {
     val participants = this.toIntOrNull()
     return participants != null && participants in 1..100

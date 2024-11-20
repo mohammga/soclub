@@ -94,8 +94,6 @@ class EditActivityViewModel @Inject constructor(
                     val addressParts = restOfAddress.split(", ")
                     val address = addressParts.getOrNull(0)?.trim() ?: ""
                     val postalCode = addressParts.getOrNull(1)?.trim() ?: ""
-
-                    // Sikre at `locationConfirmed` er satt basert på datatilgjengelighet
                     val isLocationConfirmed = location.isNotBlank()
                     val isAddressConfirmed = address.isNotBlank()
 
@@ -112,8 +110,8 @@ class EditActivityViewModel @Inject constructor(
                         startTime = activity.startTime,
                         category = category,
                         selectedImageUri = if (activity.imageUrl.isNotEmpty()) Uri.parse(activity.imageUrl) else null,
-                        locationConfirmed = isLocationConfirmed, // Bekreft sted
-                        addressConfirmed = isAddressConfirmed // Bekreft adresse
+                        locationConfirmed = isLocationConfirmed,
+                        addressConfirmed = isAddressConfirmed
                     )
                     oldCategory = category
                 } else {
@@ -126,14 +124,14 @@ class EditActivityViewModel @Inject constructor(
         }
     }
 
-    // Function to handle title change with first letter capitalized
+
     fun onTitleChange(newValue: String) {
         uiState.value = uiState.value.copy(title = newValue, titleError = null)
         val capitalizedTitle = newValue.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
         uiState.value = uiState.value.copy(title = capitalizedTitle, titleError = null)
     }
 
-    // Function to handle description change with first letter capitalized
+
     fun onDescriptionChange(newValue: String) {
         uiState.value = uiState.value.copy(description = newValue, descriptionError = null)
         val capitalizedDescription = newValue.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
@@ -150,7 +148,6 @@ class EditActivityViewModel @Inject constructor(
 
     fun onLocationChange(newValue: String) {
         if (newValue.isBlank()) {
-            // Tilbakestill feltene hvis sted er tømt
             uiState.value = uiState.value.copy(
                 location = newValue,
                 address = "",
@@ -170,7 +167,6 @@ class EditActivityViewModel @Inject constructor(
             )
 
             if (matchesSuggestion) {
-                // Når stedet matcher, tilbakestill avhengige felter
                 uiState.value = uiState.value.copy(address = "", postalCode = "")
             } else if (newValue.length >= 2) {
                 val suggestions = municipalities.filter { it.startsWith(newValue, ignoreCase = true) }
@@ -186,7 +182,6 @@ class EditActivityViewModel @Inject constructor(
             location = selectedLocation,
             locationSuggestions = emptyList(),
             locationConfirmed = true,
-            // Tilbakestill adresse og postnummer når et nytt sted er valgt
             address = "",
             postalCode = "",
             addressConfirmed = false,
@@ -195,14 +190,12 @@ class EditActivityViewModel @Inject constructor(
     }
 
     fun onAddressChange(newValue: String) {
-        // Tilbakestill postnummer og adressebekreftelse hvis brukeren skriver manuelt
         uiState.value = uiState.value.copy(
             address = newValue,
             addressConfirmed = false,
             postalCode = ""
         )
 
-        // Vis adresseforslag hvis sted er bekreftet
         if (newValue.isNotBlank() && uiState.value.locationConfirmed) {
             fetchAddressSuggestions(newValue)
         } else {
@@ -217,7 +210,6 @@ class EditActivityViewModel @Inject constructor(
             addressSuggestions = emptyList()
         )
 
-        // Hent postnummer kun når en adresse er valgt fra listen
         fetchPostalCodeForAddress(selectedAddress, uiState.value.location)
     }
 
@@ -288,7 +280,6 @@ class EditActivityViewModel @Inject constructor(
     }
 
     fun onSaveClick(navController: NavController, activityId: String, currentCategory: String) {
-        // Validering
         var hasError = false
         var titleError: String? = null
         var descriptionError: String? = null
@@ -302,27 +293,23 @@ class EditActivityViewModel @Inject constructor(
         var startTimeError: String? = null
 
         if (uiState.value.title.isBlank()) {
-            //titleError = "Du må fylle inn tittel"
             titleError = application.getString(R.string.you_must_fyll_the_titel)
             hasError = true
         }
         if (uiState.value.description.isBlank()) {
-            //descriptionError = "Du må fylle inn beskrivelse"
             descriptionError = application.getString(R.string.description_must_be_filled_error)
             hasError = true
         }
         if (uiState.value.category.isBlank()) {
-            //categoryError = "Du må velge kategori"
             categoryError = application.getString(R.string.you_most_select_category)
             hasError = true
         }
         if (uiState.value.location.isBlank()) {
-            //locationError = "Du må velge sted"
             locationError = application.getString(R.string.you_most_select_location)
             hasError = true
         }
         if (uiState.value.address.isBlank()) {
-            addressError = application.getString(R.string.you_most_select_address)//"Du må velge adresse"
+            addressError = application.getString(R.string.you_most_select_address)
             hasError = true
         }
         if (uiState.value.postalCode.isBlank()) {
@@ -391,8 +378,8 @@ class EditActivityViewModel @Inject constructor(
             if (uiState.value.selectedImageUri.toString().startsWith("content://")) {
                 storageService.uploadImage(
                     imageUri = uiState.value.selectedImageUri!!,
-                    isActivity = true,  // Sett til true for aktivitetsbilder
-                    category = uiState.value.category, // Passér aktivitetskategorien
+                    isActivity = true,
+                    category = uiState.value.category,
                     onSuccess = { imageUrl ->
                         updateActivityAndNavigate(
                             navController,
@@ -411,7 +398,6 @@ class EditActivityViewModel @Inject constructor(
                     }
                 )
             } else {
-                // Hopp over opplasting og bruk eksisterende URL hvis det er en ekstern URL
                 updateActivityAndNavigate(
                     navController,
                     uiState.value.imageUrl,
@@ -439,16 +425,13 @@ class EditActivityViewModel @Inject constructor(
     fun onDeleteClick(navController: NavController, category: String, activityId: String) {
         viewModelScope.launch {
             try {
-                // Før sletting, hent alle påmeldte brukere og kanseller deres varsler
                 val registeredUsers = activityService.getRegisteredUsersForActivity(activityId)
                 registeredUsers.forEach {
                     cancelNotificationForActivity(navController.context, activityId)
                 }
 
-                // Slett deretter selve aktiviteten fra databasen
                 activityService.deleteActivity(category, activityId)
 
-                // Naviger tilbake til hjem eller vis en bekreftelse
                 navController.navigate("home") {
                     popUpTo("editActivity") { inclusive = true }
                 }
@@ -481,7 +464,7 @@ class EditActivityViewModel @Inject constructor(
                     creatorId = creatorId,
                     title = uiState.value.title,
                     description = uiState.value.description,
-                    location = combinedLocation, // Kombinert adresse
+                    location = combinedLocation,
                     maxParticipants = uiState.value.maxParticipants.toIntOrNull() ?: 0,
                     ageGroup = uiState.value.ageLimit.toIntOrNull() ?: 0,
                     imageUrl = imageUrl,

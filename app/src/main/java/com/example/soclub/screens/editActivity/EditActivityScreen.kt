@@ -187,16 +187,6 @@ fun EditActivityScreen(
             item { Spacer(modifier = Modifier.height(16.dp)) }
 
             item {
-//                Button(
-//                    onClick = { viewModel.onSaveClick(navController, activityId, category) },
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .height(48.dp),
-//                ) {
-//                    Text(text = stringResource(R.string.save_changes_button))
-//                }
-
-
                 SaveChangesButton(
                     onClick = { viewModel.onSaveClick(navController, activityId, category) },
                     enabled = !isSaving,
@@ -239,8 +229,8 @@ fun DeleteConfirmationDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.confirm_deletion)) },//Bekreft sletting
-        text = { Text(stringResource(R.string.sure_you_want_to_delete)) },//"Er du sikker på at du vil slette denne aktiviteten? Denne handlingen kan ikke angres."
+        title = { Text(stringResource(R.string.confirm_deletion)) },
+        text = { Text(stringResource(R.string.sure_you_want_to_delete)) },
         confirmButton = {
             TextButton(onClick = onConfirm) {
                 Text(stringResource(R.string.delete), color = Color.Red)
@@ -248,7 +238,7 @@ fun DeleteConfirmationDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))//"Avbryt"
+                Text(stringResource(R.string.cancel))
             }
         }
     )
@@ -515,9 +505,8 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enab
     val context = LocalContext.current
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = value)
     val isDatePickerVisible = remember { mutableStateOf(false) }
-    val todayMillis = System.currentTimeMillis() // For å sjekke dagens dato
+    val todayMillis = System.currentTimeMillis()
 
-    // Formatere valgt dato eller vise placeholder
     val formattedDate = if (value != 0L) {
         SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
     } else {
@@ -557,12 +546,10 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enab
                     TextButton(
                         onClick = {
                             datePickerState.selectedDateMillis?.let { selectedDateMillis ->
-                                // Sjekker om valgt dato er gyldig (ikke i fortiden)
                                 if (selectedDateMillis >= todayMillis) {
                                     onNewValue(Timestamp(Date(selectedDateMillis)))
-                                    isDatePickerVisible.value = false // Lukk dialogen
+                                    isDatePickerVisible.value = false
                                 } else {
-                                    // Vis toast hvis datoen er i fortiden
                                     Toast.makeText(
                                         context,
                                         R.string.date_expiered,
@@ -599,7 +586,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?, 
         OutlinedTextField(
             value = value,
             onValueChange = {},
-            placeholder = { Text(stringResource(R.string.start_time_label)) },//Starttidspunkt"
+            placeholder = { Text(stringResource(R.string.start_time_label)) },
             label = { Text(stringResource(R.string.start_time_label))},
             modifier = Modifier
                 .fillMaxWidth()
@@ -615,7 +602,6 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?, 
             }
         )
 
-        // Invisible overlay box to intercept clicks
         Box(
             modifier = Modifier
                 .matchParentSize()
@@ -714,17 +700,14 @@ fun ImageUploadSection(
 ) {
     val context = LocalContext.current
 
-    // Determine the appropriate permission for the Android version
     val galleryPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         Manifest.permission.READ_MEDIA_IMAGES
     } else {
         Manifest.permission.READ_EXTERNAL_STORAGE
     }
 
-    // State to track permission request dialog
     var showPermissionDialog by remember { mutableStateOf(false) }
 
-    // Launcher to open the gallery
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -733,15 +716,12 @@ fun ImageUploadSection(
         }
     }
 
-    // Launcher to request permission
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            // Permission granted, open the gallery
             galleryLauncher.launch("image/*")
         } else {
-            // Permission denied, show a message or handle accordingly
             Toast.makeText(
                 context,
                 R.string.galleriPermissionisrequired,
@@ -750,25 +730,20 @@ fun ImageUploadSection(
         }
     }
 
-    // Function to handle image click
     val handleImageClick = {
         when {
             ContextCompat.checkSelfPermission(context, galleryPermission) == PackageManager.PERMISSION_GRANTED -> {
-                // Permission granted, open the gallery
                 galleryLauncher.launch("image/*")
             }
             shouldShowRequestPermissionRationale(context, galleryPermission) -> {
-                // Show rationale dialog
                 showPermissionDialog = true
             }
             else -> {
-                // Directly request permission
                 permissionLauncher.launch(galleryPermission)
             }
         }
     }
 
-    // Show rationale dialog if needed
     if (showPermissionDialog) {
         AlertDialog(
             onDismissRequest = { showPermissionDialog = false },
@@ -792,7 +767,6 @@ fun ImageUploadSection(
         )
     }
 
-    // UI for the ImageUploadSection
     Column(modifier = Modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
@@ -905,9 +879,9 @@ fun SaveChangesButton(
     isSaving: Boolean
 ) {
     val buttonText = if (isSaving) {
-        stringResource(R.string.saving_changes_button)  // "Endringene lagres..."
+        stringResource(R.string.saving_changes_button)
     } else {
-        stringResource(R.string.save_changes_button)    // "Lagre endringer"
+        stringResource(R.string.save_changes_button)
     }
 
     Button(

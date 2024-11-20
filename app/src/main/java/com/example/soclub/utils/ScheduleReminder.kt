@@ -26,33 +26,27 @@ fun scheduleReminder(
     activityId: String,
     userId: String,
     sendNow: Boolean = false,
-    isCancellation: Boolean = false,  // Indicate if this is a cancellation notification
-    isRegistration: Boolean = false,  // Indicate if this is a registration notification
+    isCancellation: Boolean = false,
+    isRegistration: Boolean = false,
     saveToDatabase: Boolean = true
 ) {
-    createNotificationChannel(context)  // Ensure the notification channel exists
-
-    // Check notification permission for Android 13 and above
+    createNotificationChannel(context)
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
         ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
         Log.e("Permission Error", "Notification permission not granted.")
         return
     }
-
-    // Determine the message based on the type of notification (registration, cancellation, or reminder)
     val message = when {
-        isRegistration -> context.getString(R.string.notification_registration, activityTitle)//"Du er påmeldt til aktiviteten: $activityTitle"
-        isCancellation -> context.getString(R.string.notification_cancellation, activityTitle)//"Du har avmeldt deg fra aktiviteten: $activityTitle"
-        reminderTime <= System.currentTimeMillis() + (2 * 60 * 1000) -> context.getString(R.string.notification_2_minutes, activityTitle)//"Aktiviteten starter om 2 minutter: $activityTitle"
-        reminderTime <= System.currentTimeMillis() + (60 * 60 * 1000) -> context.getString(R.string.notification_1_hour, activityTitle)//"Aktiviteten starter om 1 time: $activityTitle"
-        reminderTime <= System.currentTimeMillis() + (12 * 60 * 60 * 1000) ->  context.getString(R.string.notification_12_hours, activityTitle)//"Aktiviteten starter om 12 timer: $activityTitle"
-        reminderTime <= System.currentTimeMillis() + (24 * 60 * 60 * 1000) -> context.getString(R.string.notification_24_hours, activityTitle)//"Aktiviteten starter om 24 timer: $activityTitle"
-        else -> context.getString(R.string.notification_default, activityTitle)//"Påminnelse om din aktivitet: $activityTitle"
+        isRegistration -> context.getString(R.string.notification_registration, activityTitle)
+        isCancellation -> context.getString(R.string.notification_cancellation, activityTitle)
+        reminderTime <= System.currentTimeMillis() + (2 * 60 * 1000) -> context.getString(R.string.notification_2_minutes, activityTitle)
+        reminderTime <= System.currentTimeMillis() + (60 * 60 * 1000) -> context.getString(R.string.notification_1_hour, activityTitle)
+        reminderTime <= System.currentTimeMillis() + (12 * 60 * 60 * 1000) ->  context.getString(R.string.notification_12_hours, activityTitle)
+        reminderTime <= System.currentTimeMillis() + (24 * 60 * 60 * 1000) -> context.getString(R.string.notification_24_hours, activityTitle)
+        else -> context.getString(R.string.notification_default, activityTitle)
     }
-
-    // Only save the notification to Firestore if specified
     if (saveToDatabase) {
-        saveNotificationToDatabase(userId, activityId, message)
+        saveNotificationToDatabase(context, userId, activityId, message)
     }
 
     if (sendNow || reminderTime > System.currentTimeMillis()) {
@@ -72,11 +66,10 @@ fun scheduleReminder(
 
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         if (sendNow) {
-            // Immediate notification
             val notification = NotificationCompat.Builder(context, "activity_reminder_channel")
                 .setContentTitle("Aktivitetspåminnelse")
                 .setContentText(message)
-                .setSmallIcon(R.drawable.ic_stat_name) // Use your relevant icon
+                .setSmallIcon(R.drawable.ic_stat_name)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true)
                 .build()
@@ -91,29 +84,23 @@ fun scheduleReminder(
 
 fun cancelNotificationForActivity(context: Context, activityId: String) {
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-
-    // Lag unike IDs for hver påminnelse: 24 timer, 12 timer og 1 time før aktiviteten
     val reminderIds = listOf("${activityId}_24hr", "${activityId}_12hr", "${activityId}_1hr")
 
-    // Gå gjennom hver reminder ID og kanseller den tilhørende PendingIntent
     reminderIds.forEach { id ->
         val intent = Intent(context, ReminderBroadcastReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            id.hashCode(),  // Unik ID basert på påminnelsestype
+            id.hashCode(),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
-        // Kanseller planlagt alarm og PendingIntent
         alarmManager.cancel(pendingIntent)
         pendingIntent.cancel()
     }
 }
 
 
-// Helper function to save notification in the database
-fun saveNotificationToDatabase(userId: String, activityId: String, message: String) {
+fun saveNotificationToDatabase(context: Context, userId: String, activityId: String, message: String) {
     val notification = Notification(
         userId = userId,
         activityId = activityId,
@@ -121,7 +108,7 @@ fun saveNotificationToDatabase(userId: String, activityId: String, message: Stri
         timestamp = System.currentTimeMillis()
     )
 
-    val notificationService = ServiceLocator.provideNotificationService()
+    val notificationService = ServiceLocator.provideNotificationService(context)
     CoroutineScope(Dispatchers.IO).launch {
         notificationService.saveNotification(notification)
     }

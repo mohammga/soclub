@@ -1,5 +1,6 @@
 package com.example.soclub.utils
 
+import android.content.Context
 import com.example.soclub.service.AccountService
 import com.example.soclub.service.NotificationService
 import com.example.soclub.service.impl.AccountServiceImpl
@@ -12,24 +13,25 @@ object ServiceLocator {
     private var notificationService: NotificationService? = null
     private var accountService: AccountService? = null
 
-    // Make provideAccountService public
-    private fun provideAccountService(): AccountService {
+    private fun provideAccountService(context: Context): AccountService {
         return accountService ?: synchronized(this) {
             accountService ?: AccountServiceImpl(
                 auth = FirebaseAuth.getInstance(),
-                firestore = FirebaseFirestore.getInstance()
+                firestore = FirebaseFirestore.getInstance(),
+                context = context
             ).also {
                 accountService = it
             }
         }
     }
 
-    fun provideNotificationService(): NotificationService {
-        val accountServiceInstance = provideAccountService()
+    fun provideNotificationService(context: Context): NotificationService {
+        val accountServiceInstance = provideAccountService(context)
         return notificationService ?: synchronized(this) {
             notificationService ?: NotificationServiceImpl(
                 firestore = FirebaseFirestore.getInstance(),
-                accountService = accountServiceInstance
+                accountService = accountServiceInstance,
+                context = context
             ).also {
                 notificationService = it
             }

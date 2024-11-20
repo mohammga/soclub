@@ -74,7 +74,7 @@ class EntriesScreenViewModel @Inject constructor(
 
     fun cancelRegistration(activityId: String) {
         viewModelScope.launch {
-            _isProcessingCancellation.value = activityId // Start kanselleringsprosessen
+            _isProcessingCancellation.value = activityId
 
             val userId = accountService.currentUserId
             val activityTitle = _activeActivities.value.find { it.id == activityId }?.title ?: "Aktivitet"
@@ -82,30 +82,20 @@ class EntriesScreenViewModel @Inject constructor(
             val success = activityDetailService.updateRegistrationStatus(userId, activityId, "notAktiv")
 
             if (success) {
-                // Update the active activities list to remove the cancelled activity
                 _activeActivities.value = _activeActivities.value.filter { it.id != activityId }
-
-                // Send a cancellation notification
                 scheduleReminder(
                     context = context,
-                    reminderTime = System.currentTimeMillis(),  // Send immediately
+                    reminderTime = System.currentTimeMillis(),
                     activityTitle = activityTitle,
                     activityId = activityId,
                     userId = userId,
                     sendNow = true,
-                    isCancellation = true  // Specify cancellation message
+                    isCancellation = true
                 )
-
-                // Optionally, cancel any pre-scheduled notifications for this activity
                 cancelNotificationForActivity(context, activityId)
-
-                // Display a Toast message for user feedback
                 Toast.makeText(context, "Aktivitet kansellert", Toast.LENGTH_LONG).show()
-            } else {
-                // Håndter feil (du kan legge til feilhåndtering her hvis ønskelig)
             }
-
-            _isProcessingCancellation.value = null // Fullfør kanselleringsprosessen
+            _isProcessingCancellation.value = null
         }
     }
 }

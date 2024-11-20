@@ -14,6 +14,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.soclub.R
 
+/**
+ * Composable function representing the Reset Password screen.
+ *
+ * This screen allows users to input their email address to receive a password reset link.
+ * It includes an input field for the email, a button to submit the request, and informational text.
+ *
+ * @param viewModel The [ResetPasswordViewModel] managing the UI state and handling password reset logic.
+ */
 @Composable
 fun ResetPasswordScreen(viewModel: ResetPasswordViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState
@@ -67,6 +75,14 @@ fun ResetPasswordScreen(viewModel: ResetPasswordViewModel = hiltViewModel()) {
     }
 }
 
+/**
+ * Composable function for the email input field.
+ *
+ * @param value The current value of the email input.
+ * @param onNewValue Callback invoked when the email input changes.
+ * @param error Optional error message to display below the input field.
+ * @param enabled Determines whether the input field is enabled for user interaction.
+ */
 @Composable
 fun EmailField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -90,6 +106,15 @@ fun EmailField(value: String, onNewValue: (String) -> Unit, error: String?, enab
     )
 }
 
+/**
+ * Composable function for the reset password button.
+ *
+ * This button initiates the password reset process by invoking the [ResetPasswordViewModel]'s [ResetPasswordViewModel.onForgotPasswordClick] method.
+ *
+ * @param viewModel The [ResetPasswordViewModel] managing the password reset logic.
+ * @param context The [Context] used for displaying Toast messages.
+ * @param isLoading Indicates whether a password reset operation is currently in progress.
+ */
 @Composable
 private fun ResetPasswordButton(viewModel: ResetPasswordViewModel, context: Context, isLoading: Boolean) {
     Button(
@@ -103,6 +128,11 @@ private fun ResetPasswordButton(viewModel: ResetPasswordViewModel, context: Cont
     }
 }
 
+/**
+ * Composable function for displaying informational text about the password reset process.
+ *
+ * Provides users with additional information or instructions regarding resetting their password.
+ */
 @Composable
 fun ResetPasswordInfo() {
     Row(

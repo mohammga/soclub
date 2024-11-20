@@ -1,12 +1,13 @@
 // FirebaseModule.kt
 package com.example.soclub.service.module
 
-import android.app.Application
+import android.content.Context
 import com.example.soclub.service.AccountService
 import com.example.soclub.service.ActivityService
 import com.example.soclub.service.ActivityDetailService
 import com.example.soclub.service.EntriesService
 import com.example.soclub.service.NotificationService
+import com.example.soclub.service.impl.AccountServiceImpl
 import com.example.soclub.service.impl.ActivityServiceImpl
 import com.example.soclub.service.impl.ActivityDetailServiceImpl
 import com.example.soclub.service.impl.EntriesServiceImpl
@@ -20,6 +21,7 @@ import com.google.firebase.storage.FirebaseStorage
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -39,33 +41,50 @@ object FirebaseModule {
     @Provides
     fun firebaseStorage(): FirebaseStorage = FirebaseStorage.getInstance()
 
-    @Provides
     @Singleton
+    @Provides
     fun provideActivityService(
         firestore: FirebaseFirestore,
-        application: Application
+        @ApplicationContext context: Context
     ): ActivityService {
-        return ActivityServiceImpl(firestore, application)
+        return ActivityServiceImpl(firestore, context)
     }
 
-    @Provides
     @Singleton
-    fun provideActivityDetailService(firestore: FirebaseFirestore): ActivityDetailService {
-        return ActivityDetailServiceImpl(firestore)
+    @Provides
+    fun provideActivityDetailService(
+        firestore: FirebaseFirestore,
+        @ApplicationContext context: Context
+    ): ActivityDetailService {
+        return ActivityDetailServiceImpl(firestore, context)
     }
 
-    @Provides
     @Singleton
-    fun provideEntriesService(firestore: FirebaseFirestore): EntriesService {
-        return EntriesServiceImpl(firestore)
+    @Provides
+    fun provideEntriesService(
+        firestore: FirebaseFirestore,
+        @ApplicationContext context: Context
+    ): EntriesService {
+        return EntriesServiceImpl(firestore, context)
     }
 
-    @Provides
     @Singleton
+    @Provides
     fun provideNotificationService(
         firestore: FirebaseFirestore,
-        accountService: AccountService
+        accountService: AccountService,
+        @ApplicationContext context: Context
     ): NotificationService {
-        return NotificationServiceImpl(firestore, accountService)
+        return NotificationServiceImpl(firestore, accountService, context)
+    }
+
+    @Singleton
+    @Provides
+    fun provideAccountService(
+        auth: FirebaseAuth,
+        firestore: FirebaseFirestore,
+        @ApplicationContext context: Context
+    ): AccountService {
+        return AccountServiceImpl(auth, firestore, context)
     }
 }

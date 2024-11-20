@@ -105,7 +105,7 @@ fun ActiveEntriesList(
                     title = activity.title,
                     time = activity.startTime,
                     date = activity.date,
-                    isProcessingCancellation = isProcessingCancellation == activity.id, // Sjekker om denne aktiviteten blir kansellert
+                    isProcessingCancellation = isProcessingCancellation == activity.id,
                     onCancelClick = { viewModel.cancelRegistration(activity.id) },
                     onClick = {
                         activity.category?.let { category ->
@@ -131,7 +131,6 @@ fun CancelledEntriesList(navController: NavHostController, viewModel: EntriesScr
         }
     } else if (cancelledActivities.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            //Text(text = "Det er ingen aktiviteter som er kansellerte", modifier = Modifier.padding(16.dp))
             Text(stringResource(R.string.No_Aktivirty_is_cancelled),modifier = Modifier.padding(16.dp))
         }
     } else {
@@ -256,7 +255,6 @@ fun DateDisplay(date: Timestamp?, time: String?) {
         dateStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
     } ?: stringResource(R.string.unknown_dato)
 
-    // Koble sammen dato og tid hvis begge er tilgjengelige
     val displayText = if (time != null) {
         "$formattedDateTime, $time"
     } else {
@@ -273,9 +271,9 @@ fun DateDisplay(date: Timestamp?, time: String?) {
 @Composable
 fun CancelButton(onClick: () -> Unit, isProcessing: Boolean) {
     val buttonText = if (isProcessing) {
-        stringResource(R.string.cancelling_you) // "Kansellerer deg..."
+        stringResource(R.string.cancelling_you)
     } else {
-        stringResource(R.string.kanseller) // "Kanseller"
+        stringResource(R.string.kanseller)
     }
 
     Button(

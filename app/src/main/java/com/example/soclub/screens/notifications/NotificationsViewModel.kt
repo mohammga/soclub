@@ -53,7 +53,7 @@ class NotificationsViewModel @Inject constructor(
                 val notificationsFromDb = notificationService.getAllNotifications()
                 _notifications.value = notificationsFromDb
             } catch (e: Exception) {
-                _errorMessage.value = context.getString(R.string.error_message)//"Det skjedde en feil. Vennligst prøv igjen senere."
+                _errorMessage.value = context.getString(R.string.error_message)
             } finally {
                 _isLoading.value = false
             }
