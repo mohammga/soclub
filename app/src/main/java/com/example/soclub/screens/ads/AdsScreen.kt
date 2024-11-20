@@ -26,6 +26,17 @@ import java.util.Locale
 import android.icu.text.SimpleDateFormat
 import com.google.firebase.Timestamp
 
+/**
+ * Composable for displaying the Ads screen.
+ *
+ * - Shows a loading indicator while fetching data.
+ * - Displays an error message if fetching data fails.
+ * - Displays a message if there are no published ads.
+ * - Displays a list of activities published by the creator.
+ *
+ * @param navController Navigation controller for navigating between screens.
+ * @param viewModel ViewModel instance for managing ads data and state.
+ */
 @Composable
 fun AdsScreen(
     navController: NavController,
@@ -91,6 +102,21 @@ fun AdsScreen(
     }
 }
 
+/**
+ * Composable for displaying a single entry in the ads list.
+ *
+ * - Shows the activity image, title, date, and time.
+ * - Includes a button for editing the activity.
+ * - Navigates to the edit activity screen when clicked.
+ *
+ * @param imageUrl URL of the activity's image.
+ * @param title Title of the activity.
+ * @param date Timestamp of the activity date.
+ * @param time Start time of the activity.
+ * @param activityId Unique identifier of the activity.
+ * @param category Category of the activity.
+ * @param navController Navigation controller for navigating to the edit screen.
+ */
 @Composable
 fun EntryItem(
     imageUrl: String?,
@@ -142,6 +168,15 @@ fun EntryItem(
     }
 }
 
+/**
+ * Composable for displaying the formatted date and time of an activity.
+ *
+ * - Formats the date to a readable format (e.g., "Monday, 1. January 2024").
+ * - Appends the activity's start time if available.
+ *
+ * @param date Timestamp representing the activity's date.
+ * @param time Optional string representing the activity's start time.
+ */
 @Composable
 fun DateDisplay(date: Timestamp?, time: String?) {
     val formattedDateTime = date?.let { it ->
@@ -163,7 +198,14 @@ fun DateDisplay(date: Timestamp?, time: String?) {
     )
 }
 
-
+/**
+ * Composable for displaying an image for an activity.
+ *
+ * - Displays a placeholder image if no URL is provided.
+ * - Clips the image into a rounded rectangle shape.
+ *
+ * @param imageUrl URL of the image to display.
+ */
 @Composable
 fun EventImage(imageUrl: String?) {
     val imagePainter = if (imageUrl.isNullOrEmpty()) {

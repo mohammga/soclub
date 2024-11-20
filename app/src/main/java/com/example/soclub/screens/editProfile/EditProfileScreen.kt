@@ -39,6 +39,12 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.soclub.R
 
+/**
+ * Composable function to display the Edit Profile screen.
+ *
+ * @param navController The [NavController] to manage navigation.
+ * @param viewModel The [EditProfileViewModel] for handling profile logic.
+ */
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewModel = hiltViewModel()) {
@@ -129,6 +135,16 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
     )
 }
 
+/**
+ * Composable function to display a text field for editing profile information.
+ *
+ * @param label The label for the text field.
+ * @param value The current value of the text field.
+ * @param onValueChange Lambda to handle text changes.
+ * @param error The error message to display, if any.
+ * @param supportingText Supporting text to assist the user.
+ * @param enabled Whether the text field is enabled or not.
+ */
 @Composable
 fun ProfileTextField(
     label: String,
@@ -158,6 +174,14 @@ fun ProfileTextField(
     )
 }
 
+/**
+ * Composable function to display the image upload section.
+ *
+ * @param imageUri The URI of the currently selected image.
+ * @param onImageSelected Lambda to handle image selection.
+ * @param error The error message to display, if any.
+ * @param enabled Whether the upload section is enabled or not.
+ */
 @Composable
 fun ImageUploadSection(
     imageUri: Uri?,
@@ -339,6 +363,13 @@ fun ImageUploadSection(
     }
 }
 
+/**
+ * Checks whether the app should show a rationale for requesting a permission.
+ *
+ * @param context The [Context] of the application.
+ * @param permission The permission to check.
+ * @return `true` if a rationale should be shown, otherwise `false`.
+ */
 fun shouldShowRequestPermissionRationale(context: Context, permission: String): Boolean {
     return if (context is ActivityResultRegistryOwner) {
         ActivityCompat.shouldShowRequestPermissionRationale(context as ComponentActivity, permission)
@@ -347,6 +378,13 @@ fun shouldShowRequestPermissionRationale(context: Context, permission: String): 
     }
 }
 
+/**
+ * Composable function to display a save button.
+ *
+ * @param onClick Lambda to handle save button clicks.
+ * @param enabled Whether the button is enabled or not.
+ * @param isSaving Whether the save operation is currently in progress.
+ */
 @Composable
 fun SaveButton(onClick: () -> Unit, enabled: Boolean, isSaving: Boolean) {
     val buttonText = if (isSaving) {

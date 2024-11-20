@@ -18,6 +18,40 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
+/**
+ * Data class representing the UI state for creating a new activity.
+ *
+ * @property title The title of the activity.
+ * @property description The description of the activity.
+ * @property category The category of the activity.
+ * @property location The location of the activity.
+ * @property address The address of the activity.
+ * @property postalCode The postal code of the activity.
+ * @property maxParticipants The maximum number of participants.
+ * @property ageLimit The age limit for the activity.
+ * @property imageUrl The URL of the activity's image.
+ * @property date The selected date for the activity.
+ * @property startTime The start time of the activity.
+ * @property errorMessage The error message resource ID, if any.
+ * @property locationSuggestions Suggestions for the location field.
+ * @property addressSuggestions Suggestions for the address field.
+ * @property postalCodeSuggestions Suggestions for the postal code field.
+ * @property locationConfirmed Flag indicating if the location is confirmed.
+ * @property addressConfirmed Flag indicating if the address is confirmed.
+ * @property titleError Validation error for the title field.
+ * @property descriptionError Validation error for the description field.
+ * @property categoryError Validation error for the category field.
+ * @property locationError Validation error for the location field.
+ * @property addressError Validation error for the address field.
+ * @property postalCodeError Validation error for the postal code field.
+ * @property maxParticipantsError Validation error for the max participants field.
+ * @property ageLimitError Validation error for the age limit field.
+ * @property dateError Validation error for the date field.
+ * @property startTimeError Validation error for the start time field.
+ * @property selectedImageUri The URI of the selected image.
+ */
+
 data class NewActivityState(
     val title: String = "",
     val description: String = "",
@@ -49,6 +83,15 @@ data class NewActivityState(
     val selectedImageUri: Uri? = null
 )
 
+/**
+ * ViewModel for managing the logic of creating a new activity.
+ *
+ * @param activityService The service for managing activities.
+ * @param accountService The service for managing user accounts.
+ * @param locationService The service for fetching location details.
+ * @param storageService The service for uploading images.
+ * @param application The application context for accessing resources.
+ */
 @HiltViewModel
 class NewActivityViewModel @Inject constructor(
     private val activityService: ActivityService,
@@ -71,6 +114,9 @@ class NewActivityViewModel @Inject constructor(
         loadMunicipalities()
     }
 
+    /**
+     * Loads the list of municipalities for location suggestions.
+     */
     private fun loadMunicipalities() {
         viewModelScope.launch {
             locationService.fetchMunicipalities().collect { fetchedMunicipalities ->
@@ -80,24 +126,49 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Handles updates to the title field.
+     *
+     * @param newValue The new value for the title.
+     */
     fun onTitleChange(newValue: String) {
         val capitalizedTitle = newValue.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
         uiState.value = uiState.value.copy(title = capitalizedTitle, titleError = null)
     }
 
+    /**
+     * Handles updates to the description field.
+     *
+     * @param newValue The new value for the description.
+     */
     fun onDescriptionChange(newValue: String) {
         val capitalizedDescription = newValue.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
         uiState.value = uiState.value.copy(description = capitalizedDescription, descriptionError = null)
     }
 
+    /**
+     * Handles selection of an image for the activity.
+     *
+     * @param uri The URI of the selected image.
+     */
     fun onImageSelected(uri: Uri?) {
         uiState.value = uiState.value.copy(selectedImageUri = uri, imageUrl = uri?.toString() ?: "")
     }
 
+    /**
+     * Handles updates to the category field.
+     *
+     * @param newValue The new value for the category.
+     */
     fun onCategoryChange(newValue: String) {
         uiState.value = uiState.value.copy(category = newValue, categoryError = null)
     }
 
+    /**
+     * Handles updates to the location field and triggers suggestions.
+     *
+     * @param newValue The new value for the location.
+     */
     fun onLocationChange(newValue: String) {
         uiState.value = uiState.value.copy(
             location = newValue,
@@ -117,6 +188,11 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Handles selection of a location suggestion.
+     *
+     * @param selectedLocation The selected location from suggestions.
+     */
     fun onLocationSelected(selectedLocation: String) {
         uiState.value = uiState.value.copy(
             location = selectedLocation,
@@ -125,6 +201,11 @@ class NewActivityViewModel @Inject constructor(
         )
     }
 
+    /**
+     * Handles updates to the address field and triggers suggestions.
+     *
+     * @param newValue The new value for the address.
+     */
     fun onAddressChange(newValue: String) {
         uiState.value = uiState.value.copy(
             address = newValue,
@@ -140,6 +221,11 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Handles selection of an address suggestion.
+     *
+     * @param selectedAddress The selected address from suggestions.
+     */
     fun onAddressSelected(selectedAddress: String) {
         uiState.value = uiState.value.copy(
             address = selectedAddress,
@@ -149,6 +235,11 @@ class NewActivityViewModel @Inject constructor(
         fetchPostalCodeForAddress(selectedAddress, uiState.value.location)
     }
 
+    /**
+     * Fetches suggestions for the address based on the query.
+     *
+     * @param query The address query string.
+     */
     private fun fetchAddressSuggestions(query: String) {
         val (streetName, houseNumber) = extractStreetAndHouseNumber(query)
         if (!uiState.value.locationConfirmed) {
@@ -166,6 +257,12 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Extracts the street name and house number from an address query.
+     *
+     * @param query The address query string.
+     * @return A pair containing the street name and house number.
+     */
     private fun extractStreetAndHouseNumber(query: String): Pair<String, String?> {
         val regex = Regex("^(.*?)(\\d+)?$")
         val matchResult = regex.find(query.trim())
@@ -174,6 +271,12 @@ class NewActivityViewModel @Inject constructor(
         return streetName to houseNumber
     }
 
+    /**
+     * Fetches the postal code for the given address and municipality.
+     *
+     * @param address The address to fetch the postal code for.
+     * @param municipality The municipality of the address.
+     */
     private fun fetchPostalCodeForAddress(address: String, municipality: String) {
         viewModelScope.launch {
             locationService.fetchPostalCodeForAddress(address, municipality).collect { postalCode ->
@@ -186,10 +289,20 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Handles updates to the max participants field.
+     *
+     * @param newValue The new value for max participants.
+     */
     fun onMaxParticipantsChange(newValue: String) {
         uiState.value = uiState.value.copy(maxParticipants = newValue, maxParticipantsError = null)
     }
 
+    /**
+     * Handles updates to the age limit field.
+     *
+     * @param newValue The new value for the age limit.
+     */
     fun onAgeLimitChange(newValue: String) {
         val age = newValue.toIntOrNull()
         if (age != null && age > 100) {
@@ -206,14 +319,29 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Handles updates to the date field.
+     *
+     * @param newValue The new value for the date.
+     */
     fun onDateChange(newValue: Timestamp) {
         uiState.value = uiState.value.copy(date = newValue, dateError = null)
     }
 
+    /**
+     * Handles updates to the start time field.
+     *
+     * @param newValue The new value for the start time.
+     */
     fun onStartTimeChange(newValue: String) {
         uiState.value = uiState.value.copy(startTime = newValue, startTimeError = null)
     }
 
+    /**
+     * Handles the publish action, validates inputs, and publishes the activity.
+     *
+     * @param navController The NavController for navigation.
+     */
     fun onPublishClick(navController: NavController) {
         var hasError = false
         var titleError: String? = null
@@ -329,6 +457,16 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Creates a new activity and navigates back to the home screen.
+     *
+     * @param navController The NavController for navigation.
+     * @param imageUrl The URL of the uploaded image.
+     * @param combinedLocation The combined location string.
+     * @param date The selected date for the activity.
+     * @param startTime The start time of the activity.
+     * @param creatorId The ID of the user creating the activity.
+     */
     private fun createActivityAndNavigate(
         navController: NavController,
         imageUrl: String,
