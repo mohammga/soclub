@@ -445,8 +445,7 @@ fun InfoRow(
                 fontSize = 12.sp
             )
 
-          
-          =======
+
     }
 }
 
@@ -473,7 +472,7 @@ fun ActivityImage(imageUrl: String) {
 
         }
     }
-}
+
 
 /**
  * Displays the description of the activity with proper formatting for readability.

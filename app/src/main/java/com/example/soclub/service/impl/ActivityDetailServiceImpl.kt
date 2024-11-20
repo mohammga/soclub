@@ -45,8 +45,9 @@ class ActivityDetailServiceImpl @Inject constructor(
             )
         } catch (e: Exception) {
             //throw Exception("Failed to fetch activity: ${e.message}", e)
-            val errorMessage = context.getString(R.string.error_fetch_activity, e.message)
-            throw Exception(errorMessage, e)
+            //val errorMessage = context.getString(R.string.error_fetch_activity, e.message)
+            //throw Exception(errorMessage, e)
+            throw Exception(context.getString(R.string.error_fetch_activity, e.message), e)
         }
           }
 

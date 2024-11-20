@@ -22,7 +22,7 @@ class AccountServiceImpl @Inject constructor(
 ) : AccountService {
 
     override val currentUserId: String
-        get() = auth.currentUser?.uid ?: throw Exception("User not logged in")
+        get() = auth.currentUser?.uid ?: throw Exception(context.getString(R.string.error_user_not_logged_in))//throw Exception("User not logged in")
 
     override val hasUser: Boolean
         get() = auth.currentUser != null
@@ -62,7 +62,9 @@ class AccountServiceImpl @Inject constructor(
         try {
             auth.signInWithEmailAndPassword(email, password).await()
         } catch (e: Exception) {
-            throw Exception("Authentication failed: ${e.message}", e)
+            //throw Exception("Authentication failed: ${e.message}", e)
+            throw Exception(context.getString(R.string.error_authentication_failed, e.message), e)
+
         }
     }
 
@@ -76,7 +78,7 @@ class AccountServiceImpl @Inject constructor(
     ) {
         try {
             val result = auth.createUserWithEmailAndPassword(email, password).await()
-            val user = result.user ?: throw Exception("User creation failed")
+            val user = result.user ?: throw Exception(context.getString(R.string.error_user_creation_failed))
 
             val userData = hashMapOf(
                 "email" to email,
@@ -86,9 +88,13 @@ class AccountServiceImpl @Inject constructor(
             )
             firestore.collection("users").document(user.uid).set(userData).await()
         } catch (e: FirebaseAuthUserCollisionException) {
-            throw Exception("User already registered")
+            //throw Exception("User already registered")
+            throw Exception(context.getString(R.string.user_already_registered))
+
         } catch (e: Exception) {
-            throw Exception("Account creation failed: ${e.message}", e)
+            //throw Exception("Account creation failed: ${e.message}", e)
+            throw Exception(
+                context.getString(R.string.error_account_creation_failed, e.message), e)
         }
     }
 
@@ -96,7 +102,9 @@ class AccountServiceImpl @Inject constructor(
         try {
             auth.signOut()
         } catch (e: Exception) {
-            throw Exception("Sign out failed: ${e.message}", e)
+            //throw Exception("Sign out failed: ${e.message}", e)
+            throw Exception(
+                context.getString(R.string.error_sign_out_failed, e.message), e)
         }
     }
 
@@ -104,7 +112,9 @@ class AccountServiceImpl @Inject constructor(
         try {
             auth.sendPasswordResetEmail(email).await()
         } catch (e: Exception) {
-            throw Exception("Password reset email failed: ${e.message}", e)
+            //throw Exception("Password reset email failed: ${e.message}", e)
+            throw Exception(
+                context.getString(R.string.error_password_reset_failed, e.message), e)
         }
     }
 
@@ -124,7 +134,9 @@ class AccountServiceImpl @Inject constructor(
         try {
             firestore.collection("users").document(userId).update(updates as Map<String, Any>).await()
         } catch (e: Exception) {
-            throw Exception("Profile update failed: ${e.message}", e)
+            //throw Exception("Profile update failed: ${e.message}", e)
+            throw Exception(
+                context.getString(R.string.error_profile_update_failed, e.message), e)
         }
     }
 
@@ -133,14 +145,18 @@ class AccountServiceImpl @Inject constructor(
         newPassword: String,
         onResult: (Throwable?) -> Unit
     ) {
-        val user = auth.currentUser ?: throw Exception("User not logged in")
+        //val user = auth.currentUser ?: throw Exception("User not logged in")
+        val user = auth.currentUser ?: throw Exception(context.getString(R.string.error_user_not_logged_in))
+
 
         try {
             val credential = EmailAuthProvider.getCredential(user.email!!, oldPassword)
             user.reauthenticate(credential).await()
             user.updatePassword(newPassword).await()
         } catch (e: Exception) {
-            throw Exception("Password change failed: ${e.message}", e)
+            //throw Exception("Password change failed: ${e.message}", e)
+            throw Exception(
+                context.getString(R.string.error_password_change_failed, e.message), e)
         }
     }
 }

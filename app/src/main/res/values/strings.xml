@@ -462,5 +462,39 @@
     <string name="error_listening_registration_updates">Feil ved lytting til registreringsoppdateringer: %1$s</string>
     <string name="error_listening_activity_updates">Feil ved lytting til aktivitetsoppdateringer: %1$s</string>
     <string name="error_parsing_activity_data">Kunne ikke analysere aktivitetsdata</string>
+    <string name="error_authentication_failed">Autentisering mislyktes: %1$s</string>
+    <string name="user_already_registered">Bruker allerede registrert</string>
+    <string name="error_user_creation_failed">Brukeropprettelse mislyktes</string>
+    <string name="error_account_creation_failed">Kontoopprettelse mislyktes: %1$s</string>
+    <string name="error_sign_out_failed">Utlogging mislyktes: %1$s</string>
+    <string name="error_password_reset_failed">E-post for tilbakestilling av passord mislyktes: %1$s</string>
+    <string name="error_profile_update_failed">Profiloppdatering mislyktes: %1$s</string>
+    <string name="error_password_change_failed">Endring av passord mislyktes: %1$s</string>
+    <string name="error_listen_activities_failed">Kunne ikke lytte etter aktiviteter: %1$s</string>
+    <string name="error_create_activity_failed">Kunne ikke opprette aktivitet: %1$s</string>
+    <string name="error_fetch_activity_by_id_failed">Kunne ikke hente aktivitet etter ID: %1$s</string>
+    <string name="error_activity_data_parsing_failed">Parsing av aktivitetsdata mislyktes</string>
+    <string name="error_get_activities_failed">Kunne ikke hente aktiviteter: %1$s</string>
+    <string name="error_listening_nearest_activities">Feil ved lytting etter nærmeste aktiviteter: %1$s</string>
+    <string name="error_resolve_location_failed">Kunne ikke løse lokasjon fra adresse</string>
+    <string name="error_geocoder_failed">Geokoder-feil: %1$s</string>
+    <string name="error_fetch_activities_by_creator">Kunne ikke hente aktiviteter etter oppretter: %1$s</string>
+    <string name="error_delete_activity_failed">Kunne ikke slette aktiviteten: %1$s</string>
+    <string name="error_fetch_categories_failed">Kunne ikke hente kategorier: %1$s</string>
+    <string name="error_update_activity_failed">Kunne ikke oppdatere aktiviteten: %1$s</string>
+    <string name="error_fetch_activities_for_category">Kunne ikke hente aktiviteter for kategori %1$s: %2$s</string>
+    <string name="error_fetch_all_activities_failed">Kunne ikke hente alle aktiviteter: %1$s</string>
+    <string name="error_fetch_grouped_activities_failed">Kunne ikke hente grupperte aktiviteter: %1$s</string>
+    <string name="error_fetch_registered_users_failed">Kunne ikke hente registrerte brukere: %1$s</string>
+
+
+
+
+
+
+
+
+
+
 
 </resources>
