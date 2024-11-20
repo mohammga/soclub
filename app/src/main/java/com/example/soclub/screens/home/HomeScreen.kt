@@ -407,7 +407,7 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
                     brush = Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
-                            Color.Black.copy(alpha = 0.8f)
+                            MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
                         ),
                         startY = 100f
                     )
@@ -425,7 +425,7 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
                 text = activity.title,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -433,7 +433,7 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             Text(
                 text = activity.location,
                 fontSize = 14.sp,
-                color = Color.LightGray
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -447,7 +447,7 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             Text(
                 text = formattedDateTime,
                 fontSize = 14.sp,
-                color = Color.LightGray
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
         }
     }

@@ -306,7 +306,7 @@ fun ImageUploadSection(
                 Text(
                     text = stringResource(id = R.string.remove_image),
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp
                     ),
                     modifier = if (enabled) Modifier.clickable { onImageSelected(null) } else Modifier
@@ -315,7 +315,7 @@ fun ImageUploadSection(
                 Icon(
                     imageVector = Icons.Filled.Delete,
                     contentDescription = stringResource(id = R.string.remove_image),
-                    tint = Color.Gray,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = if (enabled) Modifier.clickable { onImageSelected(null) } else Modifier
                 )
             }
@@ -328,7 +328,7 @@ fun ImageUploadSection(
                 Text(
                     text = stringResource(id = R.string.upload_new_picture),
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp
                     ),
                     modifier = if (enabled) Modifier.clickable { handleImageClick() } else Modifier
@@ -337,7 +337,7 @@ fun ImageUploadSection(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = stringResource(id = R.string.upload_new_picture),
-                    tint = Color.Gray,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = if (enabled) Modifier.clickable { handleImageClick() } else Modifier
                 )
             }
@@ -373,9 +373,9 @@ fun SaveButton(onClick: () -> Unit, enabled: Boolean, isSaving: Boolean) {
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
         enabled = enabled
     ) {
-        Text(text = buttonText, color = Color.White)
+        Text(text = buttonText, color = MaterialTheme.colorScheme.onPrimary)
     }
 }

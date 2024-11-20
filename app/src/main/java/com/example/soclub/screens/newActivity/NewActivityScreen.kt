@@ -733,7 +733,7 @@ fun ImageUploadSection(
                 Text(
                     text = stringResource(id = R.string.upload_new_picture),
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        color = Color.Gray,
+                        color =  MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp
                     ),
                     modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
@@ -742,7 +742,7 @@ fun ImageUploadSection(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = stringResource(id = R.string.upload_new_picture),
-                    tint = Color.Gray,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
                 )
             }

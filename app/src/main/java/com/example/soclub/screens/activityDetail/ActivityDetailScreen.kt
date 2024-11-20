@@ -99,7 +99,7 @@ fun ActivityDetailScreen(
                 }
                 errorMessage != null -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(text = errorMessage, color = Color.Red, fontSize = 16.sp)
+                        Text(text = errorMessage, color = MaterialTheme.colorScheme.error, fontSize = 16.sp)
                     }
                 }
                 else -> {
@@ -307,7 +307,7 @@ fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
                         modifier = Modifier
                             .size(50.dp)
                             .clip(CircleShape)
-                            .background(Color.Gray),
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
                         contentScale = ContentScale.Crop
                     )
 
@@ -514,7 +514,8 @@ fun ActivityGPSImage(context: Context, destinationLocation: String) {
                     openGoogleMaps(context, "https://www.google.com/maps/search/?api=1&query=${Uri.encode(destinationLocation)}")
                 }
             }
-            .background(Color.LightGray),
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+        ,
         contentAlignment = Alignment.Center
     ) {
         Image(
@@ -576,7 +577,7 @@ fun ActivityRegisterButton(
                 onRegisterClick()
             }
         },
-        colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 16.dp)
@@ -641,7 +642,7 @@ fun InfoRow(
 fun ElevatedCardExample(icon: ImageVector) {
     ElevatedCard(
         modifier = Modifier.size(50.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = Color.LightGray)
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
