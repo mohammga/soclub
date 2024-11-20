@@ -59,7 +59,6 @@ android {
 dependencies {
 
     implementation(libs.androidx.core.ktx)
-
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
@@ -89,6 +88,8 @@ dependencies {
     testImplementation (libs.kotlinx.coroutines.test)
     testImplementation (libs.slf4j.slf4j.simple)
     testImplementation (libs.byte.buddy)
+    testImplementation ("androidx.arch.core:core-testing:2.1.0")
+
 
     // Hilt - til dependency injection
     implementation(libs.hilt.android)
