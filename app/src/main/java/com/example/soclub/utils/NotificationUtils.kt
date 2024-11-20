@@ -5,7 +5,6 @@ import android.app.NotificationManager
 import android.content.Context
 import com.example.soclub.R
 
-
 fun createNotificationChannel(context: Context) {
     //val channelId = "activity_reminder_channel"
     //val channelName = "Activity Reminder Notifications"
@@ -17,7 +16,6 @@ fun createNotificationChannel(context: Context) {
     val channel = NotificationChannel(channelId, channelName, importance).apply {
         description = channelDescription
     }
-
 
     val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     notificationManager.createNotificationChannel(channel)

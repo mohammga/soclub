@@ -27,15 +27,6 @@ fun String.containsNoWhitespace(): Boolean {
     return !this.contains(" ")
 }
 
-fun String.isValidPassword(): Boolean {
-    return this.isPasswordLongEnough() &&
-            this.containsUpperCase() &&
-            this.containsLowerCase() &&
-            this.containsDigit() &&
-            this.containsNoWhitespace()
-}
-
-
 fun String.isValidName(): Boolean {
     return this.matches(Regex("^[A-Za-zÆØÅæøå ]+$"))
 }
@@ -44,6 +35,7 @@ fun String.isAgeNumeric(): Boolean {
     return this.toIntOrNull() != null
 }
 
+//participants og age og alt i edit og create validations må legges her
 fun String.isValidParticipants(): Boolean {
     val participants = this.toIntOrNull()
     return participants != null && participants in 1..100

@@ -1,5 +1,7 @@
 package com.example.soclub.service.impl
 
+import android.content.Context
+import com.example.soclub.R
 import com.example.soclub.models.User
 import com.example.soclub.models.UserInfo
 import com.example.soclub.service.AccountService
@@ -15,12 +17,12 @@ import javax.inject.Inject
 
 class AccountServiceImpl @Inject constructor(
     private val auth: FirebaseAuth,
-    private val firestore: FirebaseFirestore
-
+    private val firestore: FirebaseFirestore,
+    private val context: Context
 ) : AccountService {
 
     override val currentUserId: String
-        get() = auth.currentUser?.uid.orEmpty()
+        get() = auth.currentUser?.uid ?: throw Exception("User not logged in")
 
     override val hasUser: Boolean
         get() = auth.currentUser != null
@@ -40,11 +42,16 @@ class AccountServiceImpl @Inject constructor(
         }
 
     override suspend fun getUserInfo(): UserInfo {
-        val userId = auth.currentUser?.uid ?: throw Exception("User not logged in")
-        val documentSnapshot = firestore.collection("users").document(userId).get().await()
-        return documentSnapshot.toObject(UserInfo::class.java) ?: throw Exception("User data not found")
-    }
+        try {
+            val userId = currentUserId
+            val documentSnapshot = firestore.collection("users").document(userId).get().await()
 
+            return documentSnapshot.toObject(UserInfo::class.java)
+                ?: throw Exception(context.getString(R.string.error_user_data_not_found))
+        } catch (e: Exception) {
+            throw Exception(context.getString(R.string.error_fetching_user_info, e.message), e)
+        }
+    }
 
 
     override suspend fun authenticateWithEmail(
@@ -52,8 +59,11 @@ class AccountServiceImpl @Inject constructor(
         password: String,
         onResult: (Throwable?) -> Unit
     ) {
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener { onResult(it.exception) }.await()
+        try {
+            auth.signInWithEmailAndPassword(email, password).await()
+        } catch (e: Exception) {
+            throw Exception("Authentication failed: ${e.message}", e)
+        }
     }
 
     override suspend fun createEmailAccount(
@@ -64,92 +74,73 @@ class AccountServiceImpl @Inject constructor(
         age: Int,
         onResult: (Throwable?) -> Unit
     ) {
-        auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val user = auth.currentUser
-                    user?.let {
-                        val userData = hashMapOf(
-                            "email" to email,
-                            "firstname" to firstname,
-                            "lastname" to lastname,
-                            "age" to age
-                        )
-                        firestore.collection("users").document(it.uid)
-                            .set(userData)
-                            .addOnCompleteListener { firestoreTask ->
-                                onResult(firestoreTask.exception)
-                            }
-                    } ?: run {
-                        onResult(Exception("User is null after registration"))
-                    }
-                } else {
-                    // Check if the error is because the user already exists
-                    if (task.exception is FirebaseAuthUserCollisionException) {
-                        onResult(Exception("User already registered"))
-                    } else {
-                        onResult(task.exception)
-                    }
-                }
-            }.await()
+        try {
+            val result = auth.createUserWithEmailAndPassword(email, password).await()
+            val user = result.user ?: throw Exception("User creation failed")
+
+            val userData = hashMapOf(
+                "email" to email,
+                "firstname" to firstname,
+                "lastname" to lastname,
+                "age" to age
+            )
+            firestore.collection("users").document(user.uid).set(userData).await()
+        } catch (e: FirebaseAuthUserCollisionException) {
+            throw Exception("User already registered")
+        } catch (e: Exception) {
+            throw Exception("Account creation failed: ${e.message}", e)
+        }
     }
 
-
-
     override suspend fun signOut() {
-        auth.signOut()
+        try {
+            auth.signOut()
+        } catch (e: Exception) {
+            throw Exception("Sign out failed: ${e.message}", e)
+        }
     }
 
     override suspend fun sendPasswordResetEmail(email: String, onResult: (Throwable?) -> Unit) {
-        auth.sendPasswordResetEmail(email)
-            .addOnCompleteListener { onResult(it.exception) }
-            .await()
+        try {
+            auth.sendPasswordResetEmail(email).await()
+        } catch (e: Exception) {
+            throw Exception("Password reset email failed: ${e.message}", e)
+        }
     }
 
-    override suspend fun updateProfile(firstname: String, lastname: String, imageUrl: String, onResult: (Throwable?) -> Unit) {
-        val userId = auth.currentUser?.uid ?: throw Exception("User not logged in")
-
+    override suspend fun updateProfile(
+        firstname: String,
+        lastname: String,
+        imageUrl: String,
+        onResult: (Throwable?) -> Unit
+    ) {
+        val userId = currentUserId
         val updates = hashMapOf(
             "firstname" to firstname,
             "lastname" to lastname,
             "imageUrl" to imageUrl
         )
 
-        firestore.collection("users").document(userId)
-            .update(updates as Map<String, Any>)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    onResult(null)
-                } else {
-                    onResult(task.exception)
-                }
-            }
+        try {
+            firestore.collection("users").document(userId).update(updates as Map<String, Any>).await()
+        } catch (e: Exception) {
+            throw Exception("Profile update failed: ${e.message}", e)
+        }
     }
 
-
-
-    // Implementasjon for å endre passord
     override suspend fun changePassword(
         oldPassword: String,
         newPassword: String,
         onResult: (Throwable?) -> Unit
     ) {
-        val user = auth.currentUser
-        user?.let {
-            val credential = EmailAuthProvider.getCredential(it.email!!, oldPassword)
+        val user = auth.currentUser ?: throw Exception("User not logged in")
 
-            // Re-autentiser brukeren med det gamle passordet før du endrer passordet
-            it.reauthenticate(credential)
-                .addOnCompleteListener { reauthTask ->
-                    if (reauthTask.isSuccessful) {
-                        it.updatePassword(newPassword)
-                            .addOnCompleteListener { passwordUpdateTask ->
-                                onResult(passwordUpdateTask.exception)
-                            }
-                    } else {
-                        onResult(reauthTask.exception)
-                    }
-                }.await()
+        try {
+            val credential = EmailAuthProvider.getCredential(user.email!!, oldPassword)
+            user.reauthenticate(credential).await()
+            user.updatePassword(newPassword).await()
+        } catch (e: Exception) {
+            throw Exception("Password change failed: ${e.message}", e)
         }
     }
 }

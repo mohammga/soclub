@@ -1,40 +1,43 @@
 package com.example.soclub.service.module
 
-import com.example.soclub.service.AccountService
+import android.content.Context
 import com.example.soclub.service.LocationService
 import com.example.soclub.service.StorageService
-import com.example.soclub.service.impl.AccountServiceImpl
 import com.example.soclub.service.impl.LocationServiceImpl
 import com.example.soclub.service.impl.StorageServiceImpl
-import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class ServiceModule {
+object ServiceModule {
 
-    @Binds
+    @Provides
     @Singleton
-    abstract fun provideStorageService(impl: StorageServiceImpl): StorageService
+    fun provideOkHttpClient(): OkHttpClient {
+        return OkHttpClient.Builder().build()
+    }
 
-    @Binds
+    @Provides
     @Singleton
-    abstract fun provideAccountService(impl: AccountServiceImpl): AccountService
+    fun provideStorageService(
+        @ApplicationContext context: Context,
+        firebaseStorage: com.google.firebase.storage.FirebaseStorage
+    ): StorageService {
+        return StorageServiceImpl(firebaseStorage, context)
+    }
 
-    @Binds
+    @Provides
     @Singleton
-    abstract fun provideLocationService(impl: LocationServiceImpl): LocationService
-
-    companion object {
-        @Provides
-        @Singleton
-        fun provideOkHttpClient(): OkHttpClient {
-            return OkHttpClient.Builder().build()
-        }
+    fun provideLocationService(
+        @ApplicationContext context: Context,
+        okHttpClient: OkHttpClient
+    ): LocationService {
+        return LocationServiceImpl(okHttpClient, context)
     }
 }

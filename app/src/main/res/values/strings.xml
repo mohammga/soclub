@@ -429,6 +429,9 @@
     <string name="system">System</string>
     <string name="light">Lyst</string>
     <string name="darke">Mørkt</string>
+
+    <string name="error_fetching_user_info">Kunne ikke hente brukerinformasjon: %1$s</string>
+
     <string name="date_format">Dato: %1$s</string>
     <string name="error_postal_code_not_found">Fant ikke postnummer</string>
     <string name="unknown_error_occurred">Det oppstod en ukjent feil</string>
@@ -449,6 +452,5 @@
     <string name="channel_id">\naktivitets påminnelses kanal</string>
     <string name="channel_name">Aktivitets påminnelses varsler</string>
     <string name="channel_description">Varsler for aktivitetspåminnelser og oppdateringer</string>
-
 
 </resources>

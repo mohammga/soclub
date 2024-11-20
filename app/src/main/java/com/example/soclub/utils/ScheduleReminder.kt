@@ -52,7 +52,7 @@ fun scheduleReminder(
 
     // Only save the notification to Firestore if specified
     if (saveToDatabase) {
-        saveNotificationToDatabase(userId, activityId, message)
+        saveNotificationToDatabase(context, userId, activityId, message)
     }
 
     if (sendNow || reminderTime > System.currentTimeMillis()) {
@@ -112,8 +112,7 @@ fun cancelNotificationForActivity(context: Context, activityId: String) {
 }
 
 
-// Helper function to save notification in the database
-fun saveNotificationToDatabase(userId: String, activityId: String, message: String) {
+fun saveNotificationToDatabase(context: Context, userId: String, activityId: String, message: String) {
     val notification = Notification(
         userId = userId,
         activityId = activityId,
@@ -121,7 +120,7 @@ fun saveNotificationToDatabase(userId: String, activityId: String, message: Stri
         timestamp = System.currentTimeMillis()
     )
 
-    val notificationService = ServiceLocator.provideNotificationService()
+    val notificationService = ServiceLocator.provideNotificationService(context)
     CoroutineScope(Dispatchers.IO).launch {
         notificationService.saveNotification(notification)
     }

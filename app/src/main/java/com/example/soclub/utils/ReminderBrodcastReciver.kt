@@ -36,7 +36,7 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
             NotificationManagerCompat.from(context).notify(System.currentTimeMillis().toInt(), notification)
 
             // Save the notification to Firestore when it's actually triggered
-            saveNotificationToDatabase(userId, activityId, message)
+            saveNotificationToDatabase(context, userId, activityId, message)
         } else {
             Log.e("Permission Error", "Notification permission not granted.")
         }
