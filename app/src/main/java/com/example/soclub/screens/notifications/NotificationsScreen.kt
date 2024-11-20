@@ -1,6 +1,7 @@
 package com.example.soclub.screens.notifications
 
 
+
 import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,6 +19,17 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.soclub.R
 import com.example.soclub.models.Notification
 
+/**
+ * Composable function that displays a list of notifications or relevant states such as loading or error messages.
+ *
+ * The screen fetches notifications from the provided `NotificationsViewModel` and handles the following states:
+ * - Loading: Displays a loading spinner while notifications are being fetched.
+ * - Error: Displays an error message if an error occurs during fetching.
+ * - Empty: Displays a message when no notifications are available.
+ * - Notifications: Displays a list of notifications.
+ *
+ * @param viewModel The ViewModel responsible for managing notifications.
+ */
 @Composable
 fun NotificationsScreen(
     viewModel: NotificationsViewModel = hiltViewModel()
@@ -84,7 +96,17 @@ fun NotificationsScreen(
 
 
 
+/**
+ * Utility function to calculate the time elapsed since a given timestamp and return it as a readable string.
+ *
+ * @param timestamp The timestamp in milliseconds since epoch.
+ * @return A human-readable string representing the time elapsed since the given timestamp.
+ */
+fun getTimeAgo(timestamp: Long): String {
+
+
 /*fun getTimeAgo(timestamp: Long): String {
+
     val diff = System.currentTimeMillis() - timestamp
     val seconds = diff / 1000
     val minutes = seconds / 60
@@ -130,6 +152,15 @@ fun getTimeAgo(timestamp: Long, context: Context): String {
     }
 }
 
+
+/**
+ * Composable function that displays a single notification with its message and timestamp.
+ *
+ * Includes a delete button to remove the notification.
+ *
+ * @param notification The `Notification` object containing the details of the notification.
+ * @param onDelete A callback function invoked when the delete button is clicked.
+ */
 
 @Composable
 fun NotificationItem(

@@ -36,6 +36,12 @@ import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * Composable for the screen to create a new activity.
+ *
+ * @param navController The NavController to manage navigation.
+ * @param viewModel The ViewModel responsible for handling the logic for the new activity.
+ */
 @Composable
 fun NewActivityScreen(
     navController: NavController,
@@ -176,6 +182,14 @@ fun NewActivityScreen(
     }
 }
 
+/**
+ * Composable for entering the title of the activity.
+ *
+ * @param value The current value of the title input field.
+ * @param onNewValue Lambda to handle updates to the title.
+ * @param error An optional error message for validation.
+ * @param enabled Flag to enable or disable the input field.
+ */
 @Composable
 fun TitleField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -199,6 +213,14 @@ fun TitleField(value: String, onNewValue: (String) -> Unit, error: String?, enab
     )
 }
 
+/**
+ * Composable for entering the description of the activity.
+ *
+ * @param value The current value of the description input field.
+ * @param onNewValue Lambda to handle updates to the description.
+ * @param error An optional error message for validation.
+ * @param enabled Flag to enable or disable the input field.
+ */
 @Composable
 fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -223,6 +245,14 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?
     )
 }
 
+/**
+ * Composable for selecting the category of the activity.
+ *
+ * @param value The current value of the selected category.
+ * @param onNewValue Lambda to handle category selection.
+ * @param error An optional error message for validation.
+ * @param enabled Flag to enable or disable the input field.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
@@ -280,6 +310,16 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?, e
     }
 }
 
+/**
+ * Composable for entering the location of the activity.
+ *
+ * @param initialValue The initial value of the location field.
+ * @param onNewValue Lambda to handle updates to the location.
+ * @param suggestions A list of suggested locations.
+ * @param onSuggestionClick Lambda to handle the selection of a suggestion.
+ * @param error An optional error message for validation.
+ * @param enabled Flag to enable or disable the input field.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocationField(
@@ -349,6 +389,17 @@ fun LocationField(
     }
 }
 
+/**
+ * Composable for entering the address of the activity.
+ *
+ * @param initialValue The initial value of the address field.
+ * @param onNewValue Lambda to handle updates to the address.
+ * @param suggestions A list of suggested addresses.
+ * @param onSuggestionClick Lambda to handle the selection of a suggestion.
+ * @param isEnabled Flag to indicate if the field should be editable.
+ * @param error An optional error message for validation.
+ * @param enabled Flag to enable or disable the input field.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddressField(
@@ -421,6 +472,13 @@ fun AddressField(
     }
 }
 
+/**
+ * Composable for displaying the postal code of the activity.
+ *
+ * @param value The current value of the postal code field.
+ * @param error An optional error message for validation.
+ * @param enabled Flag to enable or disable the input field.
+ */
 @Composable
 fun PostalCodeField(value: String, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -446,6 +504,14 @@ fun PostalCodeField(value: String, error: String?, enabled: Boolean) {
     )
 }
 
+/**
+ * Composable for selecting the date of the activity.
+ *
+ * @param value The current timestamp for the selected date.
+ * @param onNewValue Lambda to handle updates to the date.
+ * @param error An optional error message for validation.
+ * @param enabled Flag to enable or disable the date picker.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enabled: Boolean) {
@@ -527,8 +593,14 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enab
     }
 }
 
-
-
+/**
+ * Composable for selecting the start time of the activity.
+ *
+ * @param value The current value of the time field.
+ * @param onNewValue Lambda to handle updates to the start time.
+ * @param error An optional error message for validation.
+ * @param enabled Flag to enable or disable the time picker.
+ */
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -598,6 +670,14 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?, 
     }
 }
 
+/**
+ * Composable for entering the maximum number of participants for the activity.
+ *
+ * @param value The current value of the max participants field.
+ * @param onNewValue Lambda to handle updates to the number of participants.
+ * @param error An optional error message for validation.
+ * @param enabled Flag to enable or disable the input field.
+ */
 @Composable
 fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -622,6 +702,14 @@ fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: Str
     )
 }
 
+/**
+ * Composable for entering the age limit for the activity.
+ *
+ * @param value The current value of the age limit field.
+ * @param onNewValue Lambda to handle updates to the age limit.
+ * @param error An optional error message for validation.
+ * @param enabled Flag to enable or disable the input field.
+ */
 @Composable
 fun AgeLimitField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -646,6 +734,14 @@ fun AgeLimitField(value: String, onNewValue: (String) -> Unit, error: String?, e
     )
 }
 
+/**
+ * Composable for uploading an image for the activity.
+ *
+ * @param selectedImageUri The URI of the currently selected image.
+ * @param onImageSelected Lambda to handle image selection.
+ * @param error An optional error message for validation.
+ * @param enabled Flag to enable or disable the image upload section.
+ */
 @Composable
 fun ImageUploadSection(
     selectedImageUri: Uri?,
@@ -754,6 +850,13 @@ fun ImageUploadSection(
     }
 }
 
+/**
+ * Composable for the publish button.
+ *
+ * @param navController The NavController to manage navigation after publishing.
+ * @param viewModel The ViewModel for managing publish logic.
+ * @param isPublishing Flag indicating whether the publishing process is ongoing.
+ */
 @Composable
 fun PublishButton(navController: NavController, viewModel: NewActivityViewModel, isPublishing: Boolean) {
     val buttonText = if (isPublishing) {
