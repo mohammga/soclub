@@ -17,8 +17,40 @@ import com.example.soclub.utils.cancelNotificationForActivity
 import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import java.util.Date
 import javax.inject.Inject
+
+/**
+ * Data class representing the UI state for editing an activity.
+ *
+ * @property title The title of the activity.
+ * @property description The description of the activity.
+ * @property category The category of the activity.
+ * @property location The location of the activity.
+ * @property address The address of the activity.
+ * @property postalCode The postal code of the activity.
+ * @property maxParticipants The maximum number of participants allowed.
+ * @property ageLimit The age limit for the activity.
+ * @property imageUrl The URL of the activity's image.
+ * @property date The date of the activity.
+ * @property startTime The start time of the activity.
+ * @property errorMessage The error message to be displayed, if any.
+ * @property locationSuggestions List of location suggestions.
+ * @property addressSuggestions List of address suggestions.
+ * @property postalCodeSuggestions List of postal code suggestions.
+ * @property locationConfirmed Indicates if the location is confirmed.
+ * @property addressConfirmed Indicates if the address is confirmed.
+ * @property titleError Error message for the title field.
+ * @property descriptionError Error message for the description field.
+ * @property categoryError Error message for the category field.
+ * @property locationError Error message for the location field.
+ * @property addressError Error message for the address field.
+ * @property postalCodeError Error message for the postal code field.
+ * @property maxParticipantsError Error message for the max participants field.
+ * @property ageLimitError Error message for the age limit field.
+ * @property dateError Error message for the date field.
+ * @property startTimeError Error message for the start time field.
+ * @property selectedImageUri The URI of the selected image.
+ */
 
 data class EditActivityState(
     val title: String = "",
@@ -51,6 +83,15 @@ data class EditActivityState(
     val selectedImageUri: Uri? = null
 )
 
+/**
+ * ViewModel responsible for managing the state and logic of the Edit Activity screen.
+ *
+ * @param activityService Service for managing activities.
+ * @param accountService Service for managing user accounts.
+ * @param locationService Service for fetching location data.
+ * @param storageService Service for managing storage operations.
+ * @param application The application context.
+ */
 @HiltViewModel
 class EditActivityViewModel @Inject constructor(
     private val activityService: ActivityService,
@@ -75,6 +116,9 @@ class EditActivityViewModel @Inject constructor(
     }
 
 
+    /**
+     * Loads the list of municipalities and updates the UI state with location suggestions.
+     */
     private fun loadMunicipalities() {
         viewModelScope.launch {
             locationService.fetchMunicipalities().collect { fetchedMunicipalities ->
@@ -84,6 +128,12 @@ class EditActivityViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Loads an activity for editing.
+     *
+     * @param category The category of the activity.
+     * @param activityId The unique ID of the activity.
+     */
     fun loadActivity(category: String, activityId: String) {
         viewModelScope.launch {
             try {
@@ -125,6 +175,12 @@ class EditActivityViewModel @Inject constructor(
     }
 
 
+
+    /**
+     * Updates the title field in the UI state.
+     *
+     * @param newValue The new value for the title.
+     */
     fun onTitleChange(newValue: String) {
         uiState.value = uiState.value.copy(title = newValue, titleError = null)
         val capitalizedTitle = newValue.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
@@ -132,20 +188,40 @@ class EditActivityViewModel @Inject constructor(
     }
 
 
+    /**
+     * Updates the description field in the UI state.
+     *
+     * @param newValue The new value for the description.
+     */
     fun onDescriptionChange(newValue: String) {
         uiState.value = uiState.value.copy(description = newValue, descriptionError = null)
         val capitalizedDescription = newValue.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
         uiState.value = uiState.value.copy(description = capitalizedDescription, descriptionError = null)
     }
 
+    /**
+     * Updates the selected image URI in the UI state.
+     *
+     * @param uri The URI of the selected image.
+     */
     fun onImageSelected(uri: Uri?) {
         uiState.value = uiState.value.copy(selectedImageUri = uri, imageUrl = uri?.toString() ?: "")
     }
 
+    /**
+     * Updates the category field in the UI state.
+     *
+     * @param newValue The new value for the category.
+     */
     fun onCategoryChange(newValue: String) {
         uiState.value = uiState.value.copy(category = newValue, categoryError = null)
     }
 
+    /**
+     * Updates the location field in the UI state and fetches location suggestions.
+     *
+     * @param newValue The new value for the location.
+     */
     fun onLocationChange(newValue: String) {
         if (newValue.isBlank()) {
             uiState.value = uiState.value.copy(
@@ -177,6 +253,11 @@ class EditActivityViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Updates the UI state when a location is selected.
+     *
+     * @param selectedLocation The selected location.
+     */
     fun onLocationSelected(selectedLocation: String) {
         uiState.value = uiState.value.copy(
             location = selectedLocation,
@@ -189,6 +270,11 @@ class EditActivityViewModel @Inject constructor(
         )
     }
 
+    /**
+     * Updates the address field in the UI state and fetches address suggestions.
+     *
+     * @param newValue The new value for the address.
+     */
     fun onAddressChange(newValue: String) {
         uiState.value = uiState.value.copy(
             address = newValue,
@@ -203,6 +289,11 @@ class EditActivityViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Updates the UI state when an address is selected and fetches the postal code.
+     *
+     * @param selectedAddress The selected address.
+     */
     fun onAddressSelected(selectedAddress: String) {
         uiState.value = uiState.value.copy(
             address = selectedAddress,
@@ -213,6 +304,11 @@ class EditActivityViewModel @Inject constructor(
         fetchPostalCodeForAddress(selectedAddress, uiState.value.location)
     }
 
+    /**
+     * Fetches address suggestions based on the provided query.
+     *
+     * @param query The input string for which address suggestions are to be fetched.
+     */
     private fun fetchAddressSuggestions(query: String) {
         val (streetName, houseNumber) = extractStreetAndHouseNumber(query)
 
@@ -231,6 +327,12 @@ class EditActivityViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Extracts the street name and house number from the input query.
+     *
+     * @param query The input string containing a street name and optionally a house number.
+     * @return A pair containing the street name and the house number (if available).
+     */
     private fun extractStreetAndHouseNumber(query: String): Pair<String, String?> {
         val regex = Regex("^(.*?)(\\d+)?$")
         val matchResult = regex.find(query.trim())
@@ -239,6 +341,12 @@ class EditActivityViewModel @Inject constructor(
         return streetName to houseNumber
     }
 
+    /**
+     * Fetches the postal code for the specified address and municipality.
+     *
+     * @param address The address for which the postal code is to be fetched.
+     * @param municipality The municipality of the address.
+     */
     private fun fetchPostalCodeForAddress(address: String, municipality: String) {
         viewModelScope.launch {
             locationService.fetchPostalCodeForAddress(address, municipality).collect { postalCode ->
@@ -251,10 +359,20 @@ class EditActivityViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Updates the max participants field in the UI state.
+     *
+     * @param newValue The new value for the max participants.
+     */
     fun onMaxParticipantsChange(newValue: String) {
         uiState.value = uiState.value.copy(maxParticipants = newValue, maxParticipantsError = null)
     }
 
+    /**
+     * Updates the age limit field in the UI state.
+     *
+     * @param newValue The new value for the age limit.
+     */
     fun onAgeLimitChange(newValue: String) {
         val age = newValue.toIntOrNull()
         if (age != null && age > 100) {
@@ -271,14 +389,31 @@ class EditActivityViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Updates the date field in the UI state.
+     *
+     * @param newValue The new value for the date.
+     */
     fun onDateChange(newValue: Timestamp) {
         uiState.value = uiState.value.copy(date = newValue, dateError = null)
     }
 
+    /**
+     * Updates the start time field in the UI state.
+     *
+     * @param newValue The new value for the start time.
+     */
     fun onStartTimeChange(newValue: String) {
         uiState.value = uiState.value.copy(startTime = newValue, startTimeError = null)
     }
 
+    /**
+     * Validates the input fields and saves the updated activity.
+     *
+     * @param navController Navigation controller for navigating to other screens.
+     * @param activityId The unique ID of the activity being edited.
+     * @param currentCategory The current category of the activity.
+     */
     fun onSaveClick(navController: NavController, activityId: String, currentCategory: String) {
         var hasError = false
         var titleError: String? = null
@@ -421,7 +556,13 @@ class EditActivityViewModel @Inject constructor(
         }
     }
 
-
+    /**
+     * Deletes the activity and navigates back to the home screen.
+     *
+     * @param navController Navigation controller for navigating to other screens.
+     * @param category The category of the activity.
+     * @param activityId The unique ID of the activity.
+     */
     fun onDeleteClick(navController: NavController, category: String, activityId: String) {
         viewModelScope.launch {
             try {
@@ -443,7 +584,17 @@ class EditActivityViewModel @Inject constructor(
     }
 
 
-
+    /**
+     * Updates the activity and navigates to the home screen.
+     *
+     * @param navController Navigation controller for navigating to other screens.
+     * @param imageUrl The URL of the activity's image.
+     * @param date The date of the activity.
+     * @param startTime The start time of the activity.
+     * @param creatorId The ID of the activity creator.
+     * @param activityId The unique ID of the activity.
+     * @param currentCategory The current category of the activity.
+     */
     private fun updateActivityAndNavigate(
         navController: NavController,
         imageUrl: String,

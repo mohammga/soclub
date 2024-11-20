@@ -19,6 +19,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.soclub.R
 
+/**
+ * Composable function that displays a screen indicating no internet connection.
+ *
+ * This screen contains a message and a loading indicator to inform the user about
+ * the lack of internet connection.
+ */
 @Composable
 fun NoInternetScreen() {
     Surface(
