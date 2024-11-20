@@ -61,7 +61,7 @@ class EditProfileViewModel @Inject constructor(
                 uiState.value = uiState.value.copy(
                     firstname = userInfo.firstname,
                     lastname = userInfo.lastname,
-                    imageUri = imageUri
+                    imageUri = if (userInfo.imageUrl.isNotBlank()) Uri.parse(userInfo.imageUrl) else null
                 )
             } catch (e: Exception) {
                 errorMessage.value = context.getString(R.string.error_message)
