@@ -408,10 +408,11 @@ fun ActivityDate(date: Timestamp?) {
 
         val sdf = SimpleDateFormat("EEEE, d. MMMM yyyy", Locale("no", "NO"))
         sdf.format(it.toDate())
-    } ?: "Ukjent dato"
+    } ?: stringResource(R.string.unknown_date)//"Ukjent dato"
 
     Text(
-        text = "Dato: $formattedDate",
+        //text = "Dato: $formattedDate",
+        text = stringResource(id = R.string.date_format, formattedDate),
         modifier = Modifier.padding(vertical = 4.dp)
     )
 }

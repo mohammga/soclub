@@ -429,5 +429,28 @@
     <string name="system">System</string>
     <string name="light">Lyst</string>
     <string name="darke">Mørkt</string>
+
     <string name="error_fetching_user_info">Kunne ikke hente brukerinformasjon: %1$s</string>
+
+    <string name="date_format">Dato: %1$s</string>
+    <string name="error_postal_code_not_found">Fant ikke postnummer</string>
+    <string name="unknown_error_occurred">Det oppstod en ukjent feil</string>
+    <string name="activity_cancelled">Aktivitet kansellert</string>
+
+
+    <string name="just_now">Akkurat nå</string>
+    <string name="minutes_ago">%1$d %2$s siden</string>
+    <string name="hours_ago">%1$d %2$s siden</string>
+    <string name="days_ago">%1$d %2$s siden</string>
+    <string name="minute">minutt</string>
+    <string name="minutes">minutter</string>
+    <string name="hour">time</string>
+    <string name="hours">timer</string>
+    <string name="day">dag</string>
+    <string name="days">dager</string>
+    <string name="look">Utseende</string>
+    <string name="channel_id">\naktivitets påminnelses kanal</string>
+    <string name="channel_name">Aktivitets påminnelses varsler</string>
+    <string name="channel_description">Varsler for aktivitetspåminnelser og oppdateringer</string>
+
 </resources>

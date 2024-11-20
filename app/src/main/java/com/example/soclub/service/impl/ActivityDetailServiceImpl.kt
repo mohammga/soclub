@@ -1,5 +1,4 @@
 package com.example.soclub.service.impl
-
 import android.content.Context
 import com.example.soclub.models.Activity
 import com.example.soclub.service.ActivityDetailService
@@ -12,7 +11,9 @@ import com.google.firebase.firestore.ListenerRegistration
 
 class ActivityDetailServiceImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
+
     private val context: Context
+
 ) : ActivityDetailService {
 
     override suspend fun getActivityById(category: String, activityId: String): Activity {
@@ -23,6 +24,7 @@ class ActivityDetailServiceImpl @Inject constructor(
                 .document(activityId)
                 .get()
                 .await()
+
 
             val activity = documentSnapshot.toObject(Activity::class.java)
                 ?: throw Exception("Activity not found")
@@ -42,7 +44,7 @@ class ActivityDetailServiceImpl @Inject constructor(
         } catch (e: Exception) {
             throw Exception("Failed to fetch activity: ${e.message}", e)
         }
-    }
+          }
 
     override suspend fun isUserRegisteredForActivity(userId: String, activityId: String): Boolean {
         try {

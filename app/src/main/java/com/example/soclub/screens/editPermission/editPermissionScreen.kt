@@ -148,7 +148,7 @@ fun EditPermissionScreen(
 @Composable
 fun ThemeSwitch(themeMode: ThemeMode, onThemeChange: (ThemeMode) -> Unit) {
     Text(
-        text = "Utseende",
+        text = stringResource(R.string.look),//"Utseende",
         style = MaterialTheme.typography.bodyLarge.copy(
             fontWeight = FontWeight.Bold
         ),
