@@ -72,7 +72,7 @@ fun NotificationsScreen(
                             NotificationItem(
                                 notification = notifications[index],
                                 onDelete = { notification ->
-                                    viewModel.deleteNotification(notification, context) // Pass context here
+                                    viewModel.deleteNotification(notification, context)
                                 }
                             )
                         }
@@ -139,7 +139,6 @@ fun NotificationItem(
                 color = MaterialTheme.colorScheme.onBackground
             )
         }
-        // Center the IconButton vertically by wrapping it in a Box
         Box(
             contentAlignment = Alignment.Center
         ) {

@@ -42,7 +42,7 @@ class EditPermissionViewModel @Inject constructor() : ViewModel() {
             _notificationPermission.value = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 checkPermissionStatus(context, Manifest.permission.POST_NOTIFICATIONS)
             } else {
-                true // Tillatelse er automatisk gitt på eldre versjoner
+                true
             }
         }
     }

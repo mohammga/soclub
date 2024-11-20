@@ -40,7 +40,6 @@ class ProfileViewModel @Inject constructor(
             try {
                 userInfo = accountService.getUserInfo()
             } catch (e: Exception) {
-                // Håndtere feil ved behov
             } finally {
                 isLoading = false
             }

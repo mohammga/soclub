@@ -13,8 +13,8 @@ import org.json.JSONObject
 import javax.inject.Inject
 
 class LocationServiceImpl @Inject constructor(
-    private val client: OkHttpClient, // Corrected OkHttpClient type
-    private val context: Context      // Corrected Context type
+    private val client: OkHttpClient,
+    private val context: Context
 ) : LocationService {
 
     override suspend fun fetchMunicipalities(): Flow<List<String>> = flow {

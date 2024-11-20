@@ -13,13 +13,12 @@ object ServiceLocator {
     private var notificationService: NotificationService? = null
     private var accountService: AccountService? = null
 
-    // Updated to accept Context as a parameter
     private fun provideAccountService(context: Context): AccountService {
         return accountService ?: synchronized(this) {
             accountService ?: AccountServiceImpl(
                 auth = FirebaseAuth.getInstance(),
                 firestore = FirebaseFirestore.getInstance(),
-                context = context // Pass the context here
+                context = context
             ).also {
                 accountService = it
             }

@@ -78,42 +78,31 @@ class ResetPasswordViewModel @Inject constructor(private val accountService: Acc
      */
     fun onForgotPasswordClick(context: Context) {
         var emailError: Int? = null
-
-        // Validate email input
         if (email.isBlank()) {
             emailError = R.string.error_email_required
         } else if (!email.isValidEmail()) {
             emailError = R.string.error_invalid_email
         }
 
-        // Update UI state with email validation error if any
         if (emailError != null) {
             uiState.value = uiState.value.copy(emailError = emailError)
             return
         }
 
-        // Indicate that a password reset operation is in progress
         isLoading.value = true
-
-        // Launch a coroutine to perform the password reset operation asynchronously
         viewModelScope.launch {
             try {
                 accountService.sendPasswordResetEmail(email) { error ->
-                    // Reset loading state
                     isLoading.value = false
 
                     if (error == null) {
-                        // Display success message
                         Toast.makeText(context, context.getString(R.string.password_reset_email_sent), Toast.LENGTH_LONG).show()
-                        // Update UI state with success status message
                         uiState.value = ResetPasswordUiState(statusMessage = R.string.password_reset_email_sent)
                     } else {
-                        // Update UI state with error status message
                         uiState.value = uiState.value.copy(statusMessage = R.string.error_could_not_send_reset_email)
                     }
                 }
             } catch (e: Exception) {
-                // Handle any exceptions that occur during the password reset process
                 isLoading.value = false
                 uiState.value = uiState.value.copy(statusMessage = R.string.error_could_not_send_reset_email)
             }

@@ -26,7 +26,6 @@ class EntriesServiceImpl @Inject constructor(
         onUpdate: (List<Activity>) -> Unit
     ) {
         try {
-            // Remove any existing listener to prevent duplicates
             activeListenerRegistration?.remove()
 
             activeListenerRegistration = firestore.collection("registrations")
@@ -60,7 +59,6 @@ class EntriesServiceImpl @Inject constructor(
         onUpdate: (List<Activity>) -> Unit
     ) {
         try {
-            // Remove any existing listener to prevent duplicates
             notActiveListenerRegistration?.remove()
 
             notActiveListenerRegistration = firestore.collection("registrations")
@@ -123,8 +121,6 @@ class EntriesServiceImpl @Inject constructor(
                     }
                 }
             }
-
-            // Ensure the activity list is updated after processing all documents
             onUpdate(activityList)
         } catch (e: Exception) {
             throw Exception("Failed to process activities: ${e.message}", e)

@@ -34,9 +34,8 @@ data class NewActivityState(
     val locationSuggestions: List<String> = emptyList(),
     val addressSuggestions: List<String> = emptyList(),
     val postalCodeSuggestions: List<String> = emptyList(),
-    val locationConfirmed: Boolean = false, // Flag to confirm location selection
-    val addressConfirmed: Boolean = false,  // Flag to confirm address selection
-    // Error messages
+    val locationConfirmed: Boolean = false,
+    val addressConfirmed: Boolean = false,
     val titleError: String? = null,
     val descriptionError: String? = null,
     val categoryError: String? = null,
@@ -72,7 +71,6 @@ class NewActivityViewModel @Inject constructor(
         loadMunicipalities()
     }
 
-    // Function to load municipalities from LocationService
     private fun loadMunicipalities() {
         viewModelScope.launch {
             locationService.fetchMunicipalities().collect { fetchedMunicipalities ->
@@ -82,41 +80,35 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Function to handle title change with first letter capitalized
     fun onTitleChange(newValue: String) {
         val capitalizedTitle = newValue.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
         uiState.value = uiState.value.copy(title = capitalizedTitle, titleError = null)
     }
 
-    // Function to handle description change with first letter capitalized
     fun onDescriptionChange(newValue: String) {
         val capitalizedDescription = newValue.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
         uiState.value = uiState.value.copy(description = capitalizedDescription, descriptionError = null)
     }
 
-    // Function to handle image selection
     fun onImageSelected(uri: Uri?) {
         uiState.value = uiState.value.copy(selectedImageUri = uri, imageUrl = uri?.toString() ?: "")
     }
 
-    // Function to handle category change
     fun onCategoryChange(newValue: String) {
         uiState.value = uiState.value.copy(category = newValue, categoryError = null)
     }
 
-    // Function to handle location (city) input change and show suggestions
     fun onLocationChange(newValue: String) {
         uiState.value = uiState.value.copy(
             location = newValue,
-            address = "",          // Reset address when location changes
-            postalCode = "",      // Reset postal code when location changes
-            locationConfirmed = false, // Reset confirmation flag
-            addressConfirmed = false,  // Reset address confirmation flag
+            address = "",
+            postalCode = "",
+            locationConfirmed = false,
+            addressConfirmed = false,
             locationError = null,
             addressSuggestions = emptyList()
         )
 
-        // Show suggestions only when two or more characters are entered
         if (newValue.length >= 2) {
             val suggestions = municipalities.filter { it.startsWith(newValue, ignoreCase = true) }
             uiState.value = uiState.value.copy(locationSuggestions = suggestions)
@@ -125,21 +117,19 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Function to confirm location selection from dropdown
     fun onLocationSelected(selectedLocation: String) {
         uiState.value = uiState.value.copy(
             location = selectedLocation,
             locationSuggestions = emptyList(),
-            locationConfirmed = true  // Mark location as confirmed
+            locationConfirmed = true
         )
     }
 
-    // Function to handle address input change and show suggestions
     fun onAddressChange(newValue: String) {
         uiState.value = uiState.value.copy(
             address = newValue,
-            postalCode = "",          // Reset postal code when address changes
-            addressConfirmed = false, // Reset confirmation flag
+            postalCode = "",
+            addressConfirmed = false,
             addressError = null
         )
 
@@ -150,21 +140,17 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Function to confirm address selection from dropdown
     fun onAddressSelected(selectedAddress: String) {
         uiState.value = uiState.value.copy(
             address = selectedAddress,
             addressSuggestions = emptyList(),
-            addressConfirmed = true  // Mark address as confirmed
+            addressConfirmed = true
         )
         fetchPostalCodeForAddress(selectedAddress, uiState.value.location)
     }
 
-    // Fetch address suggestions, handling house number extraction
     private fun fetchAddressSuggestions(query: String) {
         val (streetName, houseNumber) = extractStreetAndHouseNumber(query)
-
-        // Only fetch suggestions if location is confirmed
         if (!uiState.value.locationConfirmed) {
             return
         }
@@ -180,7 +166,6 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Helper function to extract street name and house number
     private fun extractStreetAndHouseNumber(query: String): Pair<String, String?> {
         val regex = Regex("^(.*?)(\\d+)?$")
         val matchResult = regex.find(query.trim())
@@ -189,7 +174,6 @@ class NewActivityViewModel @Inject constructor(
         return streetName to houseNumber
     }
 
-    // Fetch postal code for the selected address
     private fun fetchPostalCodeForAddress(address: String, municipality: String) {
         viewModelScope.launch {
             locationService.fetchPostalCodeForAddress(address, municipality).collect { postalCode ->
@@ -202,18 +186,16 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Function to handle max participants input change
     fun onMaxParticipantsChange(newValue: String) {
         uiState.value = uiState.value.copy(maxParticipants = newValue, maxParticipantsError = null)
     }
 
-    // Function to handle age limit input change and validate
     fun onAgeLimitChange(newValue: String) {
         val age = newValue.toIntOrNull()
         if (age != null && age > 100) {
             uiState.value = uiState.value.copy(
                 errorMessage = R.string.error_age_limit_exceeded,
-                ageLimitError = application.getString(R.string.age_limt_100)//"Aldersgrensen kan ikke overstige 100"
+                ageLimitError = application.getString(R.string.age_limt_100)
             )
         } else {
             uiState.value = uiState.value.copy(
@@ -224,19 +206,15 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Function to handle date input change
     fun onDateChange(newValue: Timestamp) {
         uiState.value = uiState.value.copy(date = newValue, dateError = null)
     }
 
-    // Function to handle start time input change
     fun onStartTimeChange(newValue: String) {
         uiState.value = uiState.value.copy(startTime = newValue, startTimeError = null)
     }
 
-    // Function to handle publish action
     fun onPublishClick(navController: NavController) {
-        // Validation
         var hasError = false
         var titleError: String? = null
         var descriptionError: String? = null
@@ -250,68 +228,63 @@ class NewActivityViewModel @Inject constructor(
         var startTimeError: String? = null
 
         if (uiState.value.title.isBlank()) {
-            //titleError = "Du må fylle inn tittel"
             titleError = application.getString(R.string.you_must_fyll_the_titel)
             hasError = true
         }
         if (uiState.value.description.isBlank()) {
-            //descriptionError = "Du må fylle inn beskrivelse"
             descriptionError = application.getString(R.string.description_must_be_filled_error)
             hasError = true
         }
         if (uiState.value.category.isBlank()) {
-            //categoryError = "Du må velge kategori"
             categoryError = application.getString(R.string.you_most_select_category)
             hasError = true
         }
         if (uiState.value.location.isBlank()) {
-            //locationError = "Du må velge sted"
             locationError = application.getString(R.string.you_most_select_location)
             hasError = true
         }
         if (uiState.value.address.isBlank()) {
-            addressError = application.getString(R.string.you_most_select_address)//"Du må velge adresse"
+            addressError = application.getString(R.string.you_most_select_address)
             hasError = true
         }
         if (uiState.value.postalCode.isBlank()) {
-            postalCodeError = application.getString(R.string.you_most_select_postalCode)//"Postnummer er påkrevd"
+            postalCodeError = application.getString(R.string.you_most_select_postalCode)
             hasError = true
         }
         if (uiState.value.maxParticipants.isBlank()) {
-            maxParticipantsError = application.getString(R.string.maxParticipants_must_be_filled_error)//"Du må fylle inn maks antall deltakere"
+            maxParticipantsError = application.getString(R.string.maxParticipants_must_be_filled_error)
             hasError = true
         } else if (uiState.value.maxParticipants.toIntOrNull() == null) {
-            maxParticipantsError = application.getString(R.string.most_ny_a_nummber)//"Må være et tall"
+            maxParticipantsError = application.getString(R.string.most_ny_a_nummber)
             hasError = true
         }
         if (uiState.value.ageLimit.isBlank()) {
-            ageLimitError = application.getString(R.string.ageLimit_must_be_filled_error)//"Du må fylle inn aldersgrense"
+            ageLimitError = application.getString(R.string.ageLimit_must_be_filled_error)
             hasError = true
         } else if (uiState.value.ageLimit.toIntOrNull() == null) {
-            ageLimitError = application.getString(R.string.most_ny_a_nummber)//"Må være et tall"
+            ageLimitError = application.getString(R.string.most_ny_a_nummber)
             hasError = true
         }
 
         val selectedDate = uiState.value.date
         if (selectedDate == null) {
-            dateError = application.getString(R.string.you_most_select_date)//"Du må velge dato"
+            dateError = application.getString(R.string.you_most_select_date)
             hasError = true
         } else {
             val currentTimeMillis = System.currentTimeMillis()
             val selectedDateMillis = selectedDate.toDate().time
             val diff = selectedDateMillis - currentTimeMillis
-            if (diff < 24 * 60 * 60 * 1000) { // 24 hours in milliseconds
-                dateError = application.getString(R.string.most_by_24_h)//"Datoen må være minst 24 timer fra nå"
+            if (diff < 24 * 60 * 60 * 1000) {
+                dateError = application.getString(R.string.most_by_24_h)
                 hasError = true
             }
         }
 
         if (uiState.value.startTime.isBlank()) {
-            startTimeError = application.getString(R.string.you_most_select_start_time)//"Du må velge starttidspunkt"
+            startTimeError = application.getString(R.string.you_most_select_start_time)
             hasError = true
         }
 
-        // Update UI-state with error messages
         uiState.value = uiState.value.copy(
             titleError = titleError,
             descriptionError = descriptionError,
@@ -339,8 +312,8 @@ class NewActivityViewModel @Inject constructor(
         if (uiState.value.imageUrl.isNotBlank()) {
             storageService.uploadImage(
                 imageUri = Uri.parse(uiState.value.imageUrl),
-                isActivity = true,  // Set to true for activity images
-                category = uiState.value.category, // Pass the activity category
+                isActivity = true,
+                category = uiState.value.category,
                 onSuccess = { imageUrl ->
                     createActivityAndNavigate(navController, imageUrl, combinedLocation, timestampDate, startTime, creatorId)
                 },

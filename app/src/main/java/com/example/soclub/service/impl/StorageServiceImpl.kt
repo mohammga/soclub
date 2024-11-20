@@ -26,7 +26,6 @@ class StorageServiceImpl @Inject constructor(
     ) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Determine folder based on whether it's an activity or a user profile image
                 val folderPath = if (isActivity) {
                     "$category/${imageUri.lastPathSegment}"
                 } else {
@@ -34,21 +33,16 @@ class StorageServiceImpl @Inject constructor(
                 }
 
                 val storageRef = firebaseStorage.reference.child(folderPath)
-
-                // Upload the file
                 storageRef.putFile(imageUri).await()
 
-                // Retrieve the download URL
                 val downloadUrl = storageRef.downloadUrl.await()
 
-                // Call onSuccess on the main thread
                 withContext(Dispatchers.Main) {
                     onSuccess(downloadUrl.toString())
                 }
             } catch (e: Exception) {
                 Log.e("StorageServiceImpl", "Error uploading image: ${e.message}", e)
 
-                // Call onError on the main thread
                 withContext(Dispatchers.Main) {
                     onError(e)
                 }
