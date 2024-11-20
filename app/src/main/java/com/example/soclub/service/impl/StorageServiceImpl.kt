@@ -1,5 +1,6 @@
 package com.example.soclub.service.impl
 
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import com.example.soclub.service.StorageService
@@ -7,7 +8,8 @@ import com.google.firebase.storage.FirebaseStorage
 import javax.inject.Inject
 
 class StorageServiceImpl @Inject constructor(
-    private val firebaseStorage: FirebaseStorage
+    private val firebaseStorage: FirebaseStorage,
+    private val context: Context
 ) : StorageService {
 
     override fun uploadImage(

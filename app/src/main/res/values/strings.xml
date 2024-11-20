@@ -396,5 +396,6 @@
     <string name="system">System</string>
     <string name="light">Light</string>
     <string name="darke">Dark</string>
+    <string name="error_fetching_user_info">Failed to fetch user info: %1$s</string>
 
 </resources>
