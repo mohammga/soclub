@@ -46,7 +46,7 @@ class AdsViewModel @Inject constructor(
                         ageGroup = it.ageGroup,
                         maxParticipants = it.maxParticipants,
                         location = it.location,
-                        date = it.date, // Add this if you haven't already
+                        date = it.date,
                         startTime = it.startTime,
                         category = it.category
                     )
@@ -55,7 +55,7 @@ class AdsViewModel @Inject constructor(
                 _activities.value = fetchedActivities
             } catch (e: Exception) {
                 e.printStackTrace()
-                _errorMessage.value = context.getString(R.string.error_message)//"Det skjedde en feil. Vennligst prøv igjen senere."
+                _errorMessage.value = context.getString(R.string.error_message)
             } finally {
                 _isLoading.value = false
             }

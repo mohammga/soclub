@@ -71,7 +71,7 @@ fun NotificationsScreen(
                             NotificationItem(
                                 notification = notifications[index],
                                 onDelete = { notification ->
-                                    viewModel.deleteNotification(notification, context) // Pass context here
+                                    viewModel.deleteNotification(notification, context)
                                 }
                             )
                         }

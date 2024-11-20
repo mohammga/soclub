@@ -67,7 +67,7 @@ fun OrDivider() {
     ) {
         HorizontalDivider(modifier = Modifier.weight(1f))
         Text(
-            text = stringResource(id = R.string.or_text), // Ensure this string is added in resources
+            text = stringResource(id = R.string.or_text),
             modifier = Modifier.padding(horizontal = 8.dp),
             style = MaterialTheme.typography.bodyMedium
         )

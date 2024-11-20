@@ -43,9 +43,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 
-
-
-
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hiltViewModel()) {
@@ -55,15 +52,12 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
     val selectedCities by viewModel.selectedCities.observeAsState(emptyList())
     val cities by viewModel.getCities().observeAsState(emptyList())
     val hasLocationPermission by viewModel.hasLocationPermission.observeAsState(false)
-
-    // Filter categories based on location permission
     val visibleCategories = if (hasLocationPermission) {
         categories
     } else {
         categories.filter { it != "Nærme Aktiviteter" }
     }
 
-    // Initialize pagerState with visibleCategories.size
     val pagerState = rememberPagerState(
         initialPage = 0,
         pageCount = { visibleCategories.size }
@@ -79,8 +73,6 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
-        // Select the current category based on the current page in the pager
         val selectedCategory = visibleCategories.getOrNull(pagerState.currentPage) ?: ""
 
         Row(
@@ -129,7 +121,6 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Display activities based on the selected category
         CategoryActivitiesPager(
             categories = visibleCategories,
             pagerState = pagerState,
@@ -139,7 +130,6 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
         )
     }
 
-    // Filter bottom sheet for city selection and area settings
     if (showBottomSheet) {
         FilterBottomSheet(
             showBottomSheet = showBottomSheet,
@@ -162,15 +152,15 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 fun Chip(text: String, onRemove: () -> Unit) {
     Row(
         modifier = Modifier
-            .clip(RoundedCornerShape(12.dp))  // Smaller rounding
+            .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
-            .padding(horizontal = 8.dp, vertical = 4.dp),  // Reduced padding
+            .padding(horizontal = 8.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
         Text(
             text = text,
-            fontSize = 14.sp,  // Smaller font size
+            fontSize = 14.sp,
             fontWeight = FontWeight.Normal
         )
         Spacer(modifier = Modifier.width(4.dp))
@@ -219,7 +209,6 @@ fun CategoryActivitiesPager(
 
         Column(modifier = Modifier.fillMaxSize()) {
             if (isLoading) {
-                // Show a loading indicator while data is loading
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -229,14 +218,12 @@ fun CategoryActivitiesPager(
                     CircularProgressIndicator()
                 }
             } else if (activitiesToShow.isNotEmpty()) {
-                // Display the list of activities
                 ActivityList(
                     activities = activitiesToShow,
                     selectedCategory = selectedCategory,
                     navController = navController
                 )
             } else {
-                // Display a message if no activities are available
                 Text(
                     text = "Ingen aktiviteter tilgjengelig for $selectedCategory.",
                     modifier = Modifier.padding(16.dp),
@@ -295,7 +282,7 @@ fun FilterListItem(
             color = contentColor,
         )
         Icon(
-            imageVector = Icons.Default.FilterList, // You can change to the appropriate icon
+            imageVector = Icons.Default.FilterList,
             contentDescription = "Arrow",
             tint = contentColor,
             modifier = Modifier.padding(end = 16.dp)

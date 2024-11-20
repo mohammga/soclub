@@ -26,8 +26,6 @@ import java.util.Locale
 import android.icu.text.SimpleDateFormat
 import com.google.firebase.Timestamp
 
-
-
 @Composable
 fun AdsScreen(
     navController: NavController,
@@ -44,7 +42,6 @@ fun AdsScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         when {
             isLoading -> {
-                // Viser loading-indikator
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -53,7 +50,6 @@ fun AdsScreen(
                 }
             }
             errorMessage != null -> {
-                // Viser feilmelding hvis det ikke finnes annonser eller hvis en feil oppstår
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -62,7 +58,6 @@ fun AdsScreen(
                 }
             }
             activities.isEmpty() -> {
-                // Hvis det ikke finnes annonser og ingen feil, vis en melding
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -72,7 +67,6 @@ fun AdsScreen(
                 }
             }
             else -> {
-                // Viser listen over annonser
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -84,7 +78,7 @@ fun AdsScreen(
                         EntryItem(
                             imageUrl = activity.imageUrl,
                             title = activity.title,
-                            date = activity.date, // Add this line to pass the date
+                            date = activity.date,
                             time = activity.startTime,
                             activityId = activity.creatorId,
                             category = activity.category,
@@ -156,7 +150,6 @@ fun DateDisplay(date: Timestamp?, time: String?) {
         dateStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
     } ?: stringResource(id = R.string.unknown_date)//"Ukjent dato"
 
-    // Concatenate the date and time if both are available
     val displayText = if (time != null) {
         "$formattedDateTime, $time"
     } else {
@@ -174,7 +167,7 @@ fun DateDisplay(date: Timestamp?, time: String?) {
 @Composable
 fun EventImage(imageUrl: String?) {
     val imagePainter = if (imageUrl.isNullOrEmpty()) {
-        painterResource(id = R.drawable.placeholder) // Replace with the actual placeholder resource ID
+        painterResource(id = R.drawable.placeholder)
     } else {
         rememberAsyncImagePainter(imageUrl)
     }

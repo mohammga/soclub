@@ -93,12 +93,12 @@ fun NewActivityScreen(
                     initialValue = uiState.location,
                     onNewValue = { location ->
                         viewModel.onLocationChange(location)
-                        locationConfirmed = false // Reset confirmation on new input
+                        locationConfirmed = false
                     },
                     suggestions = locationSuggestions,
                     onSuggestionClick = { suggestion ->
                         viewModel.onLocationSelected(suggestion)
-                        locationConfirmed = true // Confirm location
+                        locationConfirmed = true
                     },
                     error = uiState.locationError,
                     enabled = !isPublishing
@@ -209,7 +209,7 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .height(150.dp), // Increase the height for a larger field
+            .height(150.dp),
         maxLines = 10,
         isError = error != null,
         enabled = enabled,
@@ -337,7 +337,7 @@ fun LocationField(
                         onClick = {
                             textFieldValue = TextFieldValue(
                                 text = suggestion,
-                                selection = TextRange(suggestion.length) // Move cursor to end
+                                selection = TextRange(suggestion.length)
                             )
                             onSuggestionClick(suggestion)
                             expanded = false
@@ -475,7 +475,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enab
             supportingText = {
                 val errorMessage = error ?: internalError
                 if (errorMessage == null) {
-                    Text(stringResource(R.string.date_most_by_24_fn))//Velg dato for aktiviteten (minst 24 timer fra nå)
+                    Text(stringResource(R.string.date_most_by_24_fn))
                 } else {
                     Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
                 }
@@ -497,18 +497,18 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enab
                         onClick = {
                             datePickerState.selectedDateMillis?.let { selectedMillis ->
                                 val diff = selectedMillis - currentTimeMillis
-                                if (diff >= 24 * 60 * 60 * 1000) { // Minimum 24 hours from now
+                                if (diff >= 24 * 60 * 60 * 1000) {
                                     onNewValue(Timestamp(Date(selectedMillis)))
                                     internalError = null
                                     isDatePickerVisible.value = false
                                 } else if (selectedMillis < currentTimeMillis) {
-                                    internalError =  context.getString(R.string.date_most_by_24_fn)//"Datoen må være minst 24 timer fra nå"
-                                    Toast.makeText(context, R.string.date_expiered, Toast.LENGTH_SHORT).show()//"Du kan ikke velge en dato som har gått."
+                                    internalError =  context.getString(R.string.date_most_by_24_fn)
+                                    Toast.makeText(context, R.string.date_expiered, Toast.LENGTH_SHORT).show()
                                 } else {
-                                    internalError = context.getString(R.string.date_most_by_24_fn)//"Datoen må være minst 24 timer fra nå"
+                                    internalError = context.getString(R.string.date_most_by_24_fn)
                                 }
                             } ?: run {
-                                internalError = context.getString(R.string.you_most_select_date)//"Du må velge en dato"
+                                internalError = context.getString(R.string.you_most_select_date)
                             }
                         }
                     ) {
@@ -539,7 +539,6 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?, 
     Box {
         OutlinedTextField(
             value = value,
-            //value = if (value.isNotEmpty()) value else stringResource(R.string.choose_start_time),
             onValueChange = {},
             placeholder = { Text(stringResource(R.string.start_time_label)) },
             label = { Text(stringResource(R.string.start_time_label))},

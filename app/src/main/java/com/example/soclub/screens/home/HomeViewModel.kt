@@ -34,9 +34,7 @@ class HomeViewModel @Inject constructor(
 
 
     private val _userCity = MutableLiveData<String?>()
-    val userCity: LiveData<String?> get() = _userCity
 
-    // LiveData for å holde styr på GPS-tillatelsen
     private val _hasLocationPermission = MutableLiveData(false)
     val hasLocationPermission: LiveData<Boolean> get() = _hasLocationPermission
 
@@ -53,9 +51,7 @@ class HomeViewModel @Inject constructor(
     val selectedCities: LiveData<List<String>> get() = _selectedCities
 
     private var hasLoadedNearestActivities = false
-
     private val _hasLoadedActivities = MutableLiveData(false)
-    val hasLoadedActivities: LiveData<Boolean> get() = _hasLoadedActivities
 
     private var allActivities = listOf<Activity>()
     private var activitiesListener: ListenerRegistration? = null
@@ -68,14 +64,14 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val location: Location? = fusedLocationClient.lastLocation.await()
-                _hasLocationPermission.postValue(location != null) // Setter tillatelse basert på lokasjonsdata
+                _hasLocationPermission.postValue(location != null)
                 location?.let {
                     val city = getCityFromLocation(it)
                     _userCity.postValue(city)
                 }
             } catch (e: SecurityException) {
                 Log.e("HomeViewModel", "Location permission not granted: ${e.message}")
-                _hasLocationPermission.postValue(false) // Setter tillatelse til false hvis tilgang ikke er gitt
+                _hasLocationPermission.postValue(false)
             } catch (e: Exception) {
                 Log.e("HomeViewModel", "Error fetching location: ${e.message}")
                 _hasLocationPermission.postValue(false)
@@ -177,7 +173,6 @@ class HomeViewModel @Inject constructor(
         val geocoder = Geocoder(getApplication<Application>().applicationContext, Locale.getDefault())
 
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            // For API level 33 and above, use GeocodeListener
             suspendCancellableCoroutine { cont ->
                 geocoder.getFromLocation(
                     location.latitude,
@@ -196,14 +191,12 @@ class HomeViewModel @Inject constructor(
                 )
             }
         } else {
-            // For lower API levels, use deprecated getFromLocation in IO dispatcher
             withContext(Dispatchers.IO) {
                 try {
                     @Suppress("DEPRECATION")
                     val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
                     addresses?.firstOrNull()?.locality ?: addresses?.firstOrNull()?.subAdminArea
                 } catch (e: IOException) {
-                    // Handle IOException, such as network issues
                     null
                 }
             }
@@ -243,14 +236,12 @@ class HomeViewModel @Inject constructor(
                         _activities.postValue(nearestActivities)
                         _hasLoadedActivities.postValue(true)
 
-                        // Ensure the loading indicator is displayed for at least 2 seconds
                         val elapsedTime = System.currentTimeMillis() - startTime
                         val delayTime = 2000L - elapsedTime
                         if (delayTime > 0) {
                             delay(delayTime)
                         }
 
-                        // Set isLoading to false after data is loaded
                         _isLoading.postValue(false)
                     }
                 }

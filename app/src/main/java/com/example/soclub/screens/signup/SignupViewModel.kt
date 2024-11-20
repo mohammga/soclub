@@ -144,8 +144,6 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
         var ageError: Int? = null
         var emailError: Int? = null
         var passwordError: Int? = null
-
-        // Validate first name
         if (uiState.value.firstname.isBlank()) {
             firstNameError = R.string.error_first_name_required
             hasError = true
@@ -154,7 +152,6 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
             hasError = true
         }
 
-        // Validate last name
         if (uiState.value.lastname.isBlank()) {
             lastNameError = R.string.error_last_name_required
             hasError = true
@@ -163,7 +160,6 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
             hasError = true
         }
 
-        // Validate age
         if (uiState.value.age.isBlank()) {
             ageError = R.string.error_age_required
             hasError = true
@@ -175,7 +171,6 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
             hasError = true
         }
 
-        // Validate email
         if (uiState.value.email.isBlank()) {
             emailError = R.string.error_email_required
             hasError = true
@@ -184,7 +179,6 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
             hasError = true
         }
 
-        // Validate password
         if (uiState.value.password.isBlank()) {
             passwordError = R.string.error_password_required
             hasError = true
@@ -205,23 +199,17 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
             hasError = true
         }
 
-        // Update UI state with validation errors, if any
         uiState.value = uiState.value.copy(
             firstNameError = firstNameError,
             lastNameError = lastNameError,
             ageError = ageError,
             emailError = emailError,
             passwordError = passwordError,
-            generalError = null // Reset general error on each new attempt
+            generalError = null
         )
 
-        // If there are validation errors, abort the sign-up process
         if (hasError) return
-
-        // Start the registration process
         isLoading.value = true
-
-        // Launch a coroutine for the registration process
         viewModelScope.launch {
             try {
                 val convertedAge = uiState.value.age.toIntOrNull() ?: 0
@@ -232,10 +220,9 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
                     uiState.value.lastname,
                     convertedAge
                 ) { error ->
-                    isLoading.value = false // Complete the registration process
+                    isLoading.value = false
 
                     if (error == null) {
-                        // Show success message and navigate to Home
                         Toast.makeText(
                             context,
                             context.getString(
@@ -244,17 +231,14 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
                             ),
                             Toast.LENGTH_LONG
                         ).show()
-                        // Reset input fields after successful registration
                         uiState.value = RegistrationNewUserState()
                         navController.navigate(AppScreens.HOME.name)
                     } else {
-                        // Update UI state with a general account creation error
                         uiState.value =
                             uiState.value.copy(generalError = R.string.error_account_creation)
                     }
                 }
             } catch (e: Exception) {
-                // Handle any exceptions that occur during account creation
                 isLoading.value = false
                 uiState.value = uiState.value.copy(generalError = R.string.error_account_creation)
             }

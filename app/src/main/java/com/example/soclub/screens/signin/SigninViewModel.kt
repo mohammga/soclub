@@ -102,8 +102,6 @@ class SigninViewModel @Inject constructor(private val accountService: AccountSer
         var hasError = false
         var emailError: Int? = null
         var passwordError: Int? = null
-
-        // Validate email input
         if (email.isBlank()) {
             emailError = R.string.error_email_required
             hasError = true
@@ -112,51 +110,40 @@ class SigninViewModel @Inject constructor(private val accountService: AccountSer
             hasError = true
         }
 
-        // Validate password input
         if (password.isBlank()) {
             passwordError = R.string.error_password_required
             hasError = true
         }
 
-        // Update UI state with validation errors, if any
         uiState.value = uiState.value.copy(
             emailError = emailError,
             passwordError = passwordError,
             generalError = null
         )
-
-        // If there are validation errors, abort the login process
         if (hasError) return
 
-        // Indicate that a login operation is in progress
         isLoading.value = true
 
-        // Launch a coroutine for the authentication process
         viewModelScope.launch {
             try {
                 accountService.authenticateWithEmail(email, password) { error ->
-                    // Hide the loading indicator
                     isLoading.value = false
 
                     if (error == null) {
-                        // Show success message
                         Toast.makeText(
                             context,
                             context.getString(R.string.success_login, email),
                             Toast.LENGTH_LONG
                         ).show()
 
-                        // Navigate to the Home screen and clear the back stack
                         navController.navigate(AppScreens.HOME.name) {
                             popUpTo(AppScreens.SIGNIN.name) { inclusive = true }
                         }
                     } else {
-                        // Update UI state with a general login error
                         uiState.value = uiState.value.copy(generalError = R.string.error_could_not_log_in)
                     }
                 }
             } catch (e: Exception) {
-                // Handle any exceptions that occur during authentication
                 isLoading.value = false
                 uiState.value = uiState.value.copy(generalError = R.string.error_could_not_log_in)
             }

@@ -137,7 +137,6 @@ fun EditPermissionScreen(
                 )
             }
         }
-
         item {
             ThemeSwitch(themeMode = themeMode, onThemeChange = onThemeChange)
         }
@@ -163,17 +162,17 @@ fun ThemeSwitch(themeMode: ThemeMode, onThemeChange: (ThemeMode) -> Unit) {
         modifier = Modifier.padding(vertical = 10.dp)
     ) {
         ThemeChip(
-            label = stringResource(R.string.system),//System
+            label = stringResource(R.string.system),
             isSelected = themeMode == ThemeMode.SYSTEM,
             onClick = { onThemeChange(ThemeMode.SYSTEM) }
         )
         ThemeChip(
-            label = stringResource(R.string.light),//Lyst
+            label = stringResource(R.string.light),
             isSelected = themeMode == ThemeMode.LIGHT,
             onClick = { onThemeChange(ThemeMode.LIGHT) }
         )
         ThemeChip(
-            label = stringResource(R.string.darke),//Mørkt
+            label = stringResource(R.string.darke),
             isSelected = themeMode == ThemeMode.DARK,
             onClick = { onThemeChange(ThemeMode.DARK) }
         )
