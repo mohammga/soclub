@@ -1,6 +1,7 @@
 package com.example.soclub.service.impl
 
 import android.content.Context
+import com.example.soclub.R
 import com.example.soclub.models.Notification
 import com.example.soclub.service.NotificationService
 import com.example.soclub.service.AccountService
@@ -18,13 +19,15 @@ class NotificationServiceImpl @Inject constructor(
     private val context: Context
 ) : NotificationService {
 
+
     override suspend fun saveNotification(notification: Notification) {
         try {
             firestore.collection("notifications")
                 .add(notification.toMap())
                 .await()
         } catch (e: Exception) {
-            throw Exception("Failed to save notification: ${e.message}", e)
+           //throw Exception("Failed to save notification: ${e.message}", e)
+            throw Exception(context.getString(R.string.error_save_notification, e.message), e)
         }
     }
 
@@ -39,7 +42,8 @@ class NotificationServiceImpl @Inject constructor(
             return snapshot.documents.mapNotNull { it.toObject(Notification::class.java) }
                 .sortedByDescending { it.timestamp }
         } catch (e: Exception) {
-            throw Exception("Failed to fetch notifications: ${e.message}", e)
+            //throw Exception("Failed to fetch notifications: ${e.message}", e)
+            throw Exception(context.getString(R.string.error_fetch_notifications, e.message), e)
         }
     }
 
@@ -58,7 +62,8 @@ class NotificationServiceImpl @Inject constructor(
                 document.reference.delete().await()
             }
         } catch (e: Exception) {
-            throw Exception("Failed to delete notification: ${e.message}", e)
+            //throw Exception("Failed to delete notification: ${e.message}", e)
+            throw Exception(context.getString(R.string.error_delete_notification, e.message), e)
         }
     }
 
@@ -68,7 +73,12 @@ class NotificationServiceImpl @Inject constructor(
             .whereEqualTo("userId", userId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    this.close(Exception("Error listening to notifications: ${error.message}", error))
+                    //this.close(Exception("Error listening to notifications: ${error.message}", error))
+                    this.close(
+                    Exception(
+                        context.getString(R.string.error_listening_notifications, error.message),
+                        error))
+
                     return@addSnapshotListener
                 }
                 if (snapshot != null) {

@@ -275,7 +275,8 @@ fun CategoryActivitiesPager(
                 )
             } else {
                 Text(
-                    text = "Ingen aktiviteter tilgjengelig for $selectedCategory.",
+                    //text = "Ingen aktiviteter tilgjengelig for $selectedCategory.",
+                    text = stringResource(R.string.no_activities_available, selectedCategory),
                     modifier = Modifier.padding(16.dp),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
@@ -301,7 +302,7 @@ fun ActivityList(activities: List<Activity>, selectedCategory: String, navContro
     ) {
         items(activities) { activity ->
             val categoryToUse = if (selectedCategory == "Nærme Aktiviteter") {
-                activity.category ?: "ukjent"
+                activity.category ?: stringResource(R.string.unknown) //"ukjent"
             } else {
                 selectedCategory
             }
@@ -382,8 +383,8 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             val formattedDateTime = activityDateTime?.let {
                 val formatter = java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
                 formatter.format(it)
-            } ?: "Ukjent dato"
-
+            } ?: stringResource(R.string.unknown_dato)//
+            // "Ukjent dato"
             Text(
                 text = formattedDateTime,
                 fontSize = 14.sp,
