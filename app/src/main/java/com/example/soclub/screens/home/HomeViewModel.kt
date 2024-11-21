@@ -9,6 +9,7 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.*
+import com.example.soclub.R
 import com.example.soclub.models.Activity
 import com.example.soclub.service.ActivityService
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -279,7 +280,8 @@ class HomeViewModel @Inject constructor(
                 combineDateAndTime(activity.date, activity.startTime)
             }
 
-            val grouped = sortedActivities.groupBy { it.category ?: "Ukjent kategori" }
+            val grouped = sortedActivities.groupBy { it.category ?:  getApplication<Application>().getString(
+                R.string.unknown_category) }
             _groupedActivities.postValue(grouped)
             _hasLoadedActivities.postValue(true)
         }

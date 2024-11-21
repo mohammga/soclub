@@ -102,7 +102,7 @@ fun NotificationsScreen(
  * @param timestamp The timestamp in milliseconds since epoch.
  * @return A human-readable string representing the time elapsed since the given timestamp.
  */
-fun getTimeAgo(timestamp: Long): String {
+
 
 
 /*fun getTimeAgo(timestamp: Long): String {
@@ -205,5 +205,7 @@ fun NotificationItem(
         }
     }
 }
+
+
 
 

@@ -491,17 +491,22 @@
     <string name="error_missing_activity_id">Mangler activityId i registreringsdokumentet</string>
     <string name="error_fetching_not_active_activities">Feil ved henting av ikke-aktive aktiviteter: %1$s</string>
     <string name="error_get_not_active_activities">Kunne ikke hente ikke-aktive aktiviteter for brukeren: %1$s</string>
+    <string name="error_process_activities">Kunne ikke behandle aktiviteter: %1$s</string>
+    <string name="error_fetch_municipalities_failed">Kunne ikke hente kommuner: %1$s</string>
+    <string name="error_parse_municipalities_response">Kunne ikke analysere svaret for kommuner: %1$s</string>
+    <string name="error_fetch_address_suggestions_failed">Kunne ikke hente adresseforslag: %1$s</string>
+    <string name="error_parse_address_suggestions_response">Kunne ikke analysere svaret for adresseforslag: %1$s</string>
+    <string name="error_fetch_postal_code_failed">Kunne ikke hente postnummer: %1$s</string>
+    <string name="error_parse_postal_code_response">Kunne ikke analysere svaret for postnummer: %1$s</string>
 
-
-
-
-
-
-
-
-
-
-
+    <string name="error_save_notification">Kunne ikke lagre varselet: %1$s</string>
+    <string name="error_fetch_notifications">Kunne ikke hente varsler: %1$s</string>
+    <string name="error_delete_notification">Kunne ikke slette varselet: %1$s</string>
+    <string name="error_listening_notifications">Feil ved lytting til varsler: %1$s</string>
+    <string name="no_activities_available">Ingen aktiviteter tilgjengelig for %1$s.</string>
+    <string name="unknown_category">Ukjent kategor</string>
+    <string name="default_activity">Aktivitet</string>
+    <string name="status_not_active">notAktiv</string>
 
 
 </resources>

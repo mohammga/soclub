@@ -275,7 +275,8 @@ fun CategoryActivitiesPager(
                 )
             } else {
                 Text(
-                    text = "Ingen aktiviteter tilgjengelig for $selectedCategory.",
+                    //text = "Ingen aktiviteter tilgjengelig for $selectedCategory.",
+                    text = stringResource(R.string.no_activities_available, selectedCategory),
                     modifier = Modifier.padding(16.dp),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold

@@ -140,7 +140,8 @@ class EntriesServiceImpl @Inject constructor(
             }
             onUpdate(activityList)
         } catch (e: Exception) {
-            throw Exception("Failed to process activities: ${e.message}", e)
+            //throw Exception("Failed to process activities: ${e.message}", e)
+            throw Exception(context.getString(R.string.error_process_activities, e.message), e)
         }
     }
 }
