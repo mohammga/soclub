@@ -7,7 +7,6 @@ import android.location.Geocoder
 import android.location.Location
 import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.*
 import com.example.soclub.R
 import com.example.soclub.models.Activity
@@ -227,7 +226,6 @@ class HomeViewModel @Inject constructor(
                     location.latitude,
                     location.longitude,
                     1,
-                    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
                     object : Geocoder.GeocodeListener {
                         override fun onGeocode(addresses: MutableList<Address>) {
                             cont.resume(addresses.firstOrNull()?.locality ?: addresses.firstOrNull()?.subAdminArea)
@@ -251,6 +249,7 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
 
     /**
      * Applies filters to the list of activities based on selected cities and date constraints.
