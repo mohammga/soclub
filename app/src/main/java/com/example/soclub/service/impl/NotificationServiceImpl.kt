@@ -47,6 +47,11 @@ class NotificationServiceImpl @Inject constructor(
         }
     }
 
+
+
+
+
+
     override suspend fun deleteNotification(notification: Notification) {
         val userId = accountService.currentUserId
         try {
@@ -66,7 +71,7 @@ class NotificationServiceImpl @Inject constructor(
             throw Exception(context.getString(R.string.error_delete_notification, e.message), e)
         }
     }
-
+/*
     override fun getNotificationsStream(): Flow<List<Notification>> = callbackFlow {
         val userId = accountService.currentUserId
         val listenerRegistration: ListenerRegistration = firestore.collection("notifications")
@@ -88,5 +93,36 @@ class NotificationServiceImpl @Inject constructor(
                 }
             }
         awaitClose { listenerRegistration.remove() }
+    }*/
+override fun getNotificationsStream(): Flow<List<Notification>> = callbackFlow {
+    val userId = accountService.currentUserId
+    if (userId.isEmpty()) {
+        // Brukeren er ikke logget inn, send en tom liste eller avslutt strømmen.
+        trySend(emptyList<Notification>()).isSuccess
+        awaitClose { }
+        return@callbackFlow
     }
+
+    val listenerRegistration: ListenerRegistration = firestore.collection("notifications")
+        .whereEqualTo("userId", userId)
+        .addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                this.close(
+                    Exception(
+                        context.getString(R.string.error_listening_notifications, error.message),
+                        error
+                    )
+                )
+                return@addSnapshotListener
+            }
+            if (snapshot != null) {
+                val notifications = snapshot.documents.mapNotNull { it.toObject(Notification::class.java) }
+                    .sortedByDescending { it.timestamp }
+                trySend(notifications).isSuccess
+            }
+        }
+    awaitClose { listenerRegistration.remove() }
+}
+
+
 }

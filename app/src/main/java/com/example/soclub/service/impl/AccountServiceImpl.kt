@@ -21,8 +21,11 @@ class AccountServiceImpl @Inject constructor(
     private val context: Context
 ) : AccountService {
 
+    /*override val currentUserId: String
+        get() = auth.currentUser?.uid ?: throw Exception(context.getString(R.string.error_user_not_logged_in))//throw Exception("User not logged in")*/
     override val currentUserId: String
-        get() = auth.currentUser?.uid ?: throw Exception(context.getString(R.string.error_user_not_logged_in))//throw Exception("User not logged in")
+        get() = auth.currentUser?.uid ?: ""
+
 
     override val hasUser: Boolean
         get() = auth.currentUser != null
