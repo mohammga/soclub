@@ -335,9 +335,9 @@ fun ActivityDetailsContent(
                 InfoRow(
                     icon = Icons.Default.People,
                     mainText = if (currentParticipants == 0) {
-                        "${0} of ${activity?.maxParticipants ?: 0}"
+                        "${0} av ${activity?.maxParticipants ?: 0}"
                     } else {
-                        "$currentParticipants of ${activity?.maxParticipants ?: 0}"
+                        "$currentParticipants av ${activity?.maxParticipants ?: 0}"
                     },
                     subText = stringResource(R.string.participants_label)
                 )
