@@ -1,12 +1,13 @@
 package com.example.soclub.screens.home
 
-import android.annotation.SuppressLint
 import android.app.Application
+import android.content.pm.PackageManager
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import android.os.Build
 import android.util.Log
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.*
 import com.example.soclub.R
 import com.example.soclub.models.Activity
@@ -113,19 +114,37 @@ class HomeViewModel @Inject constructor(
      * This function checks for location permissions and retrieves the user's current city
      * based on their geographical location.
      */
-    @SuppressLint("MissingPermission")
     fun fetchUserLocation() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val location: Location? = fusedLocationClient.lastLocation.await()
+                // Sjekk om tillatelsen er gitt
+                val context = getApplication<Application>().applicationContext
+                val hasLocationPermission = ContextCompat.checkSelfPermission(
+                    context,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+
+                if (!hasLocationPermission) {
+                    Log.e("HomeViewModel", "Location permission not granted")
+                    _hasLocationPermission.postValue(false)
+                    return@launch
+                }
+
+                // Forsøk å hente plasseringen
+                val location: Location? = try {
+                    fusedLocationClient.lastLocation.await()
+                } catch (e: SecurityException) {
+                    Log.e("HomeViewModel", "Location permission denied during execution: ${e.message}")
+                    _hasLocationPermission.postValue(false)
+                    return@launch
+                }
+
+                // Oppdater LiveData basert på resultatet
                 _hasLocationPermission.postValue(location != null)
                 location?.let {
                     val city = getCityFromLocation(it)
                     _userCity.postValue(city)
                 }
-            } catch (e: SecurityException) {
-                Log.e("HomeViewModel", "Location permission not granted: ${e.message}")
-                _hasLocationPermission.postValue(false)
             } catch (e: Exception) {
                 Log.e("HomeViewModel", "Error fetching location: ${e.message}")
                 _hasLocationPermission.postValue(false)
@@ -215,35 +234,51 @@ class HomeViewModel @Inject constructor(
      * @param location The Location object containing latitude and longitude.
      * @return The city name or sub-administrative area based on the location, or null if unavailable.
      */
+    @Suppress("DEPRECATION")
     private suspend fun getCityFromLocation(location: Location?): String? {
-        location ?: return null
+        if (location == null) return null
 
         val geocoder = Geocoder(getApplication<Application>().applicationContext, Locale.getDefault())
 
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Bruk GeocodeListener for API 33 og nyere
             suspendCancellableCoroutine { cont ->
-                geocoder.getFromLocation(
-                    location.latitude,
-                    location.longitude,
-                    1,
-                    object : Geocoder.GeocodeListener {
-                        override fun onGeocode(addresses: MutableList<Address>) {
-                            cont.resume(addresses.firstOrNull()?.locality ?: addresses.firstOrNull()?.subAdminArea)
-                        }
+                try {
+                    geocoder.getFromLocation(
+                        location.latitude,
+                        location.longitude,
+                        1,
+                        object : Geocoder.GeocodeListener {
+                            override fun onGeocode(addresses: MutableList<Address>) {
+                                val city = addresses.firstOrNull()?.locality ?: addresses.firstOrNull()?.subAdminArea
+                                cont.resume(city)
+                            }
 
-                        override fun onError(errorMessage: String?) {
-                            cont.resume(null)
+                            override fun onError(errorMessage: String?) {
+                                Log.e("HomeViewModel", "Geocoding error: $errorMessage")
+                                cont.resume(null)
+                            }
                         }
-                    }
-                )
+                    )
+                } catch (e: Exception) {
+                    Log.e("HomeViewModel", "Error in GeocodeListener: ${e.message}")
+                    cont.resume(null)
+                }
             }
         } else {
+            // Bruk synkron metode på en bakgrunnstråd for API < 33
             withContext(Dispatchers.IO) {
                 try {
-                    @Suppress("DEPRECATION")
                     val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
                     addresses?.firstOrNull()?.locality ?: addresses?.firstOrNull()?.subAdminArea
                 } catch (e: IOException) {
+                    Log.e("HomeViewModel", "Geocoding I/O error: ${e.message}")
+                    null
+                } catch (e: IllegalArgumentException) {
+                    Log.e("HomeViewModel", "Invalid latitude or longitude: ${e.message}")
+                    null
+                } catch (e: Exception) {
+                    Log.e("HomeViewModel", "Unexpected error during geocoding: ${e.message}")
                     null
                 }
             }
@@ -320,7 +355,6 @@ class HomeViewModel @Inject constructor(
      * Filters out expired activities and sorts them by proximity to the user's current location.
      * Limits the result to the top 10 nearest activities.
      */
-    @SuppressLint("MissingPermission")
     fun getNearestActivities() {
         if (hasLoadedNearestActivities) return
 
@@ -329,8 +363,35 @@ class HomeViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                val userLocation = fusedLocationClient.lastLocation.await() ?: return@launch
+                // Sjekk om lokasjonstillatelse er gitt
+                val context = getApplication<Application>().applicationContext
+                val hasLocationPermission = ContextCompat.checkSelfPermission(
+                    context,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
 
+                if (!hasLocationPermission) {
+                    Log.e("HomeViewModel", "Location permission not granted")
+                    _isLoading.postValue(false)
+                    return@launch
+                }
+
+                // Forsøk å hente brukerens plassering
+                val userLocation = try {
+                    fusedLocationClient.lastLocation.await()
+                } catch (e: SecurityException) {
+                    Log.e("HomeViewModel", "SecurityException: Location permission denied during execution")
+                    _isLoading.postValue(false)
+                    return@launch
+                }
+
+                if (userLocation == null) {
+                    Log.e("HomeViewModel", "User location is null")
+                    _isLoading.postValue(false)
+                    return@launch
+                }
+
+                // Lytt etter aktiviteter og finn nærmeste
                 nearestActivitiesListener = activityService.listenForActivities { allActivities ->
                     viewModelScope.launch {
                         val currentDateTime = Calendar.getInstance().time
@@ -363,6 +424,9 @@ class HomeViewModel @Inject constructor(
                 }
 
                 hasLoadedNearestActivities = true
+            } catch (e: SecurityException) {
+                Log.e("HomeViewModel", "SecurityException: ${e.message}")
+                _isLoading.postValue(false)
             } catch (e: Exception) {
                 _activities.postValue(emptyList())
                 Log.e("HomeViewModel", "Error fetching nearest activities: ${e.message}")
@@ -372,38 +436,45 @@ class HomeViewModel @Inject constructor(
     }
 
 
+
     /**
      * Retrieves the geographical location (latitude and longitude) from a given address.
      *
      * @param address The address string to geocode.
      * @return A Location object with latitude and longitude, or null if the address cannot be resolved.
      */
+    @Suppress("DEPRECATION")
     private suspend fun getLocationFromAddress(address: String): Location? {
         val geocoder = Geocoder(getApplication<Application>().applicationContext, Locale.getDefault())
 
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             suspendCancellableCoroutine { cont ->
-                geocoder.getFromLocationName(address, 1, object : Geocoder.GeocodeListener {
-                    override fun onGeocode(addresses: MutableList<Address>) {
-                        val firstAddress = addresses.firstOrNull()
-                        val location = firstAddress?.let {
-                            Location("").apply {
-                                latitude = it.latitude
-                                longitude = it.longitude
+                try {
+                    geocoder.getFromLocationName(address, 1, object : Geocoder.GeocodeListener {
+                        override fun onGeocode(addresses: MutableList<Address>) {
+                            val firstAddress = addresses.firstOrNull()
+                            val location = firstAddress?.let {
+                                Location("").apply {
+                                    latitude = it.latitude
+                                    longitude = it.longitude
+                                }
                             }
+                            cont.resume(location)
                         }
-                        cont.resume(location)
-                    }
 
-                    override fun onError(errorMessage: String?) {
-                        cont.resume(null)
-                    }
-                })
+                        override fun onError(errorMessage: String?) {
+                            Log.e("HomeViewModel", "Geocoding error: $errorMessage")
+                            cont.resume(null)
+                        }
+                    })
+                } catch (e: Exception) {
+                    Log.e("HomeViewModel", "Error in GeocodeListener: ${e.message}")
+                    cont.resume(null)
+                }
             }
         } else {
             withContext(Dispatchers.IO) {
                 try {
-                    @Suppress("DEPRECATION")
                     val addresses = geocoder.getFromLocationName(address, 1)
                     addresses?.firstOrNull()?.let {
                         Location("").apply {
@@ -412,11 +483,18 @@ class HomeViewModel @Inject constructor(
                         }
                     }
                 } catch (e: IOException) {
-                    Log.e("HomeViewModel", "Geocoder I/O error: ${e.message}")
+                    Log.e("HomeViewModel", "Geocoding I/O error: ${e.message}")
+                    null
+                } catch (e: IllegalArgumentException) {
+                    Log.e("HomeViewModel", "Invalid address input: ${e.message}")
+                    null
+                } catch (e: Exception) {
+                    Log.e("HomeViewModel", "Unexpected error during geocoding: ${e.message}")
                     null
                 }
             }
         }
     }
+
 
 }

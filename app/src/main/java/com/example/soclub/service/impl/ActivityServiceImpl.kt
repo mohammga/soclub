@@ -29,7 +29,6 @@ class ActivityServiceImpl @Inject constructor(
     override fun listenForActivities(onUpdate: (List<Activity>) -> Unit): ListenerRegistration {
         return firestore.collectionGroup("activities")
             .addSnapshotListener { snapshot, error ->
-                //if (error != null) throw Exception("Failed to listen for activities: ${error.message}", error)
                 if (error != null)
                     throw Exception(
                         application.getString(R.string.error_listen_activities_failed, error.message),
@@ -49,7 +48,6 @@ class ActivityServiceImpl @Inject constructor(
             firestore.collection("category").document(category)
                 .collection("activities").add(activity).await()
         } catch (e: Exception) {
-            //throw Exception("Failed to create activity: ${e.message}", e)
             throw Exception(
                 application.getString(R.string.error_create_activity_failed, e.message), e)
         }
@@ -65,7 +63,6 @@ class ActivityServiceImpl @Inject constructor(
                 .await()
 
             val activity = documentSnapshot.toObject(Activity::class.java)
-                //?: throw Exception("Activity not found")
                 ?: throw Exception(application.getString(R.string.error_activity_not_found))
 
 
@@ -80,7 +77,6 @@ class ActivityServiceImpl @Inject constructor(
                 lastUpdated = lastUpdated
             )
         } catch (e: Exception) {
-            //throw Exception("Failed to fetch activity by ID: ${e.message}", e)
             throw Exception(
                 application.getString(R.string.error_fetch_activity_by_id_failed, e.message), e)
         }
@@ -105,7 +101,6 @@ class ActivityServiceImpl @Inject constructor(
                 )
             }
         } catch (e: Exception) {
-            //throw Exception("Failed to get activities: ${e.message}", e)
             throw Exception(
                 application.getString(R.string.error_get_activities_failed, e.message), e)
         }
@@ -135,6 +130,7 @@ class ActivityServiceImpl @Inject constructor(
             }
     }
 
+    @Suppress("DEPRECATION")
     private suspend fun getLocationFromAddress(address: String?): Location? {
         if (address.isNullOrEmpty()) throw Exception("Invalid address")
         val geocoder = Geocoder(application.applicationContext, Locale.getDefault())
@@ -173,7 +169,7 @@ class ActivityServiceImpl @Inject constructor(
                 activitiesSnapshot.documents.mapNotNullTo(allActivities) { document ->
                     val activity = document.toObject(EditActivity::class.java)
                         ?: throw Exception("Activity data parsing failed")
-                    val fullLocation = activity.location ?: "Unknown"
+                    val fullLocation = activity.location
                     val lastWord = fullLocation.substringAfterLast(" ")
                     val restOfAddress = fullLocation.substringBeforeLast(" ", "Unknown")
 
@@ -289,7 +285,6 @@ class ActivityServiceImpl @Inject constructor(
                     }
                     activityList.addAll(activities)
                 } catch (e: Exception) {
-                    //throw Exception("Failed to fetch activities for category: $categoryName", e)
                     throw Exception(
                             application.getString(R.string.error_fetch_activities_for_category, categoryName, e.message), e)
                 }
@@ -297,7 +292,6 @@ class ActivityServiceImpl @Inject constructor(
 
             return activityList
         } catch (e: Exception) {
-            //throw Exception("Failed to fetch all activities: ${e.message}", e)
             throw Exception(
                 application.getString(R.string.error_fetch_all_activities_failed, e.message), e)
         }
@@ -321,7 +315,6 @@ class ActivityServiceImpl @Inject constructor(
                     val activities = activitiesSnapshot.toObjects(Activity::class.java)
                     activitiesByCategory[categoryName] = activities
                 } catch (e: Exception) {
-                    //throw Exception("Failed to fetch activities for category: $categoryName", e)
                     throw Exception(
                             application.getString(R.string.error_fetch_activities_for_category, categoryName, e.message),e)
                 }
@@ -329,7 +322,6 @@ class ActivityServiceImpl @Inject constructor(
 
             return activitiesByCategory
         } catch (e: Exception) {
-            //throw Exception("Failed to fetch grouped activities: ${e.message}", e)
                 throw Exception(
                     application.getString(R.string.error_fetch_grouped_activities_failed, e.message), e)
 
@@ -345,7 +337,6 @@ class ActivityServiceImpl @Inject constructor(
 
             return registrationsSnapshot.documents.mapNotNull { it.getString("userId") }
         } catch (e: Exception) {
-            //throw Exception("Failed to fetch registered users: ${e.message}", e)
             throw Exception(
                 application.getString(R.string.error_fetch_registered_users_failed, e.message), e)
         }

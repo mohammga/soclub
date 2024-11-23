@@ -28,7 +28,6 @@ class ActivityDetailServiceImpl @Inject constructor(
 
 
             val activity = documentSnapshot.toObject(Activity::class.java)
-                //?: throw Exception("Activity not found")
                 ?: throw Exception(context.getString(R.string.error_activity_not_found))
 
             val creatorId = documentSnapshot.getString("creatorId") ?: ""
@@ -44,9 +43,6 @@ class ActivityDetailServiceImpl @Inject constructor(
                 creatorId = creatorId
             )
         } catch (e: Exception) {
-            //throw Exception("Failed to fetch activity: ${e.message}", e)
-            //val errorMessage = context.getString(R.string.error_fetch_activity, e.message)
-            //throw Exception(errorMessage, e)
             throw Exception(context.getString(R.string.error_fetch_activity, e.message), e)
         }
           }
@@ -65,7 +61,6 @@ class ActivityDetailServiceImpl @Inject constructor(
             }
             return false
         } catch (e: Exception) {
-            //throw Exception("Failed to check user registration: ${e.message}", e)
             throw Exception(
                 context.getString(R.string.error_user_registration, e.message), e)
         }
@@ -97,7 +92,6 @@ class ActivityDetailServiceImpl @Inject constructor(
             }
             return true
         } catch (e: Exception) {
-            //throw Exception("Failed to update registration status: ${e.message}", e)
             val errorMessage = context.getString(R.string.error_update_registration_status, e.message)
             throw Exception(errorMessage, e)
         }
@@ -114,7 +108,6 @@ class ActivityDetailServiceImpl @Inject constructor(
 
             return registrationRef.size()
         } catch (e: Exception) {
-            //throw Exception("Failed to get registered participants count: ${e.message}", e)
             val errorMessage = context.getString(R.string.error_get_registered_participants_count, e.message)
             throw Exception(errorMessage, e)
         }
@@ -126,7 +119,6 @@ class ActivityDetailServiceImpl @Inject constructor(
             .whereEqualTo("status", "aktiv")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    //throw Exception("Error listening to registration updates: ${error.message}", error)
                     val errorMessage = context.getString(R.string.error_listening_registration_updates, error.message)
                     throw Exception(errorMessage, error)
                 }
@@ -144,7 +136,6 @@ class ActivityDetailServiceImpl @Inject constructor(
             .document(activityId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null || snapshot == null) {
-                    //throw Exception("Error listening for activity updates: ${error?.message ?: "Unknown error"}")
                     val errorMessage = context.getString(
                         R.string.error_listening_activity_updates,
                         error?.message ?: "Ukjent feil"
@@ -152,7 +143,6 @@ class ActivityDetailServiceImpl @Inject constructor(
                     throw Exception(errorMessage)
                 }
                 val activity = snapshot.toObject(Activity::class.java)
-                    //?: throw Exception("Failed to parse activity data")
                     ?: throw Exception(context.getString(R.string.error_parsing_activity_data))
                 onUpdate(activity)
 

@@ -24,7 +24,6 @@ class LocationServiceImpl @Inject constructor(
 
         val response = client.newCall(request).execute()
         if (!response.isSuccessful) {
-            //throw Exception("Failed to fetch municipalities: ${response.message}")
                 throw Exception(context.getString(R.string.error_fetch_municipalities_failed, response.message))
 
         }
@@ -42,7 +41,6 @@ class LocationServiceImpl @Inject constructor(
             }
             emit(municipalities)
         } catch (e: Exception) {
-            //throw Exception("Failed to parse municipalities response: ${e.message}", e)
             throw Exception(context.getString(R.string.error_parse_municipalities_response, e.message), e)
         }
     }.flowOn(Dispatchers.IO)
@@ -63,11 +61,9 @@ class LocationServiceImpl @Inject constructor(
 
         val response = client.newCall(request).execute()
         if (!response.isSuccessful) {
-            //throw Exception("Failed to fetch address suggestions: ${response.message}")
             throw Exception(context.getString(R.string.error_fetch_address_suggestions_failed, response.message))
         }
 
-        //val responseBody = response.body ?: throw Exception("No response body for address suggestions request")
         val responseBody = response.body ?: throw Exception(context.getString(R.string.error_fetch_address_suggestions_failed))
         val responseString = responseBody.string()
 
@@ -80,7 +76,6 @@ class LocationServiceImpl @Inject constructor(
             }
             emit(addresses)
         } catch (e: Exception) {
-            //throw Exception("Failed to parse address suggestions response: ${e.message}", e)
             throw Exception(context.getString(R.string.error_parse_address_suggestions_response, e.message), e)
 
         }
@@ -96,7 +91,6 @@ class LocationServiceImpl @Inject constructor(
 
         val response = client.newCall(request).execute()
         if (!response.isSuccessful) {
-            //throw Exception("Failed to fetch postal code: ${response.message}")
             throw Exception(context.getString(R.string.error_fetch_postal_code_failed, response.message))
         }
         val responseBody = response.body ?: throw Exception(context.getString(R.string.error_fetch_postal_code_failed))
@@ -110,11 +104,9 @@ class LocationServiceImpl @Inject constructor(
                 val postalCode = addresses.getJSONObject(0).getString("postnummer")
                 emit(postalCode)
             } else {
-                //throw Exception("Postal code not found for the given address")
                 throw Exception(context.getString(R.string.error_fetch_postal_code_failed))
             }
         } catch (e: Exception) {
-            //throw Exception("Failed to parse postal code response: ${e.message}", e)
             throw Exception(context.getString(R.string.error_parse_postal_code_response, e.message), e)
         }
     }.flowOn(Dispatchers.IO)
