@@ -19,10 +19,16 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
 
         createNotificationChannel(context)
 
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            val message = intent?.getStringExtra("message") ?: context.getString(R.string.default_notification_message)
+        val hasNotificationPermission =
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+
+        if (hasNotificationPermission) {
+            val message = intent?.getStringExtra("message")
+                ?: context.getString(R.string.default_notification_message)
             val activityId = intent?.getStringExtra("activityId") ?: return
             val userId = intent.getStringExtra("userId") ?: return
+
             val notification = NotificationCompat.Builder(context, "activity_reminder_channel")
                 .setContentTitle(context.getString(R.string.notification_title))
                 .setContentText(message)
