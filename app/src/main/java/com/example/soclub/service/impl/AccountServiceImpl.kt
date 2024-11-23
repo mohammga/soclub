@@ -54,7 +54,7 @@ class AccountServiceImpl @Inject constructor(
         }
     }
 
-
+/*
     override suspend fun authenticateWithEmail(
         email: String,
         password: String,
@@ -66,7 +66,23 @@ class AccountServiceImpl @Inject constructor(
             throw Exception(context.getString(R.string.error_authentication_failed, e.message), e)
 
         }
+    }*/
+override suspend fun authenticateWithEmail(
+    email: String,
+    password: String,
+    onResult: (Throwable?) -> Unit
+) {
+    try {
+        println("authenticateWithEmail: Attempting login with email: $email")
+        auth.signInWithEmailAndPassword(email, password).await()
+        println("authenticateWithEmail: Login successful for email: $email")
+        onResult(null) // Ingen feil
+    } catch (e: Exception) {
+        println("authenticateWithEmail: Login failed with exception: ${e.message}")
+        onResult(e) // Returner feilen
     }
+}
+
 
     override suspend fun createEmailAccount(
         email: String,
