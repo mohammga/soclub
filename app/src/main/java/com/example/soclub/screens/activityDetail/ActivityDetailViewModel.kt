@@ -147,7 +147,7 @@ class ActivityDetailViewModel @Inject constructor(
      *
      * @param creatorId The unique identifier of the creator.
      */
-    fun fetchPublisherInfo(creatorId: String?) {
+    private fun fetchPublisherInfo(creatorId: String?) {
         if (creatorId.isNullOrEmpty() || creatorId == "admin") {
             _publisherUser.value = null
         } else {

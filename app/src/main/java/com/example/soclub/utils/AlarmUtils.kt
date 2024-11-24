@@ -1,6 +1,5 @@
 package com.example.soclub.utils
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlarmManager
 import android.app.AlertDialog
@@ -10,7 +9,6 @@ import android.os.Build
 import android.provider.Settings
 import com.example.soclub.R
 
-@SuppressLint("ServiceCast")
 fun requestExactAlarmPermissionIfNeeded(activity: Activity) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         val alarmManager = activity.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -25,5 +23,7 @@ fun requestExactAlarmPermissionIfNeeded(activity: Activity) {
                 .setNegativeButton(R.string.cancel_eng, null)
                 .show()
         }
+    } else {
+        // Ingen handling nødvendig for API < 31
     }
 }

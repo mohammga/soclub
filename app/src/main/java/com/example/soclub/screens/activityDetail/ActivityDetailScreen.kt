@@ -99,7 +99,7 @@ fun ActivityDetailScreen(
                 }
                 errorMessage != null -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(text = errorMessage, color = Color.Red, fontSize = 16.sp)
+                        Text(text = errorMessage, color = MaterialTheme.colorScheme.error, fontSize = 16.sp)
                     }
                 }
                 else -> {
@@ -160,7 +160,6 @@ fun ActivityImage(imageUrl: String) {
         modifier = Modifier
             .fillMaxWidth()
             .height(300.dp)
-            .clip(RoundedCornerShape(16.dp))
             .padding(vertical = 8.dp),
         contentScale = ContentScale.Crop
     )
@@ -335,9 +334,9 @@ fun ActivityDetailsContent(
                 InfoRow(
                     icon = Icons.Default.People,
                     mainText = if (currentParticipants == 0) {
-                        "${0} of ${activity?.maxParticipants ?: 0}"
+                        "${0} av ${activity?.maxParticipants ?: 0}"
                     } else {
-                        "$currentParticipants of ${activity?.maxParticipants ?: 0}"
+                        "$currentParticipants av ${activity?.maxParticipants ?: 0}"
                     },
                     subText = stringResource(R.string.participants_label)
                 )
@@ -424,6 +423,84 @@ fun InfoRow(
                 .padding(8.dp),
             contentAlignment = Alignment.Center
         ) {
+            // Informasjonsboks
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(8.dp))
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Circular image
+                    val painter = if (publisherUser.imageUrl.isNotEmpty()) {
+                        rememberAsyncImagePainter(publisherUser.imageUrl)
+                    } else {
+                        painterResource(id = R.drawable.user) // Default image
+                    }
+
+                    Image(
+                        painter = painter,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentScale = ContentScale.Crop
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Column {
+                        val fullName = "${publisherUser.firstname} ${publisherUser.lastname}"
+                        Text(
+                            text = fullName,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Text(
+                            text = stringResource(R.string.author),//Forfatter
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+
+                        Text(
+                            //text = "Publisert $formattedDate2",
+                            text = stringResource(R.string.published, formattedDate2),
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Knappboks
+            Button(
+                onClick = {
+                    val email = publisherUser.email
+                    if (email.isNotEmpty()) {
+                        val intent = Intent(Intent.ACTION_SENDTO).apply {
+                            data = Uri.parse("mailto:$email")
+                        }
+                        if (intent.resolveActivity(context.packageManager) != null) {
+                            context.startActivity(intent)
+                        } else {
+                            // Toast.makeText(context, "Ingen e-postapp funnet", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.no_email_app_found), Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        //Toast.makeText(context, "E-postadresse mangler", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.email_missing), Toast.LENGTH_SHORT).show()
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Text(text = stringResource(R.string.contact))//Kontakt
+            }
             Icon(
                 imageVector = icon,
                 contentDescription = null,
@@ -431,6 +508,7 @@ fun InfoRow(
                 modifier = Modifier.size(32.dp)
             )
         }
+
         Column {
             Text(
                 text = subText,
@@ -443,8 +521,12 @@ fun InfoRow(
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 fontSize = 12.sp
             )
-        }
+
+
     }
+}
+
+
 }
 
 /**
@@ -538,7 +620,8 @@ fun ActivityGPSImage(context: Context, destinationLocation: String) {
                     openGoogleMaps(context, "https://www.google.com/maps/search/?api=1&query=${Uri.encode(destinationLocation)}")
                 }
             }
-            .background(Color.LightGray),
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+        ,
         contentAlignment = Alignment.Center
     ) {
         Image(
@@ -613,7 +696,7 @@ fun ActivityRegisterButton(
                 onRegisterClick()
             }
         },
-        colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 16.dp)
@@ -621,5 +704,75 @@ fun ActivityRegisterButton(
         enabled = buttonEnabled
     ) {
         Text(text = buttonText)
+    }
+}
+
+
+@Composable
+fun InfoRow(
+    icon: ImageVector,
+    mainText: String,
+    subText: String
+) {
+    val backgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(backgroundColor)
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(end = 8.dp)
+                .size(48.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .padding(8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(32.dp)
+            )
+        }
+        Column {
+            Text(
+                text = subText,
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = mainText,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                fontSize = 12.sp
+            )
+        }
+    }
+}
+
+
+@Composable
+fun ElevatedCardExample(icon: ImageVector) {
+    ElevatedCard(
+        modifier = Modifier.size(50.dp),
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(30.dp)
+            )
+        }
     }
 }

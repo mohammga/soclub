@@ -4,6 +4,7 @@ import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.soclub.R
 import com.example.soclub.models.Activity
 import com.example.soclub.service.EntriesService
 import com.example.soclub.service.AccountService
@@ -141,9 +142,15 @@ class EntriesScreenViewModel @Inject constructor(
             _isProcessingCancellation.value = activityId
 
             val userId = accountService.currentUserId
-            val activityTitle = _activeActivities.value.find { it.id == activityId }?.title ?: "Aktivitet"
+            //val activityTitle = _activeActivities.value.find { it.id == activityId }?.title ?: "Aktivitet"
+            val defaultActivityTitle = context.getString(R.string.default_activity)
+            val activityTitle = _activeActivities.value.find { it.id == activityId }?.title ?: defaultActivityTitle
 
-            val success = activityDetailService.updateRegistrationStatus(userId, activityId, "notAktiv")
+
+            //val success = activityDetailService.updateRegistrationStatus(userId, activityId, "notAktiv")
+            val statusNotActive = context.getString(R.string.status_not_active)
+            val success = activityDetailService.updateRegistrationStatus(userId, activityId, statusNotActive)
+
 
             if (success) {
                 _activeActivities.value = _activeActivities.value.filter { it.id != activityId }
@@ -157,7 +164,10 @@ class EntriesScreenViewModel @Inject constructor(
                     isCancellation = true
                 )
                 cancelNotificationForActivity(context, activityId)
-                Toast.makeText(context, "Aktivitet kansellert", Toast.LENGTH_LONG).show()
+                //Toast.makeText(context, "Aktivitet kansellert", Toast.LENGTH_LONG).show()
+                // Display a Toast message for user feedback
+                //Toast.makeText(context, "Aktivitet kansellert", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(R.string.activity_cancelled), Toast.LENGTH_LONG).show()
             }
             _isProcessingCancellation.value = null
         }

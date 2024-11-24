@@ -99,37 +99,54 @@ class SigninViewModel @Inject constructor(private val accountService: AccountSer
      * @param context The [Context] used for displaying Toast messages.
      */
     fun onLoginClick(navController: NavController, context: Context) {
+        println("onLoginClick called") // Startpunkt
         var hasError = false
         var emailError: Int? = null
         var passwordError: Int? = null
+
+        // Valider email og passord
         if (email.isBlank()) {
             emailError = R.string.error_email_required
             hasError = true
+            println("Email is blank")
         } else if (!email.isValidEmail()) {
             emailError = R.string.error_invalid_email
             hasError = true
+            println("Email is invalid")
         }
 
         if (password.isBlank()) {
             passwordError = R.string.error_password_required
             hasError = true
+            println("Password is blank")
         }
 
+        // Oppdater UI-state med eventuelle valideringsfeil
         uiState.value = uiState.value.copy(
             emailError = emailError,
             passwordError = passwordError,
             generalError = null
         )
-        if (hasError) return
 
+        // Hvis det er valideringsfeil, avbryt login
+        if (hasError) {
+            println("Validation failed, exiting onLoginClick")
+            return
+        }
+
+        // Sett isLoading til true og start login-prosess
         isLoading.value = true
+        println("Starting login process...")
 
+        // Start login-koroutine
         viewModelScope.launch {
             try {
                 accountService.authenticateWithEmail(email, password) { error ->
-                    isLoading.value = false
+                    isLoading.value = false // Nullstill isLoading uansett utfall
+                    println("Login completed with error: $error")
 
                     if (error == null) {
+                        println("Login successful, navigating to HOME")
                         Toast.makeText(
                             context,
                             context.getString(R.string.success_login, email),
@@ -140,13 +157,23 @@ class SigninViewModel @Inject constructor(private val accountService: AccountSer
                             popUpTo(AppScreens.SIGNIN.name) { inclusive = true }
                         }
                     } else {
-                        uiState.value = uiState.value.copy(generalError = R.string.error_could_not_log_in)
+                        // Oppdater UI med feilmelding ved feil
+                        println("Login failed, updating generalError")
+                        uiState.value = uiState.value.copy(
+                            generalError = R.string.error_could_not_log_in
+                        )
                     }
                 }
             } catch (e: Exception) {
+                // Feil i koroutine eller nettverkskall
                 isLoading.value = false
-                uiState.value = uiState.value.copy(generalError = R.string.error_could_not_log_in)
+                println("Exception in login: ${e.message}")
+                uiState.value = uiState.value.copy(
+                    generalError = R.string.error_could_not_log_in
+                )
             }
         }
     }
+
+
 }

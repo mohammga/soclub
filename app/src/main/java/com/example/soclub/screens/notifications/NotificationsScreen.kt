@@ -1,6 +1,8 @@
 package com.example.soclub.screens.notifications
 
 
+
+import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -93,19 +95,23 @@ fun NotificationsScreen(
 }
 
 
+
 /**
  * Utility function to calculate the time elapsed since a given timestamp and return it as a readable string.
  *
  * @param timestamp The timestamp in milliseconds since epoch.
  * @return A human-readable string representing the time elapsed since the given timestamp.
  */
-fun getTimeAgo(timestamp: Long): String {
+
+
+
+/*fun getTimeAgo(timestamp: Long): String {
+
     val diff = System.currentTimeMillis() - timestamp
     val seconds = diff / 1000
     val minutes = seconds / 60
     val hours = minutes / 60
     val days = hours / 24
-
     return when {
         seconds < 60 -> "Akkurat nå"
         minutes < 60 -> {
@@ -121,7 +127,31 @@ fun getTimeAgo(timestamp: Long): String {
             "$days $dayText siden"
         }
     }
+}*/
+fun getTimeAgo(timestamp: Long, context: Context): String {
+    val diff = System.currentTimeMillis() - timestamp
+    val seconds = diff / 1000
+    val minutes = seconds / 60
+    val hours = minutes / 60
+    val days = hours / 24
+
+    return when {
+        seconds < 60 -> context.getString(R.string.just_now)
+        minutes < 60 -> {
+            val minuteText = if (minutes == 1L) context.getString(R.string.minute) else context.getString(R.string.minutes)
+            context.getString(R.string.minutes_ago, minutes, minuteText)
+        }
+        hours < 24 -> {
+            val hourText = if (hours == 1L) context.getString(R.string.hour) else context.getString(R.string.hours)
+            context.getString(R.string.hours_ago, hours, hourText)
+        }
+        else -> {
+            val dayText = if (days == 1L) context.getString(R.string.day) else context.getString(R.string.days)
+            context.getString(R.string.days_ago, days, dayText)
+        }
+    }
 }
+
 
 /**
  * Composable function that displays a single notification with its message and timestamp.
@@ -131,12 +161,14 @@ fun getTimeAgo(timestamp: Long): String {
  * @param notification The `Notification` object containing the details of the notification.
  * @param onDelete A callback function invoked when the delete button is clicked.
  */
+
 @Composable
 fun NotificationItem(
     notification: Notification,
     onDelete: (Notification) -> Unit
 ) {
-    
+    val context = LocalContext.current
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -150,7 +182,7 @@ fun NotificationItem(
                 .padding(8.dp)
         ) {
             Text(
-                text = getTimeAgo(notification.timestamp),
+                text = getTimeAgo(notification.timestamp, context),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -173,4 +205,7 @@ fun NotificationItem(
         }
     }
 }
+
+
+
 

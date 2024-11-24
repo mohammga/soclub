@@ -15,20 +15,14 @@ import com.example.soclub.R
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.lifecycle.Lifecycle
-import com.example.soclub.ui.theme.ThemeMode
-import androidx.compose.material3.FilterChip
 
 /**
  * Composable function that renders the Edit Permission screen.
  *
- * @param themeMode The current theme mode of the application.
- * @param onThemeChange Callback to handle theme mode changes.
  * @param viewModel The ViewModel responsible for managing the permission states.
  */
 @Composable
 fun EditPermissionScreen(
-    themeMode: ThemeMode,
-    onThemeChange: (ThemeMode) -> Unit,
     viewModel: EditPermissionViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -144,67 +138,6 @@ fun EditPermissionScreen(
                 )
             }
         }
-        item {
-            ThemeSwitch(themeMode = themeMode, onThemeChange = onThemeChange)
-        }
 
     }
-}
-
-/**
- * Composable function to display the theme switcher.
- *
- * @param themeMode The current theme mode of the application.
- * @param onThemeChange Callback to handle theme mode changes.
- */
-@Composable
-fun ThemeSwitch(themeMode: ThemeMode, onThemeChange: (ThemeMode) -> Unit) {
-    Text(
-        text = "Utseende",
-        style = MaterialTheme.typography.bodyLarge.copy(
-            fontWeight = FontWeight.Bold
-        ),
-        modifier = Modifier.padding(vertical = 15.dp)
-    )
-    Text(
-        text = stringResource(id = R.string.theme),
-        style = MaterialTheme.typography.labelLarge
-    )
-
-    Row(
-        modifier = Modifier.padding(vertical = 10.dp)
-    ) {
-        ThemeChip(
-            label = stringResource(R.string.system),
-            isSelected = themeMode == ThemeMode.SYSTEM,
-            onClick = { onThemeChange(ThemeMode.SYSTEM) }
-        )
-        ThemeChip(
-            label = stringResource(R.string.light),
-            isSelected = themeMode == ThemeMode.LIGHT,
-            onClick = { onThemeChange(ThemeMode.LIGHT) }
-        )
-        ThemeChip(
-            label = stringResource(R.string.darke),
-            isSelected = themeMode == ThemeMode.DARK,
-            onClick = { onThemeChange(ThemeMode.DARK) }
-        )
-    }
-}
-
-/**
- * Composable function to render a selectable theme chip.
- *
- * @param label The text label displayed on the chip.
- * @param isSelected Whether the chip is currently selected.
- * @param onClick Callback triggered when the chip is clicked.
- */
-@Composable
-fun ThemeChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
-    FilterChip(
-        selected = isSelected,
-        onClick = onClick,
-        label = { Text(label) },
-        modifier = Modifier.padding(end = 8.dp),
-    )
 }

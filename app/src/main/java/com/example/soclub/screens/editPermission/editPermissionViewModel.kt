@@ -1,7 +1,6 @@
 package com.example.soclub.screens.editPermission
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -65,7 +64,8 @@ class EditPermissionViewModel @Inject constructor() : ViewModel() {
      *
      * @param context The context used to access permission states.
      */
-    @SuppressLint("InlinedApi")
+
+
     fun checkPermissions(context: Context) {
         viewModelScope.launch {
             _locationPermission.value = checkPermissionStatus(context, Manifest.permission.ACCESS_FINE_LOCATION)

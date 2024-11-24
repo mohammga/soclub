@@ -353,7 +353,10 @@ class EditActivityViewModel @Inject constructor(
                 if (postalCode != null) {
                     uiState.value = uiState.value.copy(postalCode = postalCode, postalCodeError = null)
                 } else {
-                    uiState.value = uiState.value.copy(postalCode = "", postalCodeError = "Fant ikke postnummer")
+                    //uiState.value = uiState.value.copy(postalCode = "", postalCodeError = "Fant ikke postnummer")
+                    uiState.value = uiState.value.copy(
+                        postalCode = "",
+                        postalCodeError = application.getString(R.string.error_postal_code_not_found))
                 }
             }
         }
