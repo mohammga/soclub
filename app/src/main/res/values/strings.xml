@@ -419,7 +419,7 @@
     <string name="unknown_date">Ukjent dato</string>
     <string name="unknown_start_time">Ukjent starttid</string>
     <string name="alle_age_group">Alle</string>
-    <string name="last_updated">Siste endret: %s</string>
+    <string name="last_updated">Sist endret: %s</string>
     <string name="unknown">Ukjent</string>
     <string name="author">Forfatter</string>
     <string name="published">Publisert %s</string>
