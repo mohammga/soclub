@@ -89,7 +89,7 @@
     <string name="label_email">E-post</string>
     <string name="label_ads">Mine annonser</string>
     <string name="label_password">Passord</string>
-    <string name="label_permissions">Tillatelser og preferanser</string>
+    <string name="label_permissions">Tillatelser</string>
     <string name="logout_button">Logg ut</string>
     <string name="loading">Kunne ikke hente informasjon</string>
 
