@@ -78,7 +78,7 @@ fun ChangePasswordScreen(viewModel: ChangePasswordViewModel = hiltViewModel()) {
                     item {
                         Text(
                             text = stringResource(id = errorId),
-                            color = Color.Red
+                            color = MaterialTheme.colorScheme.error
                         )
                     }
                 }
