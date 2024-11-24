@@ -32,7 +32,6 @@ import com.example.soclub.R
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import com.example.soclub.models.Activity
 import androidx.compose.material3.Text
@@ -332,6 +331,7 @@ fun ActivityList(
                     height = height
                 ) {
                     navController.navigate("detail/${selectedCategory}/${activity.id}")
+
                 }
             }
 
@@ -346,7 +346,6 @@ fun ActivityList(
             }
         }
     } else {
-        // Bruk LazyColumn for standard design
         LazyColumn(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -405,23 +404,27 @@ fun ActivityItemWithDynamicHeight(activity: Activity, height: Dp, onClick: () ->
                     brush = Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
-                            MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
-                        )
+                            Color.Black.copy(alpha = 0.8f)
+                        ),
+                        startY = 100f
                     )
                 )
+                .clip(RoundedCornerShape(16.dp))
         )
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(8.dp),
+                .padding(16.dp),
             verticalArrangement = Arrangement.Bottom
         ) {
+
             val cityName = getCityNameFromAddress(activity.location)
+
             Text(
                 text = cityName,
                 fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                color = Color.White
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -430,7 +433,7 @@ fun ActivityItemWithDynamicHeight(activity: Activity, height: Dp, onClick: () ->
                 text = activity.title,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = Color.White
             )
         }
     }
@@ -492,7 +495,8 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             Text(
                 text = cityName,
                 fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                color = Color.White
+
             )
 
             Spacer(modifier = Modifier.height(4.dp))
