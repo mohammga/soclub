@@ -35,125 +35,88 @@ class EntriesScreenViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
-
-    /**
-     * Flow to store the list of active activities.
-     */
+    // Flow for aktive aktiviteter
     private val _activeActivities = MutableStateFlow<List<Activity>>(emptyList())
-
-    /**
-     * Flow to indicate loading status of active activities.
-     */
-    private val _isLoadingActive = MutableStateFlow(false)
-
-    /**
-     * Flow to store the list of inactive (cancelled) activities.
-     */
-    private val _notActiveActivities = MutableStateFlow<List<Activity>>(emptyList())
-
-    /**
-     * Flow to indicate loading status of inactive activities.
-     */
-    private val _isLoadingInactive = MutableStateFlow(false)
-
-
-    /**
-     * Flow to indicate the ID of an activity being processed for cancellation.
-     */
-    private val _isProcessingCancellation = MutableStateFlow<String?>(null)
-
-
-    /**
-     * Public state for observing active activities.
-     */
     val activeActivities: StateFlow<List<Activity>> = _activeActivities
 
-
-    /**
-     * Public state for observing loading status of active activities.
-     */
-    val isLoadingActive: StateFlow<Boolean> = _isLoadingActive
-
-    /**
-     * Public state for observing inactive activities.
-     */
+    // Flow for inaktive aktiviteter
+    private val _notActiveActivities = MutableStateFlow<List<Activity>>(emptyList())
     val notActiveActivities: StateFlow<List<Activity>> = _notActiveActivities
 
-    /**
-     * Public state for observing loading status of inactive activities.
-     */
+    // Lastestatus for aktive og inaktive aktiviteter
+    private val _isLoadingActive = MutableStateFlow(false)
+    val isLoadingActive: StateFlow<Boolean> = _isLoadingActive
+
+    private val _isLoadingInactive = MutableStateFlow(false)
     val isLoadingInactive: StateFlow<Boolean> = _isLoadingInactive
 
-    /**
-     * Public state for observing the cancellation process status.
-     */
+    // Status for kanselleringsprosess
+    private val _isProcessingCancellation = MutableStateFlow<String?>(null)
     val isProcessingCancellation: StateFlow<String?> = _isProcessingCancellation
 
-
-    /**
-     * Initializes the ViewModel by setting up listeners for activity updates.
-     */
     init {
         listenForActivityUpdates()
         listenForNotActiveActivityUpdates()
     }
 
-    /**
-     * Listens for updates to the user's active activities.
-     * Fetches activities for the current user and updates the active activities state.
-     */
+    // Henter aktive aktiviteter
     private fun listenForActivityUpdates() {
         val userId = accountService.currentUserId
         if (userId.isNotEmpty()) {
             viewModelScope.launch {
                 _isLoadingActive.value = true
                 entriesService.getActiveActivitiesForUser(userId) { activities ->
-                    _activeActivities.value = activities.sortedByDescending { it.createdAt }
+                    // Oppdater listen med unike aktiviteter
+                    _activeActivities.value = activities
+                        .distinctBy { it.id }
+                        .sortedByDescending { it.createdAt }
                     _isLoadingActive.value = false
                 }
             }
         }
     }
 
-    /**
-     * Listens for updates to the user's inactive (cancelled) activities.
-     * Fetches activities for the current user and updates the inactive activities state.
-     */
+    // Henter kansellerte aktiviteter
     private fun listenForNotActiveActivityUpdates() {
         val userId = accountService.currentUserId
         if (userId.isNotEmpty()) {
             viewModelScope.launch {
                 _isLoadingInactive.value = true
                 entriesService.getNotActiveActivitiesForUser(userId) { activities ->
-                    _notActiveActivities.value = activities.sortedByDescending { it.createdAt }
+                    // Oppdater listen med unike aktiviteter
+                    _notActiveActivities.value = activities
+                        .distinctBy { it.id }
+                        .sortedByDescending { it.createdAt }
                     _isLoadingInactive.value = false
                 }
             }
         }
     }
 
-    /**
-     * Cancels the user's registration for a specific activity.
-     *
-     * @param activityId The ID of the activity to cancel registration for.
-     */
+    // Kansellerer en aktivitet
     fun cancelRegistration(activityId: String) {
         viewModelScope.launch {
             _isProcessingCancellation.value = activityId
-
             val userId = accountService.currentUserId
-            //val activityTitle = _activeActivities.value.find { it.id == activityId }?.title ?: "Aktivitet"
             val defaultActivityTitle = context.getString(R.string.default_activity)
             val activityTitle = _activeActivities.value.find { it.id == activityId }?.title ?: defaultActivityTitle
 
-
-            //val success = activityDetailService.updateRegistrationStatus(userId, activityId, "notAktiv")
             val statusNotActive = context.getString(R.string.status_not_active)
             val success = activityDetailService.updateRegistrationStatus(userId, activityId, statusNotActive)
 
-
             if (success) {
+                // Fjern fra aktive aktiviteter
+                val cancelledActivity = _activeActivities.value.find { it.id == activityId }
                 _activeActivities.value = _activeActivities.value.filter { it.id != activityId }
+
+                // Legg til i inaktive aktiviteter
+                if (cancelledActivity != null) {
+                    _notActiveActivities.value = (_notActiveActivities.value + cancelledActivity)
+                        .distinctBy { it.id } // Sørg for ingen duplikater
+                        .sortedByDescending { it.createdAt }
+                }
+
+                // Avbryt varslinger og oppdater bruker
                 scheduleReminder(
                     context = context,
                     reminderTime = System.currentTimeMillis(),
@@ -164,11 +127,10 @@ class EntriesScreenViewModel @Inject constructor(
                     isCancellation = true
                 )
                 cancelNotificationForActivity(context, activityId)
-                //Toast.makeText(context, "Aktivitet kansellert", Toast.LENGTH_LONG).show()
-                // Display a Toast message for user feedback
-                //Toast.makeText(context, "Aktivitet kansellert", Toast.LENGTH_LONG).show()
+
                 Toast.makeText(context, context.getString(R.string.activity_cancelled), Toast.LENGTH_LONG).show()
             }
+
             _isProcessingCancellation.value = null
         }
     }

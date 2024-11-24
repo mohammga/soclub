@@ -89,7 +89,7 @@
     <string name="label_email">E-post</string>
     <string name="label_ads">Mine annonser</string>
     <string name="label_password">Passord</string>
-    <string name="label_permissions">Tillatelser og preferanser</string>
+    <string name="label_permissions">Tillatelser</string>
     <string name="logout_button">Logg ut</string>
     <string name="loading">Kunne ikke hente informasjon</string>
 
@@ -419,7 +419,7 @@
     <string name="unknown_date">Ukjent dato</string>
     <string name="unknown_start_time">Ukjent starttid</string>
     <string name="alle_age_group">Alle</string>
-    <string name="last_updated">Siste endret: %s</string>
+    <string name="last_updated">Sist endret: %s</string>
     <string name="unknown">Ukjent</string>
     <string name="author">Forfatter</string>
     <string name="published">Publisert %s</string>
@@ -503,7 +503,7 @@
     <string name="error_fetch_notifications">Kunne ikke hente varsler: %1$s</string>
     <string name="error_delete_notification">Kunne ikke slette varselet: %1$s</string>
     <string name="error_listening_notifications">Feil ved lytting til varsler: %1$s</string>
-    <string name="no_activities_available">Ingen aktiviteter tilgjengelig for %1$s.</string>
+    <string name="no_activities_available">Ingen aktiviteter tilgjengelig for %1$s</string>
     <string name="unknown_category">Ukjent kategor</string>
     <string name="default_activity">Aktivitet</string>
     <string name="status_not_active">notAktiv</string>

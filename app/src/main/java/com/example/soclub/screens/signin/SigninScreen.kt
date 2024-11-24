@@ -242,7 +242,7 @@ fun ResetPasswordText(navController: NavController) {
         Text(
             text = stringResource(id = R.string.reset),
             fontWeight = FontWeight.Bold,
-            color = Color.Black,
+            color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.clickable {
                 navController.navigate("reset_password")
             }

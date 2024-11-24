@@ -57,7 +57,7 @@ fun ResetPasswordScreen(viewModel: ResetPasswordViewModel = hiltViewModel()) {
                 item {
                     Text(
                         text = stringResource(id = messageId),
-                        color = Color.Red
+                        color = MaterialTheme.colorScheme.error
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                 }

@@ -82,8 +82,6 @@ class ActivityDetailViewModel @Inject constructor(
     val isProcessingRegistration: StateFlow<Boolean> = _isProcessingRegistration
     val activity: StateFlow<Activity?> = _activity
 
-
-
     /**
      * Called when the ViewModel is cleared from memory.
      * Removes any active listeners for activity and registration updates.
@@ -93,10 +91,6 @@ class ActivityDetailViewModel @Inject constructor(
         registrationListener?.remove()
         activityListener?.remove()
     }
-
-
-
-
 
     /**
      * Loads the details of an activity along with its registration status and updates the state.

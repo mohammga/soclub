@@ -34,12 +34,14 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import com.example.soclub.models.Activity
-import java.util.Locale
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import com.example.soclub.utils.combineDateAndTime
+import androidx.compose.ui.unit.Dp
 import com.example.soclub.utils.isLandscape
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 
 /**
  * Main composable function for the Home Screen.
@@ -268,14 +270,25 @@ fun CategoryActivitiesPager(
                     CircularProgressIndicator()
                 }
             } else if (activitiesToShow.isNotEmpty()) {
-                ActivityList(
-                    activities = activitiesToShow,
-                    selectedCategory = selectedCategory,
-                    navController = navController
-                )
+                if (isNearestActivitiesSelected) {
+                    // Bruk grid-designen for "Nærme Aktiviteter"
+                    ActivityList(
+                        activities = activitiesToShow,
+                        selectedCategory = selectedCategory,
+                        navController = navController,
+                        useStaggeredGrid = true
+                    )
+                } else {
+                    // Bruk standard design for andre kategorier
+                    ActivityList(
+                        activities = activitiesToShow,
+                        selectedCategory = selectedCategory,
+                        navController = navController,
+                        useStaggeredGrid = false
+                    )
+                }
             } else {
                 Text(
-                    //text = "Ingen aktiviteter tilgjengelig for $selectedCategory.",
                     text = stringResource(R.string.no_activities_available, selectedCategory),
                     modifier = Modifier.padding(16.dp),
                     fontSize = 18.sp,
@@ -286,6 +299,7 @@ fun CategoryActivitiesPager(
     }
 }
 
+
 /**
  * Displays a list of activities for a selected category.
  *
@@ -293,25 +307,138 @@ fun CategoryActivitiesPager(
  * @param selectedCategory The currently selected category.
  * @param navController Navigation controller for navigating to the activity details screen.
  */
+
 @Composable
-fun ActivityList(activities: List<Activity>, selectedCategory: String, navController: NavHostController) {
-    LazyColumn(
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.fillMaxSize()
-    ) {
-        items(activities) { activity ->
-            val categoryToUse = if (selectedCategory == "Nærme Aktiviteter") {
-                activity.category ?: stringResource(R.string.unknown) //"ukjent"
-            } else {
-                selectedCategory
+fun ActivityList(
+    activities: List<Activity>,
+    selectedCategory: String,
+    navController: NavHostController,
+    useStaggeredGrid: Boolean
+) {
+    if (useStaggeredGrid) {
+        // Bruk LazyVerticalStaggeredGrid
+        LazyVerticalStaggeredGrid(
+            columns = StaggeredGridCells.Fixed(2), // To kolonner
+            verticalItemSpacing = 16.dp,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            itemsIndexed(activities) { index, activity ->
+                val height = calculateHeightBasedOnIndex(index) // Dynamisk høyde basert på indeks
+                ActivityItemWithDynamicHeight(
+                    activity = activity,
+                    height = height
+                ) {
+                    navController.navigate("detail/${selectedCategory}/${activity.id}")
+
+                }
             }
-            ActivityItem(activity = activity) {
-                navController.navigate("detail/${categoryToUse}/${activity.id}")
+
+            if (activities.size % 2 != 0) {
+                item {
+                    Spacer(
+                        modifier = Modifier
+                            .height(0.dp)
+                            .fillMaxWidth()
+                    )
+                }
+            }
+        }
+    } else {
+        LazyColumn(
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items(activities) { activity ->
+                ActivityItem(activity = activity) {
+                    navController.navigate("detail/${selectedCategory}/${activity.id}")
+                }
             }
         }
     }
 }
+
+
+/**
+ * Dynamisk høyde basert på en fast sekvens: liten, stor - stor, liten - osv.
+ */
+fun calculateHeightBasedOnIndex(index: Int): Dp {
+    return when (index % 4) {
+        0 -> 200.dp // Liten
+        1 -> 350.dp // Stor
+        2 -> 350.dp // Stor
+        3 -> 200.dp // Liten
+        else -> 200.dp // Standard fallback
+    }
+}
+
+/**
+ * Viser aktivitet med dynamisk høyde.
+ */
+@Composable
+fun ActivityItemWithDynamicHeight(activity: Activity, height: Dp, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(height) // Dynamisk høyde
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onClick() }
+    ) {
+        Image(
+            painter = if (activity.imageUrl.isEmpty()) {
+                painterResource(id = R.drawable.placeholder)
+            } else {
+                rememberAsyncImagePainter(activity.imageUrl)
+            },
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.8f)
+                        ),
+                        startY = 100f
+                    )
+                )
+                .clip(RoundedCornerShape(16.dp))
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Bottom
+        ) {
+
+            val cityName = getCityNameFromAddress(activity.location)
+
+            Text(
+                text = cityName,
+                fontSize = 12.sp,
+                color = Color.White
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = activity.title,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+        }
+    }
+}
+
 
 /**
  * Displays an individual activity item with title, location, and date.
@@ -362,36 +489,33 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.Bottom
         ) {
+
+            val cityName = getCityNameFromAddress(activity.location)
+
+            Text(
+                text = cityName,
+                fontSize = 12.sp,
+                color = Color.White
+
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
             Text(
                 text = activity.title,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = activity.location,
-                fontSize = 14.sp,
-                color = Color.LightGray
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            val activityDateTime = combineDateAndTime(activity.date, activity.startTime)
-            val formattedDateTime = activityDateTime?.let {
-                val formatter = java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
-                formatter.format(it)
-            } ?: stringResource(R.string.unknown_dato)//
-            // "Ukjent dato"
-            Text(
-                text = formattedDateTime,
-                fontSize = 14.sp,
-                color = Color.LightGray
-            )
         }
     }
+}
+
+/**
+ * Ekstraherer bynavn fra adresse.
+ */
+fun getCityNameFromAddress(address: String): String {
+    return address.split(",", " ").lastOrNull { it.isNotBlank() } ?: ""
 }
 
 /**
