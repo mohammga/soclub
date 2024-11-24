@@ -29,7 +29,7 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
             val activityId = intent?.getStringExtra("activityId") ?: return
             val userId = intent.getStringExtra("userId") ?: return
 
-            val notification = NotificationCompat.Builder(context, "activity_reminder_channel")
+            val notification = NotificationCompat.Builder(context, context.getString(R.string.channel_id))
                 .setContentTitle(context.getString(R.string.notification_title))
                 .setContentText(message)
                 .setSmallIcon(R.drawable.ic_stat_name)
