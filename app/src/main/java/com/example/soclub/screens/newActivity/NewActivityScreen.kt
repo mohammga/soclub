@@ -1,7 +1,10 @@
 package com.example.soclub.screens.newActivity
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -28,14 +31,22 @@ import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.soclub.R
+import com.example.soclub.screens.editActivity.shouldShowRequestPermissionRationale
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.*
 
+/**
+ * Composable for the screen to create a new activity.
+ *
+ * @param navController The NavController to manage navigation.
+ * @param viewModel The ViewModel responsible for handling the logic for the new activity.
+ */
 @Composable
 fun NewActivityScreen(
     navController: NavController,
@@ -93,12 +104,12 @@ fun NewActivityScreen(
                     initialValue = uiState.location,
                     onNewValue = { location ->
                         viewModel.onLocationChange(location)
-                        locationConfirmed = false // Reset confirmation on new input
+                        locationConfirmed = false
                     },
                     suggestions = locationSuggestions,
                     onSuggestionClick = { suggestion ->
                         viewModel.onLocationSelected(suggestion)
-                        locationConfirmed = true // Confirm location
+                        locationConfirmed = true
                     },
                     error = uiState.locationError,
                     enabled = !isPublishing
@@ -176,6 +187,14 @@ fun NewActivityScreen(
     }
 }
 
+/**
+ * Composable for entering the title of the activity.
+ *
+ * @param value The current value of the title input field.
+ * @param onNewValue Lambda to handle updates to the title.
+ * @param error An optional error message for validation.
+ * @param enabled Flag to enable or disable the input field.
+ */
 @Composable
 fun TitleField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -199,6 +218,14 @@ fun TitleField(value: String, onNewValue: (String) -> Unit, error: String?, enab
     )
 }
 
+/**
+ * Composable for entering the description of the activity.
+ *
+ * @param value The current value of the description input field.
+ * @param onNewValue Lambda to handle updates to the description.
+ * @param error An optional error message for validation.
+ * @param enabled Flag to enable or disable the input field.
+ */
 @Composable
 fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -209,7 +236,7 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .height(150.dp), // Increase the height for a larger field
+            .height(150.dp),
         maxLines = 10,
         isError = error != null,
         enabled = enabled,
@@ -223,6 +250,14 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?
     )
 }
 
+/**
+ * Composable for selecting the category of the activity.
+ *
+ * @param value The current value of the selected category.
+ * @param onNewValue Lambda to handle category selection.
+ * @param error An optional error message for validation.
+ * @param enabled Flag to enable or disable the input field.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
@@ -280,6 +315,16 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?, e
     }
 }
 
+/**
+ * Composable for entering the location of the activity.
+ *
+ * @param initialValue The initial value of the location field.
+ * @param onNewValue Lambda to handle updates to the location.
+ * @param suggestions A list of suggested locations.
+ * @param onSuggestionClick Lambda to handle the selection of a suggestion.
+ * @param error An optional error message for validation.
+ * @param enabled Flag to enable or disable the input field.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocationField(
@@ -337,7 +382,7 @@ fun LocationField(
                         onClick = {
                             textFieldValue = TextFieldValue(
                                 text = suggestion,
-                                selection = TextRange(suggestion.length) // Move cursor to end
+                                selection = TextRange(suggestion.length)
                             )
                             onSuggestionClick(suggestion)
                             expanded = false
@@ -349,6 +394,17 @@ fun LocationField(
     }
 }
 
+/**
+ * Composable for entering the address of the activity.
+ *
+ * @param initialValue The initial value of the address field.
+ * @param onNewValue Lambda to handle updates to the address.
+ * @param suggestions A list of suggested addresses.
+ * @param onSuggestionClick Lambda to handle the selection of a suggestion.
+ * @param isEnabled Flag to indicate if the field should be editable.
+ * @param error An optional error message for validation.
+ * @param enabled Flag to enable or disable the input field.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddressField(
@@ -421,6 +477,13 @@ fun AddressField(
     }
 }
 
+/**
+ * Composable for displaying the postal code of the activity.
+ *
+ * @param value The current value of the postal code field.
+ * @param error An optional error message for validation.
+ * @param enabled Flag to enable or disable the input field.
+ */
 @Composable
 fun PostalCodeField(value: String, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -446,6 +509,14 @@ fun PostalCodeField(value: String, error: String?, enabled: Boolean) {
     )
 }
 
+/**
+ * Composable for selecting the date of the activity.
+ *
+ * @param value The current timestamp for the selected date.
+ * @param onNewValue Lambda to handle updates to the date.
+ * @param error An optional error message for validation.
+ * @param enabled Flag to enable or disable the date picker.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enabled: Boolean) {
@@ -475,7 +546,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enab
             supportingText = {
                 val errorMessage = error ?: internalError
                 if (errorMessage == null) {
-                    Text(stringResource(R.string.date_most_by_24_fn))//Velg dato for aktiviteten (minst 24 timer fra nå)
+                    Text(stringResource(R.string.date_most_by_24_fn))
                 } else {
                     Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
                 }
@@ -497,18 +568,18 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enab
                         onClick = {
                             datePickerState.selectedDateMillis?.let { selectedMillis ->
                                 val diff = selectedMillis - currentTimeMillis
-                                if (diff >= 24 * 60 * 60 * 1000) { // Minimum 24 hours from now
+                                if (diff >= 24 * 60 * 60 * 1000) {
                                     onNewValue(Timestamp(Date(selectedMillis)))
                                     internalError = null
                                     isDatePickerVisible.value = false
                                 } else if (selectedMillis < currentTimeMillis) {
-                                    internalError =  context.getString(R.string.date_most_by_24_fn)//"Datoen må være minst 24 timer fra nå"
-                                    Toast.makeText(context, R.string.date_expiered, Toast.LENGTH_SHORT).show()//"Du kan ikke velge en dato som har gått."
+                                    internalError =  context.getString(R.string.date_most_by_24_fn)
+                                    Toast.makeText(context, R.string.date_expiered, Toast.LENGTH_SHORT).show()
                                 } else {
-                                    internalError = context.getString(R.string.date_most_by_24_fn)//"Datoen må være minst 24 timer fra nå"
+                                    internalError = context.getString(R.string.date_most_by_24_fn)
                                 }
                             } ?: run {
-                                internalError = context.getString(R.string.you_most_select_date)//"Du må velge en dato"
+                                internalError = context.getString(R.string.you_most_select_date)
                             }
                         }
                     ) {
@@ -527,8 +598,14 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enab
     }
 }
 
-
-
+/**
+ * Composable for selecting the start time of the activity.
+ *
+ * @param value The current value of the time field.
+ * @param onNewValue Lambda to handle updates to the start time.
+ * @param error An optional error message for validation.
+ * @param enabled Flag to enable or disable the time picker.
+ */
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -539,7 +616,6 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?, 
     Box {
         OutlinedTextField(
             value = value,
-            //value = if (value.isNotEmpty()) value else stringResource(R.string.choose_start_time),
             onValueChange = {},
             placeholder = { Text(stringResource(R.string.start_time_label)) },
             label = { Text(stringResource(R.string.start_time_label))},
@@ -599,6 +675,14 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?, 
     }
 }
 
+/**
+ * Composable for entering the maximum number of participants for the activity.
+ *
+ * @param value The current value of the max participants field.
+ * @param onNewValue Lambda to handle updates to the number of participants.
+ * @param error An optional error message for validation.
+ * @param enabled Flag to enable or disable the input field.
+ */
 @Composable
 fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -623,6 +707,14 @@ fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: Str
     )
 }
 
+/**
+ * Composable for entering the age limit for the activity.
+ *
+ * @param value The current value of the age limit field.
+ * @param onNewValue Lambda to handle updates to the age limit.
+ * @param error An optional error message for validation.
+ * @param enabled Flag to enable or disable the input field.
+ */
 @Composable
 fun AgeLimitField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -647,6 +739,14 @@ fun AgeLimitField(value: String, onNewValue: (String) -> Unit, error: String?, e
     )
 }
 
+/**
+ * Composable for uploading an image for the activity.
+ *
+ * @param selectedImageUri The URI of the currently selected image.
+ * @param onImageSelected Lambda to handle image selection.
+ * @param error An optional error message for validation.
+ * @param enabled Flag to enable or disable the image upload section.
+ */
 @Composable
 fun ImageUploadSection(
     selectedImageUri: Uri?,
@@ -654,11 +754,73 @@ fun ImageUploadSection(
     error: String? = null,
     enabled: Boolean
 ) {
+    val context = LocalContext.current
+
+    val galleryPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        Manifest.permission.READ_MEDIA_IMAGES
+    } else {
+        Manifest.permission.READ_EXTERNAL_STORAGE
+    }
+
+    var showPermissionDialog by remember { mutableStateOf(false) }
+
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
+        if (uri != null) {
+            onImageSelected(uri)
+        }
+    }
 
-        onImageSelected(uri)
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            galleryLauncher.launch("image/*")
+        } else {
+            Toast.makeText(
+                context,
+                R.string.galleriPermissionisrequired,
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    val handleImageClick = {
+        when {
+            ContextCompat.checkSelfPermission(context, galleryPermission) == PackageManager.PERMISSION_GRANTED -> {
+                galleryLauncher.launch("image/*")
+            }
+            shouldShowRequestPermissionRationale(context, galleryPermission) -> {
+                showPermissionDialog = true
+            }
+            else -> {
+                permissionLauncher.launch(galleryPermission)
+            }
+        }
+    }
+
+    if (showPermissionDialog) {
+        AlertDialog(
+            onDismissRequest = { showPermissionDialog = false },
+            title = { Text(stringResource(R.string.allow_premision_gallery)) },
+            text = { Text(stringResource(R.string.this_app_need_gallery_premision)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showPermissionDialog = false
+                        permissionLauncher.launch(galleryPermission)
+                    }
+                ) {
+                    Text(stringResource(R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPermissionDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -667,7 +829,7 @@ fun ImageUploadSection(
                 .fillMaxWidth()
                 .height(300.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .clickable { galleryLauncher.launch("image/*") }
+                .clickable { handleImageClick() }
                 .padding(vertical = 8.dp)
         ) {
             if (selectedImageUri != null) {
@@ -699,7 +861,7 @@ fun ImageUploadSection(
             text = stringResource(id = R.string.change_ad_picture),
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
-            modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
+            modifier = Modifier.clickable { handleImageClick() }
         )
 
         if (selectedImageUri != null) {
@@ -736,14 +898,14 @@ fun ImageUploadSection(
                         color =  MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp
                     ),
-                    modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
+                    modifier = Modifier.clickable { handleImageClick() }
                 )
 
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = stringResource(id = R.string.upload_new_picture),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
+                    modifier = Modifier.clickable { handleImageClick() }
                 )
             }
         }
@@ -755,6 +917,13 @@ fun ImageUploadSection(
     }
 }
 
+/**
+ * Composable for the publish button.
+ *
+ * @param navController The NavController to manage navigation after publishing.
+ * @param viewModel The ViewModel for managing publish logic.
+ * @param isPublishing Flag indicating whether the publishing process is ongoing.
+ */
 @Composable
 fun PublishButton(navController: NavController, viewModel: NewActivityViewModel, isPublishing: Boolean) {
     val buttonText = if (isPublishing) {

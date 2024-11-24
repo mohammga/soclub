@@ -26,10 +26,9 @@ object ServiceModule {
     @Provides
     @Singleton
     fun provideStorageService(
-        @ApplicationContext context: Context,
         firebaseStorage: com.google.firebase.storage.FirebaseStorage
     ): StorageService {
-        return StorageServiceImpl(firebaseStorage, context)
+        return StorageServiceImpl(firebaseStorage)
     }
 
     @Provides

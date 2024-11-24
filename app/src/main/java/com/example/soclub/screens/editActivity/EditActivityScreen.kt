@@ -47,6 +47,14 @@ import android.widget.Toast
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.core.content.ContextCompat
 
+/**
+ * Main screen for editing an activity.
+ *
+ * @param navController Navigation controller for navigating between screens.
+ * @param activityId The unique ID of the activity to be edited.
+ * @param viewModel ViewModel containing the logic and state for the screen.
+ * @param category The category of the activity being edited.
+ */
 @Composable
 fun EditActivityScreen(
     navController: NavController,
@@ -187,16 +195,6 @@ fun EditActivityScreen(
             item { Spacer(modifier = Modifier.height(16.dp)) }
 
             item {
-//                Button(
-//                    onClick = { viewModel.onSaveClick(navController, activityId, category) },
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .height(48.dp),
-//                ) {
-//                    Text(text = stringResource(R.string.save_changes_button))
-//                }
-
-
                 SaveChangesButton(
                     onClick = { viewModel.onSaveClick(navController, activityId, category) },
                     enabled = !isSaving,
@@ -233,6 +231,12 @@ fun EditActivityScreen(
     }
 }
 
+/**
+ * Dialog for confirming the deletion of an activity.
+ *
+ * @param onConfirm Callback invoked when the user confirms the deletion.
+ * @param onDismiss Callback invoked when the user dismisses the dialog.
+ */
 @Composable
 fun DeleteConfirmationDialog(
     onConfirm: () -> Unit,
@@ -240,8 +244,8 @@ fun DeleteConfirmationDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.confirm_deletion)) },//Bekreft sletting
-        text = { Text(stringResource(R.string.sure_you_want_to_delete)) },//"Er du sikker på at du vil slette denne aktiviteten? Denne handlingen kan ikke angres."
+        title = { Text(stringResource(R.string.confirm_deletion)) },
+        text = { Text(stringResource(R.string.sure_you_want_to_delete)) },
         confirmButton = {
             TextButton(onClick = onConfirm) {
                 Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
@@ -249,12 +253,20 @@ fun DeleteConfirmationDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))//"Avbryt"
+                Text(stringResource(R.string.cancel))
             }
         }
     )
 }
 
+/**
+ * Text field for entering the title of the activity.
+ *
+ * @param value The current value of the title.
+ * @param onNewValue Callback invoked when the title value changes.
+ * @param error Error message displayed if there is an error.
+ * @param enabled Flag indicating whether the field is editable.
+ */
 @Composable
 fun TitleField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -277,6 +289,14 @@ fun TitleField(value: String, onNewValue: (String) -> Unit, error: String?, enab
     )
 }
 
+/**
+ * Text field for entering the description of the activity.
+ *
+ * @param value The current value of the description.
+ * @param onNewValue Callback invoked when the description value changes.
+ * @param error Error message displayed if there is an error.
+ * @param enabled Flag indicating whether the field is editable.
+ */
 @Composable
 fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -300,6 +320,14 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?
     )
 }
 
+/**
+ * Dropdown field for selecting the category of the activity.
+ *
+ * @param value The current value of the category.
+ * @param onNewValue Callback invoked when the category value changes.
+ * @param error Error message displayed if there is an error.
+ * @param enabled Flag indicating whether the field is editable.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
@@ -346,6 +374,16 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?, e
     }
 }
 
+/**
+ * Dropdown field for selecting or entering the location of the activity.
+ *
+ * @param initialValue The initial value of the location.
+ * @param onNewValue Callback invoked when the location value changes.
+ * @param suggestions List of location suggestions displayed in the dropdown.
+ * @param onSuggestionClick Callback invoked when a suggestion is selected.
+ * @param error Error message displayed if there is an error.
+ * @param enabled Flag indicating whether the field is editable.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocationField(
@@ -414,6 +452,17 @@ fun LocationField(
     }
 }
 
+/**
+ * Dropdown field for selecting or entering the address of the activity.
+ *
+ * @param initialValue The initial value of the address.
+ * @param onNewValue Callback invoked when the address value changes.
+ * @param suggestions List of address suggestions displayed in the dropdown.
+ * @param onSuggestionClick Callback invoked when a suggestion is selected.
+ * @param isEnabled Flag indicating whether the field is visible.
+ * @param error Error message displayed if there is an error.
+ * @param enabled Flag indicating whether the field is editable.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddressField(
@@ -486,6 +535,12 @@ fun AddressField(
     }
 }
 
+/**
+ * Text field for displaying the postal code of the activity.
+ *
+ * @param value The current value of the postal code.
+ * @param error Error message displayed if there is an error.
+ */
 @Composable
 fun PostalCodeField(value: String, error: String?) {
     OutlinedTextField(
@@ -510,15 +565,22 @@ fun PostalCodeField(value: String, error: String?) {
     )
 }
 
+/**
+ * Field for selecting the date of the activity using a date picker dialog.
+ *
+ * @param value The current date value in milliseconds.
+ * @param onNewValue Callback invoked when a new date is selected.
+ * @param error Error message displayed if there is an error.
+ * @param enabled Flag indicating whether the field is editable.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enabled: Boolean) {
     val context = LocalContext.current
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = value)
     val isDatePickerVisible = remember { mutableStateOf(false) }
-    val todayMillis = System.currentTimeMillis() // For å sjekke dagens dato
+    val todayMillis = System.currentTimeMillis()
 
-    // Formatere valgt dato eller vise placeholder
     val formattedDate = if (value != 0L) {
         SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
     } else {
@@ -558,12 +620,10 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enab
                     TextButton(
                         onClick = {
                             datePickerState.selectedDateMillis?.let { selectedDateMillis ->
-                                // Sjekker om valgt dato er gyldig (ikke i fortiden)
                                 if (selectedDateMillis >= todayMillis) {
                                     onNewValue(Timestamp(Date(selectedDateMillis)))
-                                    isDatePickerVisible.value = false // Lukk dialogen
+                                    isDatePickerVisible.value = false
                                 } else {
-                                    // Vis toast hvis datoen er i fortiden
                                     Toast.makeText(
                                         context,
                                         R.string.date_expiered,
@@ -588,7 +648,14 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enab
     }
 }
 
-
+/**
+ * Field for selecting the start time of the activity using a time picker dialog.
+ *
+ * @param value The current value of the start time.
+ * @param onNewValue Callback invoked when a new time is selected.
+ * @param error Error message displayed if there is an error.
+ * @param enabled Flag indicating whether the field is editable.
+ */
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -600,7 +667,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?, 
         OutlinedTextField(
             value = value,
             onValueChange = {},
-            placeholder = { Text(stringResource(R.string.start_time_label)) },//Starttidspunkt"
+            placeholder = { Text(stringResource(R.string.start_time_label)) },
             label = { Text(stringResource(R.string.start_time_label))},
             modifier = Modifier
                 .fillMaxWidth()
@@ -616,7 +683,6 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?, 
             }
         )
 
-        // Invisible overlay box to intercept clicks
         Box(
             modifier = Modifier
                 .matchParentSize()
@@ -660,6 +726,14 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?, 
     }
 }
 
+/**
+ * Field for entering the maximum number of participants for the activity.
+ *
+ * @param value The current value of the maximum participants.
+ * @param onNewValue Callback invoked when the value changes.
+ * @param error Error message displayed if there is an error.
+ * @param enabled Flag indicating whether the field is editable.
+ */
 @Composable
 fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -683,6 +757,15 @@ fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: Str
     )
 }
 
+
+/**
+ * Field for entering the age limit for the activity.
+ *
+ * @param value The current value of the age limit.
+ * @param onNewValue Callback invoked when the value changes.
+ * @param error Error message displayed if there is an error.
+ * @param enabled Flag indicating whether the field is editable.
+ */
 @Composable
 fun AgeLimitField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
     OutlinedTextField(
@@ -706,6 +789,14 @@ fun AgeLimitField(value: String, onNewValue: (String) -> Unit, error: String?, e
     )
 }
 
+/**
+ * Section for uploading and managing an image for the activity.
+ *
+ * @param selectedImageUri The URI of the currently selected image.
+ * @param onImageSelected Callback invoked when a new image is selected.
+ * @param error Error message displayed if there is an error.
+ * @param enabled Flag indicating whether the section is enabled.
+ */
 @Composable
 fun ImageUploadSection(
     selectedImageUri: Uri?,
@@ -715,17 +806,14 @@ fun ImageUploadSection(
 ) {
     val context = LocalContext.current
 
-    // Determine the appropriate permission for the Android version
     val galleryPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         Manifest.permission.READ_MEDIA_IMAGES
     } else {
         Manifest.permission.READ_EXTERNAL_STORAGE
     }
 
-    // State to track permission request dialog
     var showPermissionDialog by remember { mutableStateOf(false) }
 
-    // Launcher to open the gallery
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -734,15 +822,12 @@ fun ImageUploadSection(
         }
     }
 
-    // Launcher to request permission
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            // Permission granted, open the gallery
             galleryLauncher.launch("image/*")
         } else {
-            // Permission denied, show a message or handle accordingly
             Toast.makeText(
                 context,
                 R.string.galleriPermissionisrequired,
@@ -751,25 +836,20 @@ fun ImageUploadSection(
         }
     }
 
-    // Function to handle image click
     val handleImageClick = {
         when {
             ContextCompat.checkSelfPermission(context, galleryPermission) == PackageManager.PERMISSION_GRANTED -> {
-                // Permission granted, open the gallery
                 galleryLauncher.launch("image/*")
             }
             shouldShowRequestPermissionRationale(context, galleryPermission) -> {
-                // Show rationale dialog
                 showPermissionDialog = true
             }
             else -> {
-                // Directly request permission
                 permissionLauncher.launch(galleryPermission)
             }
         }
     }
 
-    // Show rationale dialog if needed
     if (showPermissionDialog) {
         AlertDialog(
             onDismissRequest = { showPermissionDialog = false },
@@ -787,13 +867,12 @@ fun ImageUploadSection(
             },
             dismissButton = {
                 TextButton(onClick = { showPermissionDialog = false }) {
-                    Text("Avbryt")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
     }
 
-    // UI for the ImageUploadSection
     Column(modifier = Modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
@@ -888,6 +967,13 @@ fun ImageUploadSection(
     }
 }
 
+/**
+ * Determines whether the app should show a rationale for requesting a specific permission.
+ *
+ * @param context The current context.
+ * @param permission The permission being requested.
+ * @return `true` if a rationale should be shown, otherwise `false`.
+ */
 
 @SuppressLint("RestrictedApi")
 fun shouldShowRequestPermissionRationale(context: Context, permission: String): Boolean {
@@ -898,7 +984,13 @@ fun shouldShowRequestPermissionRationale(context: Context, permission: String): 
     }
 }
 
-
+/**
+ * Button for saving changes made to the activity.
+ *
+ * @param onClick Callback invoked when the button is clicked.
+ * @param enabled Flag indicating whether the button is enabled.
+ * @param isSaving Flag indicating whether the save operation is in progress.
+ */
 @Composable
 fun SaveChangesButton(
     onClick: () -> Unit,
@@ -906,9 +998,9 @@ fun SaveChangesButton(
     isSaving: Boolean
 ) {
     val buttonText = if (isSaving) {
-        stringResource(R.string.saving_changes_button)  // "Endringene lagres..."
+        stringResource(R.string.saving_changes_button)
     } else {
-        stringResource(R.string.save_changes_button)    // "Lagre endringer"
+        stringResource(R.string.save_changes_button)
     }
 
     Button(

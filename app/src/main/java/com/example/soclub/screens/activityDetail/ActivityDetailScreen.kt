@@ -6,8 +6,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,7 +41,6 @@ import androidx.core.app.ActivityCompat
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
-import android.icu.text.SimpleDateFormat
 import android.widget.Toast
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Event
@@ -51,19 +48,22 @@ import androidx.compose.material.icons.filled.Groups
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import com.google.firebase.Timestamp
-import java.util.Locale
 import com.example.soclub.models.UserInfo
 import androidx.compose.foundation.shape.CircleShape
+import com.example.soclub.utils.openGoogleMaps
+import com.example.soclub.utils.showToast
+import com.example.soclub.utils.formatDate
+import com.example.soclub.utils.formatDateWithoutTime
+import com.example.soclub.utils.splitDescriptionWithNaturalFlow
 
-
-fun openGoogleMaps(context: Context, gmmIntentUri: String) {
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(gmmIntentUri))
-    intent.setPackage("com.google.android.apps.maps")
-    if (intent.resolveActivity(context.packageManager) != null) {
-        context.startActivity(intent)
-    }
-}
-
+/**
+ * Main composable function for the Activity Detail Screen.
+ * Displays the details of a specific activity, including title, description, and participant information.
+ *
+ * @param category The category of the activity.
+ * @param activityId The unique identifier for the activity.
+ * @param viewModel The ViewModel handling the activity's state.
+ */
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ActivityDetailScreen(
@@ -141,25 +141,155 @@ fun ActivityDetailScreen(
     )
 }
 
-
-fun showToast(context: Context, isRegistering: Boolean, activity: Activity?, currentParticipants: Int) {
-    val maxParticipants = activity?.maxParticipants ?: 0
-    val remainingSlots = maxParticipants - currentParticipants
-
-    val message = if (isRegistering) {
-        if (remainingSlots > 0) {
-            context.getString(R.string.registration_successful)//"Påmeldingen var vellykket."
-        } else {
-            context.getString(R.string.registration_successful_filled)//"Påmeldingen var vellykket. Alle plasser er nå fylt opp."
-        }
+/**
+ * Displays an image for the activity. If no image URL is provided, a placeholder image is used.
+ *
+ * @param imageUrl The URL of the image to display.
+ */
+@Composable
+fun ActivityImage(imageUrl: String) {
+    val painter = if (imageUrl.isNotBlank()) {
+        rememberAsyncImagePainter(model = imageUrl)
     } else {
-        context.getString(R.string.unregistered_successful)//"Du har nå meldt deg ut av aktiviteten."
+        painterResource(id = R.drawable.placeholder)
     }
 
-    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    Image(
+        painter = painter,
+        contentDescription = "Activity Image",
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp)
+            .padding(vertical = 8.dp),
+        contentScale = ContentScale.Crop
+    )
+}
+
+/**
+ * Displays the title of the activity in a large, bold font.
+ *
+ * @param title The title of the activity.
+ */
+@Composable
+fun ActivityTitle(title: String) {
+    Text(
+        text = title,
+        fontSize = 32.sp,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(top = 16.dp)
+    )
+}
+
+/**
+ * Displays the publisher's information, including their name, email, and profile image.
+ *
+ * @param publisherUser The user information of the publisher.
+ * @param createdAt The timestamp when the activity was created.
+ */
+@Composable
+fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
+    val context = LocalContext.current
+    val formattedDate2 = remember(createdAt) {
+        createdAt?.let { formatDate(it) } ?: context.getString(R.string.unknown_date)
+    }
+
+    if (publisherUser != null) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(8.dp))
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val painter = if (publisherUser.imageUrl.isNotEmpty()) {
+                        rememberAsyncImagePainter(publisherUser.imageUrl)
+                    } else {
+                        painterResource(id = R.drawable.user) // Default image
+                    }
+
+                    Image(
+                        painter = painter,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clip(CircleShape)
+                            .background(Color.Gray),
+                        contentScale = ContentScale.Crop
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Column {
+                        val fullName = "${publisherUser.firstname} ${publisherUser.lastname}"
+                        Text(
+                            text = fullName,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        Text(
+                            text = stringResource(R.string.author),//Forfatter
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+
+                        Text(
+                            text = stringResource(R.string.published, formattedDate2),
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    val email = publisherUser.email
+                    if (email.isNotEmpty()) {
+                        val intent = Intent(Intent.ACTION_SENDTO).apply {
+                            data = Uri.parse("mailto:$email")
+                        }
+                        if (intent.resolveActivity(context.packageManager) != null) {
+                            context.startActivity(intent)
+                        } else {
+                            Toast.makeText(context, context.getString(R.string.no_email_app_found), Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(context, context.getString(R.string.email_missing), Toast.LENGTH_SHORT).show()
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Text(text = stringResource(R.string.contact))
+            }
+        }
+    }
 }
 
 
+/**
+ * Displays the content of an activity, including details like participants, registration buttons, and description.
+ *
+ * @param activity The activity object containing details.
+ * @param currentParticipants The current number of participants.
+ * @param isRegistered Indicates whether the user is registered for the activity.
+ * @param isCreator Indicates whether the current user is the creator of the activity.
+ * @param canRegister Indicates whether the user can register for the activity.
+ * @param ageGroup The age group limit for the activity.
+ * @param publisherUser The user who created the activity.
+ * @param isProcessingRegistration Indicates if a registration or unregistration action is being processed.
+ * @param onRegisterClick Callback for registering to the activity.
+ * @param onUnregisterClick Callback for unregistering from the activity.
+ */
 @Composable
 fun ActivityDetailsContent(
     activity: Activity?,
@@ -204,9 +334,9 @@ fun ActivityDetailsContent(
                 InfoRow(
                     icon = Icons.Default.People,
                     mainText = if (currentParticipants == 0) {
-                        "${0} of ${activity?.maxParticipants ?: 0}"
+                        "${0} av ${activity?.maxParticipants ?: 0}"
                     } else {
-                        "$currentParticipants of ${activity?.maxParticipants ?: 0}"
+                        "$currentParticipants av ${activity?.maxParticipants ?: 0}"
                     },
                     subText = stringResource(R.string.participants_label)
                 )
@@ -240,7 +370,6 @@ fun ActivityDetailsContent(
         ActivityGPSImage(context = context, destinationLocation = fullLocation)
 
         Text(
-           // text = "Sist endret: ${activity?.lastUpdated?.let { formatDate(it) } ?: "Ukjent"}",
             stringResource(R.string.last_updated, activity?.lastUpdated?.let { formatDate(it) } ?: stringResource(R.string.unknown)),
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             fontSize = 12.sp,
@@ -261,31 +390,38 @@ fun ActivityDetailsContent(
     }
 }
 
-
-
-fun formatDate(date: Timestamp): String {
-    val sdf = SimpleDateFormat("d. MMM yyyy, HH:mm", Locale("no", "NO"))
-    return sdf.format(date.toDate())
-}
-
-fun formatDateWithoutTime(date: Timestamp): String {
-    val sdf = SimpleDateFormat("d. MMM yyyy", Locale("no", "NO"))
-    return sdf.format(date.toDate())
-}
-
-
+/**
+ * Displays a row of information with an icon, a main text, and a subtext.
+ * Used for activity details such as date and participant count.
+ *
+ * @param icon The icon to display in the row.
+ * @param mainText The main text content.
+ * @param subText The subtext description.
+ */
 @Composable
-fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
-    val context = LocalContext.current
-    val formattedDate2 = remember(createdAt) {
-        createdAt?.let { formatDate(it) } ?: context.getString(R.string.unknown_date) //"Ukjent dato"
-    }
+fun InfoRow(
+    icon: ImageVector,
+    mainText: String,
+    subText: String
+) {
+    val backgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
 
-    if (publisherUser != null) {
-        Column(
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(backgroundColor)
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
             modifier = Modifier
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(end = 8.dp)
+                .size(48.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .padding(8.dp),
+            contentAlignment = Alignment.Center
         ) {
             // Informasjonsboks
             Column(
@@ -365,74 +501,39 @@ fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
             ) {
                 Text(text = stringResource(R.string.contact))//Kontakt
             }
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(32.dp)
+            )
         }
+
+        Column {
+            Text(
+                text = subText,
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = mainText,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                fontSize = 12.sp
+            )
+
+
     }
 }
 
 
-
-@Composable
-fun ActivityImage(imageUrl: String) {
-    val painter = if (imageUrl.isNotBlank()) {
-        rememberAsyncImagePainter(model = imageUrl)
-    } else {
-        painterResource(id = R.drawable.placeholder)
-    }
-
-    Image(
-        painter = painter,
-        contentDescription = "Activity Image",
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(300.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .padding(vertical = 8.dp),
-        contentScale = ContentScale.Crop
-    )
 }
 
-
-@Composable
-fun ActivityTitle(title: String) {
-    Text(
-        text = title,
-        fontSize = 32.sp,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(top = 16.dp)
-    )
-}
-
-@Composable
-fun ActivityDate(date: Timestamp?) {
-    val formattedDate = date?.let {
-
-        val sdf = SimpleDateFormat("EEEE, d. MMMM yyyy", Locale("no", "NO"))
-        sdf.format(it.toDate())
-    } ?: "Ukjent dato"
-
-    Text(
-        text = "Dato: $formattedDate",
-        modifier = Modifier.padding(vertical = 4.dp)
-    )
-}
-
-fun splitDescriptionWithNaturalFlow(description: String, linesPerChunk: Int = 1): String {
-    val sentences = description.split(Regex("(?<=\\.)\\s+"))
-    val result = StringBuilder()
-    var currentLines = 0
-
-    for (sentence in sentences) {
-        result.append(sentence.trim()).append(" ")
-        currentLines++
-
-        if (currentLines % linesPerChunk == 0) {
-            result.append("\n\n")
-        }
-    }
-
-    return result.toString().trim()
-}
-
+/**
+ * Displays the description of the activity with proper formatting for readability.
+ *
+ * @param description The description text of the activity.
+ */
 @Composable
 fun ActivityDescription(description: String) {
     val formattedDescription = remember(description) {
@@ -440,7 +541,7 @@ fun ActivityDescription(description: String) {
     }
 
     Text(
-        text = stringResource(R.string.description_label),//Beskrivelse"
+        text = stringResource(R.string.description_label),
         fontSize = 24.sp,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(top = 16.dp)
@@ -452,6 +553,12 @@ fun ActivityDescription(description: String) {
     )
 }
 
+/**
+ * Displays the GPS location of the activity and allows navigation to the location using Google Maps.
+ *
+ * @param context The application context.
+ * @param destinationLocation The location of the activity as a string.
+ */
 @Composable
 fun ActivityGPSImage(context: Context, destinationLocation: String) {
     val userLocation = remember { mutableStateOf<Location?>(null) }
@@ -465,7 +572,6 @@ fun ActivityGPSImage(context: Context, destinationLocation: String) {
     }
 
     LaunchedEffect(Unit) {
-        // Sjekker tillatelser
         if (ActivityCompat.checkSelfPermission(
                 context,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -530,7 +636,20 @@ fun ActivityGPSImage(context: Context, destinationLocation: String) {
     }
 }
 
-
+/**
+ * Displays a button for registering or unregistering from an activity.
+ * Handles UI states for registration status and limitations.
+ *
+ * @param isRegistered Indicates whether the user is already registered.
+ * @param isCreator Indicates whether the user is the creator of the activity.
+ * @param canRegister Indicates whether the user can register for the activity.
+ * @param currentParticipants The current number of participants.
+ * @param maxParticipants The maximum number of participants allowed.
+ * @param ageGroup The minimum age required for the activity.
+ * @param isProcessingRegistration Indicates if a registration action is in progress.
+ * @param onRegisterClick Callback for registering the user.
+ * @param onUnregisterClick Callback for unregistering the user.
+ */
 @Composable
 fun ActivityRegisterButton(
     isRegistered: Boolean,

@@ -16,37 +16,72 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val accountService: AccountService
 ) : ViewModel() {
 
+    /**
+     * Holds the user's profile information.
+     *
+     * Initially set to `null` until the data is fetched from the account service.
+     */
     var userInfo by mutableStateOf<UserInfo?>(null)
         private set
 
+    /**
+     * Indicates whether the user information is currently being fetched.
+     *
+     * Initially set to `true` and updated to `false` once the data fetching is complete.
+     */
     var isLoading by mutableStateOf(true)
         private set
 
+    /**
+     * Tracks whether the user is currently in the process of logging out.
+     *
+     * Set to `true` during the sign-out process and `false` when the process completes.
+     */
     var isLoggingOut by mutableStateOf(false)
         private set
 
+    /**
+     * Initializes the ViewModel by fetching the user's profile information.
+     *
+     * This ensures the `userInfo` is populated as soon as the ViewModel is created.
+     */
     init {
         fetchUserInfo()
     }
 
+    /**
+     * Fetches the current user's information from the account service.
+     *
+     * Updates the `userInfo` state with the retrieved data and sets `isLoading` to `false` once the data is loaded.
+     * If an error occurs, it silently fails and `isLoading` is still set to `false`.
+     */
     private fun fetchUserInfo() {
         viewModelScope.launch {
             isLoading = true
             try {
                 userInfo = accountService.getUserInfo()
             } catch (e: Exception) {
-                // Håndtere feil ved behov
             } finally {
                 isLoading = false
             }
         }
     }
 
+    /**
+     * Signs out the current user and navigates to the Sign In screen.
+     *
+     * Displays a toast message upon successful sign-out. If the sign-out process is successful,
+     * all navigation backstack entries are cleared, and the user is redirected to the Sign In screen.
+     *
+     * @param navController The NavController used to navigate between screens.
+     * @param context The context used to display toast messages.
+     */
     fun onSignOut(navController: NavController, context: Context) {
         isLoggingOut = true
         viewModelScope.launch {

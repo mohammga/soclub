@@ -1,6 +1,5 @@
 package com.example.soclub.service.impl
 
-import android.content.Context
 import android.net.Uri
 import android.util.Log
 import com.example.soclub.service.StorageService
@@ -14,7 +13,6 @@ import javax.inject.Inject
 
 class StorageServiceImpl @Inject constructor(
     private val firebaseStorage: FirebaseStorage,
-    private val context: Context
 ) : StorageService {
 
     override fun uploadImage(
@@ -26,7 +24,6 @@ class StorageServiceImpl @Inject constructor(
     ) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Determine folder based on whether it's an activity or a user profile image
                 val folderPath = if (isActivity) {
                     "$category/${imageUri.lastPathSegment}"
                 } else {
@@ -34,21 +31,16 @@ class StorageServiceImpl @Inject constructor(
                 }
 
                 val storageRef = firebaseStorage.reference.child(folderPath)
-
-                // Upload the file
                 storageRef.putFile(imageUri).await()
 
-                // Retrieve the download URL
                 val downloadUrl = storageRef.downloadUrl.await()
 
-                // Call onSuccess on the main thread
                 withContext(Dispatchers.Main) {
                     onSuccess(downloadUrl.toString())
                 }
             } catch (e: Exception) {
                 Log.e("StorageServiceImpl", "Error uploading image: ${e.message}", e)
 
-                // Call onError on the main thread
                 withContext(Dispatchers.Main) {
                     onError(e)
                 }

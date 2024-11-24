@@ -18,6 +18,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.soclub.R
 
+/**
+ * Composable function for the Change Password screen.
+ *
+ * Displays input fields for the old password, new password, and confirmation of the new password.
+ * Shows errors if any validation fails and a button to submit the password change request.
+ *
+ * @param viewModel The ViewModel managing the state and logic for the Change Password screen.
+ */
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ChangePasswordScreen(viewModel: ChangePasswordViewModel = hiltViewModel()) {
@@ -91,6 +99,18 @@ fun ChangePasswordScreen(viewModel: ChangePasswordViewModel = hiltViewModel()) {
     )
 }
 
+/**
+ * A composable function for rendering a password input field with a toggle for visibility.
+ *
+ * Displays a label, error message, and supporting text for the input.
+ *
+ * @param label The label for the input field.
+ * @param value The current value of the input field.
+ * @param onNewValue Callback for updating the input field's value.
+ * @param error The error message to display, if any.
+ * @param supportingText Additional information or instructions for the field.
+ * @param enabled Indicates if the input field is editable.
+ */
 @Composable
 fun PasswordField(
     label: String,
@@ -98,7 +118,7 @@ fun PasswordField(
     onNewValue: (String) -> Unit,
     error: String? = null,
     supportingText: String? = null,
-    enabled: Boolean = true  // Legg til denne linjen
+    enabled: Boolean = true
 ) {
     var isVisible by remember { mutableStateOf(true) }
     var isVisibleToggled by remember { mutableStateOf(false) }
@@ -124,7 +144,7 @@ fun PasswordField(
                     isVisible = !isVisible
                     if (!isVisibleToggled) isVisibleToggled = true
                 },
-                enabled = enabled  // Deaktiver ikonet når feltet er deaktivert
+                enabled = enabled
             ) {
                 Icon(
                     painter = icon,
@@ -142,11 +162,20 @@ fun PasswordField(
                 Text(text = error, color = MaterialTheme.colorScheme.error)
             }
         },
-        enabled = enabled  // Sett enabled på tekstfeltet
+        enabled = enabled
     )
 }
 
-
+/**
+ * A composable function for rendering the button to submit the password change request.
+ *
+ * The button text changes based on whether a request is currently being processed.
+ *
+ * @param viewModel The ViewModel managing the state and logic for the Change Password screen.
+ * @param context The context for displaying messages or triggering actions.
+ * @param enabled Indicates if the button is clickable.
+ * @param isProcessing Indicates if a password change request is currently being processed.
+ */
 @Composable
 private fun ChangePasswordButton(
     viewModel: ChangePasswordViewModel,
@@ -155,9 +184,9 @@ private fun ChangePasswordButton(
     isProcessing: Boolean
 ) {
     val buttonText = if (isProcessing) {
-        stringResource(id = R.string.updating_password_button)  // "Oppdaterer passord..."
+        stringResource(id = R.string.updating_password_button)
     } else {
-        stringResource(id = R.string.update_password_button)  // "Oppdater passord"
+        stringResource(id = R.string.update_password_button)
     }
 
     Button(

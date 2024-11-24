@@ -24,6 +24,21 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import com.example.soclub.models.UserInfo
 
+/**
+ * ViewModel for handling the logic of the Activity Detail Screen.
+ * Manages the state of the activity, including registration status, publisher information,
+ * and notifications for upcoming activities.
+ *
+ * Dependencies:
+ * - AccountService: For user account-related operations.
+ * - ActivityDetailService: For activity-related operations.
+ * - FirebaseFirestore: For accessing Firestore data.
+ *
+ * @param context Application context for accessing resources.
+ * @param accountService Service for managing account-related operations.
+ * @param activityDetailService Service for managing activity details.
+ * @param firestore Firebase Firestore instance for database access.
+ */
 
 @HiltViewModel
 class ActivityDetailViewModel @Inject constructor(
@@ -33,61 +48,62 @@ class ActivityDetailViewModel @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : ViewModel() {
 
+    /**
+     * Private mutable state variables and listeners used to manage activity details
+     * and user interactions.
+     */
     private val _publisherUser = MutableStateFlow<UserInfo?>(null)
-    val publisherUser: StateFlow<UserInfo?> = _publisherUser
-
     private val _activities = MutableLiveData<List<Activity>>()
-    val activities: LiveData<List<Activity>> = _activities
-
     private val _isRegistered = MutableStateFlow(false)
-    val isRegistered: StateFlow<Boolean> = _isRegistered
-
     private val _canRegister = MutableStateFlow(true)
-    val canRegister: StateFlow<Boolean> = _canRegister
-
     private val _currentParticipants = MutableStateFlow(0)
-    val currentParticipants: StateFlow<Int> = _currentParticipants
-
     private val _isLoading = MutableStateFlow(true)
-    val isLoading: StateFlow<Boolean> = _isLoading
-
     private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage
-
     private val _isCreator = MutableStateFlow(false)
-    val isCreator: StateFlow<Boolean> = _isCreator
-
-    private var registrationListener: ListenerRegistration? = null
-
     private val _activity = MutableStateFlow<Activity?>(null)
-    val activity: StateFlow<Activity?> = _activity
-
+    private val _requestAlarmPermission = MutableLiveData<Boolean>()
+    private val _isProcessingRegistration = MutableStateFlow(false)
+    private var registrationListener: ListenerRegistration? = null
     private var activityListener: ListenerRegistration? = null
 
-
-    private val _requestAlarmPermission = MutableLiveData<Boolean>()
+    /**
+     * Public state variables exposing data to the UI.
+     * These variables are read-only to ensure immutability outside the ViewModel.
+     */
+    val publisherUser: StateFlow<UserInfo?> = _publisherUser
+    val activities: LiveData<List<Activity>> = _activities
+    val isRegistered: StateFlow<Boolean> = _isRegistered
+    val canRegister: StateFlow<Boolean> = _canRegister
+    val currentParticipants: StateFlow<Int> = _currentParticipants
+    val isLoading: StateFlow<Boolean> = _isLoading
+    val errorMessage: StateFlow<String?> = _errorMessage
+    val isCreator: StateFlow<Boolean> = _isCreator
     val requestAlarmPermission: LiveData<Boolean> = _requestAlarmPermission
-
-
-    private val _isProcessingRegistration = MutableStateFlow(false)
     val isProcessingRegistration: StateFlow<Boolean> = _isProcessingRegistration
+    val activity: StateFlow<Activity?> = _activity
 
 
-    private fun checkAndRequestExactAlarmPermission() {
-        _requestAlarmPermission.value = true
-    }
 
-    fun resetAlarmPermissionRequest() {
-        _requestAlarmPermission.value = false
-    }
-
-
+    /**
+     * Called when the ViewModel is cleared from memory.
+     * Removes any active listeners for activity and registration updates.
+     */
     override fun onCleared() {
         super.onCleared()
         registrationListener?.remove()
         activityListener?.remove()
     }
 
+
+
+
+
+    /**
+     * Loads the details of an activity along with its registration status and updates the state.
+     *
+     * @param category The category of the activity.
+     * @param activityId The unique identifier of the activity.
+     */
     fun loadActivityWithStatus(category: String, activityId: String) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -109,13 +125,11 @@ class ActivityDetailViewModel @Inject constructor(
 
                 loadRegisteredParticipants(activityId)
 
-                // Sett opp sanntidslytting på aktivitetens data
-                activityListener?.remove()  // Fjern eventuell tidligere lytter for å unngå duplikater
+                activityListener?.remove()
                 activityListener = activityDetailService.listenForActivityUpdates(category, activityId) { updatedActivity ->
                     _activity.value = updatedActivity
                 }
 
-                // Sett opp sanntidslytting på antall deltakere
                 registrationListener = activityDetailService.listenToRegistrationUpdates(activityId) { count ->
                     _currentParticipants.value = count
                 }
@@ -128,6 +142,11 @@ class ActivityDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Fetches the information of the user who created the activity.
+     *
+     * @param creatorId The unique identifier of the creator.
+     */
     private fun fetchPublisherInfo(creatorId: String?) {
         if (creatorId.isNullOrEmpty() || creatorId == "admin") {
             _publisherUser.value = null
@@ -145,18 +164,27 @@ class ActivityDetailViewModel @Inject constructor(
         }
     }
 
-
-    private fun loadRegisteredParticipants(activityId: String) {
+    /**
+     * Loads the current number of participants registered for the activity.
+     *
+     * @param activityId The unique identifier of the activity.
+     */
+    fun loadRegisteredParticipants(activityId: String) {
         viewModelScope.launch {
             val count = activityDetailService.getRegisteredParticipantsCount(activityId)
             _currentParticipants.value = count
         }
     }
 
-
+    /**
+     * Updates the registration status of the user for a specific activity.
+     *
+     * @param activityId The unique identifier of the activity.
+     * @param isRegistering True if the user is registering, false if unregistering.
+     */
     fun updateRegistrationForActivity(activityId: String, isRegistering: Boolean) {
         viewModelScope.launch {
-            _isProcessingRegistration.value = true // Start registreringsprosessen
+            _isProcessingRegistration.value = true
 
             val userId = accountService.currentUserId
             val status = if (isRegistering) "aktiv" else "notAktiv"
@@ -171,14 +199,12 @@ class ActivityDetailViewModel @Inject constructor(
 
                     val startTimeMillis = getActivityStartTimeInMillis(currentActivity)
                     if (isRegistering && startTimeMillis != null) {
-                        // Schedule notifications...
                         scheduleNotificationForActivity(
                             activityTitle = currentActivity.title,
                             activityId = activityId,
                             startTimeMillis = startTimeMillis,
                             userId = userId
                         )
-                        // Immediate registration notification
                         scheduleReminder(
                             context = context,
                             reminderTime = System.currentTimeMillis(),
@@ -190,9 +216,7 @@ class ActivityDetailViewModel @Inject constructor(
                             isRegistration = true
                         )
                     } else if (!isRegistering) {
-                        // Cancel notifications...
                         cancelNotificationForActivity(context, activityId)
-                        // Immediate cancellation notification
                         scheduleReminder(
                             context = context,
                             reminderTime = System.currentTimeMillis(),
@@ -207,11 +231,31 @@ class ActivityDetailViewModel @Inject constructor(
                 }
             }
 
-            _isProcessingRegistration.value = false // Fullfør registreringsprosessen
+            _isProcessingRegistration.value = false
         }
     }
 
+    /**
+     * Requests exact alarm permissions if not already granted.
+     */
+    private fun checkAndRequestExactAlarmPermission() {
+        _requestAlarmPermission.value = true
+    }
 
+    /**
+     * Resets the alarm permission request flag.
+     */
+    fun resetAlarmPermissionRequest() {
+        _requestAlarmPermission.value = false
+    }
+
+
+    /**
+     * Calculates the start time of the activity in milliseconds.
+     *
+     * @param activity The activity object containing the start time and date.
+     * @return The start time in milliseconds, or null if the format is invalid.
+     */
     private fun getActivityStartTimeInMillis(activity: Activity): Long? {
         val activityDate = activity.date?.toDate() ?: return null
         val startTime = activity.startTime
@@ -232,6 +276,14 @@ class ActivityDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Schedules notifications for an activity at different intervals before the start time.
+     *
+     * @param activityTitle The title of the activity.
+     * @param activityId The unique identifier of the activity.
+     * @param startTimeMillis The start time of the activity in milliseconds.
+     * @param userId The unique identifier of the user.
+     */
     private fun scheduleNotificationForActivity(
         activityTitle: String,
         activityId: String,
@@ -242,12 +294,10 @@ class ActivityDetailViewModel @Inject constructor(
 
         checkAndRequestExactAlarmPermission()
 
-        // Calculate times for 24 hours, 12 hours, 1 hour, and 2 minutes before the activity
         val oneHourBefore = startTimeMillis - (60 * 60 * 1000)
         val twelveHoursBefore = startTimeMillis - (12 * 60 * 60 * 1000)
         val twentyFourHoursBefore = startTimeMillis - (24 * 60 * 60 * 1000)
 
-        // Schedule each reminder with a custom message
         if (twentyFourHoursBefore > currentTimeMillis) {
             scheduleReminder(
                 context = context,
@@ -255,7 +305,7 @@ class ActivityDetailViewModel @Inject constructor(
                 activityTitle = activityTitle,
                 activityId = "${activityId}_24hr",
                 userId = userId,
-                saveToDatabase = false  // Don't save to Firestore immediately
+                saveToDatabase = false
             )
         }
 
@@ -266,7 +316,7 @@ class ActivityDetailViewModel @Inject constructor(
                 activityTitle = activityTitle,
                 activityId = "${activityId}_12hr",
                 userId = userId,
-                saveToDatabase = false  // Don't save to Firestore immediately
+                saveToDatabase = false
             )
         }
 
@@ -277,7 +327,7 @@ class ActivityDetailViewModel @Inject constructor(
                 activityTitle = activityTitle,
                 activityId = "${activityId}_1hr",
                 userId = userId,
-                saveToDatabase = false  // Don't save to Firestore immediately
+                saveToDatabase = false
             )
         }
     }

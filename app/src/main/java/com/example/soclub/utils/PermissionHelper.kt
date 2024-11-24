@@ -1,9 +1,9 @@
 package com.example.soclub.utils
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.content.ContextCompat
 
@@ -19,19 +19,22 @@ class PermissionHelper(
         checkPermissions()
     }
 
-    @SuppressLint("InlinedApi")
     private fun checkPermissions() {
         isLocationPermissionGranted = ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
 
-        isPostNotificationsGranted = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.POST_NOTIFICATIONS
-        ) == PackageManager.PERMISSION_GRANTED
+        isPostNotificationsGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
 
-        isGalleryPermissionGranted = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+        isGalleryPermissionGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.READ_MEDIA_IMAGES
@@ -44,7 +47,6 @@ class PermissionHelper(
         }
     }
 
-    @SuppressLint("InlinedApi")
     fun requestPermissions() {
         val permissionsToRequest = mutableListOf<String>()
 
@@ -52,12 +54,12 @@ class PermissionHelper(
             permissionsToRequest.add(Manifest.permission.ACCESS_FINE_LOCATION)
         }
 
-        if (!isPostNotificationsGranted) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !isPostNotificationsGranted) {
             permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
         }
 
         if (!isGalleryPermissionGranted) {
-            val galleryPermission = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            val galleryPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 Manifest.permission.READ_MEDIA_IMAGES
             } else {
                 Manifest.permission.READ_EXTERNAL_STORAGE
@@ -70,11 +72,17 @@ class PermissionHelper(
         }
     }
 
-    @SuppressLint("InlinedApi")
     fun updatePermissionsStatus(permissions: Map<String, Boolean>) {
-        isLocationPermissionGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: isLocationPermissionGranted
-        isPostNotificationsGranted = permissions[Manifest.permission.POST_NOTIFICATIONS] ?: isPostNotificationsGranted
-        isGalleryPermissionGranted = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+        isLocationPermissionGranted =
+            permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: isLocationPermissionGranted
+
+        isPostNotificationsGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions[Manifest.permission.POST_NOTIFICATIONS] ?: isPostNotificationsGranted
+        } else {
+            true
+        }
+
+        isGalleryPermissionGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissions[Manifest.permission.READ_MEDIA_IMAGES] ?: isGalleryPermissionGranted
         } else {
             permissions[Manifest.permission.READ_EXTERNAL_STORAGE] ?: isGalleryPermissionGranted

@@ -25,6 +25,11 @@ import com.example.soclub.R
 import com.google.firebase.Timestamp
 import java.util.Locale
 
+/**
+ * Composable function to display the entries screen with active and cancelled entries.
+ *
+ * @param navController The [NavHostController] to handle navigation.
+ */
 @Composable
 fun EntriesScreen(navController: NavHostController) {
     val (selectedTab, setSelectedTab) = remember { mutableIntStateOf(0) }
@@ -39,6 +44,12 @@ fun EntriesScreen(navController: NavHostController) {
     }
 }
 
+/**
+ * Composable function to display tabs for selecting between active and cancelled entries.
+ *
+ * @param selectedTab The index of the currently selected tab.
+ * @param setSelectedTab Lambda function to set the selected tab index.
+ */
 @Composable
 fun Tabs(selectedTab: Int, setSelectedTab: (Int) -> Unit) {
     TabRow(
@@ -65,6 +76,12 @@ fun Tabs(selectedTab: Int, setSelectedTab: (Int) -> Unit) {
     }
 }
 
+/**
+ * Composable function to display a list of active entries.
+ *
+ * @param navController The [NavHostController] to handle navigation.
+ * @param viewModel The [EntriesScreenViewModel] for managing active entries.
+ */
 @Composable
 fun ActiveEntriesList(
     navController: NavHostController,
@@ -105,7 +122,7 @@ fun ActiveEntriesList(
                     title = activity.title,
                     time = activity.startTime,
                     date = activity.date,
-                    isProcessingCancellation = isProcessingCancellation == activity.id, // Sjekker om denne aktiviteten blir kansellert
+                    isProcessingCancellation = isProcessingCancellation == activity.id,
                     onCancelClick = { viewModel.cancelRegistration(activity.id) },
                     onClick = {
                         activity.category?.let { category ->
@@ -120,6 +137,12 @@ fun ActiveEntriesList(
     }
 }
 
+/**
+ * Composable function to display a list of cancelled entries.
+ *
+ * @param navController The [NavHostController] to handle navigation.
+ * @param viewModel The [EntriesScreenViewModel] for managing cancelled entries.
+ */
 @Composable
 fun CancelledEntriesList(navController: NavHostController, viewModel: EntriesScreenViewModel = hiltViewModel()) {
     val cancelledActivities by viewModel.notActiveActivities.collectAsState()
@@ -131,7 +154,6 @@ fun CancelledEntriesList(navController: NavHostController, viewModel: EntriesScr
         }
     } else if (cancelledActivities.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            //Text(text = "Det er ingen aktiviteter som er kansellerte", modifier = Modifier.padding(16.dp))
             Text(stringResource(R.string.No_Aktivirty_is_cancelled),modifier = Modifier.padding(16.dp))
         }
     } else {
@@ -161,6 +183,17 @@ fun CancelledEntriesList(navController: NavHostController, viewModel: EntriesScr
     }
 }
 
+/**
+ * Composable function to display an active entry item.
+ *
+ * @param imageUrl The URL of the entry's image.
+ * @param title The title of the entry.
+ * @param date The date of the entry.
+ * @param time The time of the entry.
+ * @param isProcessingCancellation Whether the cancellation is being processed.
+ * @param onCancelClick Lambda to handle cancellation clicks.
+ * @param onClick Lambda to handle item clicks.
+ */
 @Composable
 fun ActiveEntryItem(
     imageUrl: String?,
@@ -202,6 +235,15 @@ fun ActiveEntryItem(
     }
 }
 
+/**
+ * Composable function to display a cancelled entry item.
+ *
+ * @param imageUrl The URL of the entry's image.
+ * @param title The title of the entry.
+ * @param date The date of the entry.
+ * @param time The time of the entry.
+ * @param onClick Lambda to handle item clicks.
+ */
 @Composable
 fun CancelledEntryItem(
     imageUrl: String?,
@@ -229,6 +271,11 @@ fun CancelledEntryItem(
     }
 }
 
+/**
+ * Composable function to display an image for an entry.
+ *
+ * @param imageUrl The URL of the image to display.
+ */
 @Composable
 fun EventImage(imageUrl: String?) {
     val imagePainter = if (imageUrl.isNullOrEmpty()) {
@@ -248,6 +295,12 @@ fun EventImage(imageUrl: String?) {
     )
 }
 
+/**
+ * Composable function to display the date and time of an entry.
+ *
+ * @param date The date of the entry.
+ * @param time The time of the entry.
+ */
 @Composable
 fun DateDisplay(date: Timestamp?, time: String?) {
     val formattedDateTime = date?.let { it ->
@@ -256,7 +309,6 @@ fun DateDisplay(date: Timestamp?, time: String?) {
         dateStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
     } ?: stringResource(R.string.unknown_dato)
 
-    // Koble sammen dato og tid hvis begge er tilgjengelige
     val displayText = if (time != null) {
         "$formattedDateTime, $time"
     } else {
@@ -270,12 +322,18 @@ fun DateDisplay(date: Timestamp?, time: String?) {
     )
 }
 
+/**
+ * Composable function to display a button for cancelling an entry.
+ *
+ * @param onClick Lambda to handle button clicks.
+ * @param isProcessing Whether the cancellation is being processed.
+ */
 @Composable
 fun CancelButton(onClick: () -> Unit, isProcessing: Boolean) {
     val buttonText = if (isProcessing) {
-        stringResource(R.string.cancelling_you) // "Kansellerer deg..."
+        stringResource(R.string.cancelling_you)
     } else {
-        stringResource(R.string.kanseller) // "Kanseller"
+        stringResource(R.string.kanseller)
     }
 
     Button(

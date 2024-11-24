@@ -1,6 +1,5 @@
 package com.example.soclub.components.navigation
 
-import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -38,13 +37,10 @@ import com.example.soclub.screens.start.StartScreen
 import com.example.soclub.screens.termsPrivacy.TermsPrivacyScreen
 import com.example.soclub.service.impl.AccountServiceImpl
 import com.example.soclub.service.module.FirebaseModule
-import com.example.soclub.ui.theme.ThemeMode
 
 @Composable
 fun AppNavigation(
     navController: NavHostController,
-    themeMode: ThemeMode,
-    onThemeChange: (ThemeMode) -> Unit,
     notificationsViewModel: NotificationsViewModel = hiltViewModel()
 ) {
     val currentScreen = getCurrentScreen(navController)
@@ -171,10 +167,7 @@ fun AppNavigation(
             composable(AppScreens.CHANGE_PASSWORD.name) { ChangePasswordScreen() }
             composable(AppScreens.EDIT_PROFILE.name) { EditProfileScreen(navController) }
             composable(AppScreens.EDIT_PERMISSION.name) {
-                EditPermissionScreen(
-                    themeMode = themeMode,
-                    onThemeChange = onThemeChange,
-                )
+                EditPermissionScreen()
             }
             composable(AppScreens.NOTIFICATIONS.name) { NotificationsScreen() }
             composable(AppScreens.NEW_ACTIVITY.name) { NewActivityScreen(navController) }

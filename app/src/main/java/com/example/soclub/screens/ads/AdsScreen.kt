@@ -26,8 +26,17 @@ import java.util.Locale
 import android.icu.text.SimpleDateFormat
 import com.google.firebase.Timestamp
 
-
-
+/**
+ * Composable for displaying the Ads screen.
+ *
+ * - Shows a loading indicator while fetching data.
+ * - Displays an error message if fetching data fails.
+ * - Displays a message if there are no published ads.
+ * - Displays a list of activities published by the creator.
+ *
+ * @param navController Navigation controller for navigating between screens.
+ * @param viewModel ViewModel instance for managing ads data and state.
+ */
 @Composable
 fun AdsScreen(
     navController: NavController,
@@ -44,7 +53,6 @@ fun AdsScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         when {
             isLoading -> {
-                // Viser loading-indikator
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -53,7 +61,6 @@ fun AdsScreen(
                 }
             }
             errorMessage != null -> {
-                // Viser feilmelding hvis det ikke finnes annonser eller hvis en feil oppstår
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -62,7 +69,6 @@ fun AdsScreen(
                 }
             }
             activities.isEmpty() -> {
-                // Hvis det ikke finnes annonser og ingen feil, vis en melding
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -72,7 +78,6 @@ fun AdsScreen(
                 }
             }
             else -> {
-                // Viser listen over annonser
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -84,7 +89,7 @@ fun AdsScreen(
                         EntryItem(
                             imageUrl = activity.imageUrl,
                             title = activity.title,
-                            date = activity.date, // Add this line to pass the date
+                            date = activity.date,
                             time = activity.startTime,
                             activityId = activity.creatorId,
                             category = activity.category,
@@ -97,6 +102,21 @@ fun AdsScreen(
     }
 }
 
+/**
+ * Composable for displaying a single entry in the ads list.
+ *
+ * - Shows the activity image, title, date, and time.
+ * - Includes a button for editing the activity.
+ * - Navigates to the edit activity screen when clicked.
+ *
+ * @param imageUrl URL of the activity's image.
+ * @param title Title of the activity.
+ * @param date Timestamp of the activity date.
+ * @param time Start time of the activity.
+ * @param activityId Unique identifier of the activity.
+ * @param category Category of the activity.
+ * @param navController Navigation controller for navigating to the edit screen.
+ */
 @Composable
 fun EntryItem(
     imageUrl: String?,
@@ -148,15 +168,23 @@ fun EntryItem(
     }
 }
 
+/**
+ * Composable for displaying the formatted date and time of an activity.
+ *
+ * - Formats the date to a readable format (e.g., "Monday, 1. January 2024").
+ * - Appends the activity's start time if available.
+ *
+ * @param date Timestamp representing the activity's date.
+ * @param time Optional string representing the activity's start time.
+ */
 @Composable
 fun DateDisplay(date: Timestamp?, time: String?) {
     val formattedDateTime = date?.let { it ->
         val sdf = SimpleDateFormat("EEEE, d. MMMM yyyy", Locale("no", "NO"))
         val dateStr = sdf.format(it.toDate())
         dateStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-    } ?: "Ukjent dato"
+    } ?: stringResource(id = R.string.unknown_date)//"Ukjent dato"
 
-    // Concatenate the date and time if both are available
     val displayText = if (time != null) {
         "$formattedDateTime, $time"
     } else {
@@ -170,11 +198,18 @@ fun DateDisplay(date: Timestamp?, time: String?) {
     )
 }
 
-
+/**
+ * Composable for displaying an image for an activity.
+ *
+ * - Displays a placeholder image if no URL is provided.
+ * - Clips the image into a rounded rectangle shape.
+ *
+ * @param imageUrl URL of the image to display.
+ */
 @Composable
 fun EventImage(imageUrl: String?) {
     val imagePainter = if (imageUrl.isNullOrEmpty()) {
-        painterResource(id = R.drawable.placeholder) // Replace with the actual placeholder resource ID
+        painterResource(id = R.drawable.placeholder)
     } else {
         rememberAsyncImagePainter(imageUrl)
     }

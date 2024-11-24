@@ -18,6 +18,40 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
+/**
+ * Data class representing the UI state for creating a new activity.
+ *
+ * @property title The title of the activity.
+ * @property description The description of the activity.
+ * @property category The category of the activity.
+ * @property location The location of the activity.
+ * @property address The address of the activity.
+ * @property postalCode The postal code of the activity.
+ * @property maxParticipants The maximum number of participants.
+ * @property ageLimit The age limit for the activity.
+ * @property imageUrl The URL of the activity's image.
+ * @property date The selected date for the activity.
+ * @property startTime The start time of the activity.
+ * @property errorMessage The error message resource ID, if any.
+ * @property locationSuggestions Suggestions for the location field.
+ * @property addressSuggestions Suggestions for the address field.
+ * @property postalCodeSuggestions Suggestions for the postal code field.
+ * @property locationConfirmed Flag indicating if the location is confirmed.
+ * @property addressConfirmed Flag indicating if the address is confirmed.
+ * @property titleError Validation error for the title field.
+ * @property descriptionError Validation error for the description field.
+ * @property categoryError Validation error for the category field.
+ * @property locationError Validation error for the location field.
+ * @property addressError Validation error for the address field.
+ * @property postalCodeError Validation error for the postal code field.
+ * @property maxParticipantsError Validation error for the max participants field.
+ * @property ageLimitError Validation error for the age limit field.
+ * @property dateError Validation error for the date field.
+ * @property startTimeError Validation error for the start time field.
+ * @property selectedImageUri The URI of the selected image.
+ */
+
 data class NewActivityState(
     val title: String = "",
     val description: String = "",
@@ -34,9 +68,8 @@ data class NewActivityState(
     val locationSuggestions: List<String> = emptyList(),
     val addressSuggestions: List<String> = emptyList(),
     val postalCodeSuggestions: List<String> = emptyList(),
-    val locationConfirmed: Boolean = false, // Flag to confirm location selection
-    val addressConfirmed: Boolean = false,  // Flag to confirm address selection
-    // Error messages
+    val locationConfirmed: Boolean = false,
+    val addressConfirmed: Boolean = false,
     val titleError: String? = null,
     val descriptionError: String? = null,
     val categoryError: String? = null,
@@ -50,6 +83,15 @@ data class NewActivityState(
     val selectedImageUri: Uri? = null
 )
 
+/**
+ * ViewModel for managing the logic of creating a new activity.
+ *
+ * @param activityService The service for managing activities.
+ * @param accountService The service for managing user accounts.
+ * @param locationService The service for fetching location details.
+ * @param storageService The service for uploading images.
+ * @param application The application context for accessing resources.
+ */
 @HiltViewModel
 class NewActivityViewModel @Inject constructor(
     private val activityService: ActivityService,
@@ -72,7 +114,9 @@ class NewActivityViewModel @Inject constructor(
         loadMunicipalities()
     }
 
-    // Function to load municipalities from LocationService
+    /**
+     * Loads the list of municipalities for location suggestions.
+     */
     private fun loadMunicipalities() {
         viewModelScope.launch {
             locationService.fetchMunicipalities().collect { fetchedMunicipalities ->
@@ -82,41 +126,60 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Function to handle title change with first letter capitalized
+    /**
+     * Handles updates to the title field.
+     *
+     * @param newValue The new value for the title.
+     */
     fun onTitleChange(newValue: String) {
         val capitalizedTitle = newValue.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
         uiState.value = uiState.value.copy(title = capitalizedTitle, titleError = null)
     }
 
-    // Function to handle description change with first letter capitalized
+    /**
+     * Handles updates to the description field.
+     *
+     * @param newValue The new value for the description.
+     */
     fun onDescriptionChange(newValue: String) {
         val capitalizedDescription = newValue.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
         uiState.value = uiState.value.copy(description = capitalizedDescription, descriptionError = null)
     }
 
-    // Function to handle image selection
+    /**
+     * Handles selection of an image for the activity.
+     *
+     * @param uri The URI of the selected image.
+     */
     fun onImageSelected(uri: Uri?) {
         uiState.value = uiState.value.copy(selectedImageUri = uri, imageUrl = uri?.toString() ?: "")
     }
 
-    // Function to handle category change
+    /**
+     * Handles updates to the category field.
+     *
+     * @param newValue The new value for the category.
+     */
     fun onCategoryChange(newValue: String) {
         uiState.value = uiState.value.copy(category = newValue, categoryError = null)
     }
 
-    // Function to handle location (city) input change and show suggestions
+    /**
+     * Handles updates to the location field and triggers suggestions.
+     *
+     * @param newValue The new value for the location.
+     */
     fun onLocationChange(newValue: String) {
         uiState.value = uiState.value.copy(
             location = newValue,
-            address = "",          // Reset address when location changes
-            postalCode = "",      // Reset postal code when location changes
-            locationConfirmed = false, // Reset confirmation flag
-            addressConfirmed = false,  // Reset address confirmation flag
+            address = "",
+            postalCode = "",
+            locationConfirmed = false,
+            addressConfirmed = false,
             locationError = null,
             addressSuggestions = emptyList()
         )
 
-        // Show suggestions only when two or more characters are entered
         if (newValue.length >= 2) {
             val suggestions = municipalities.filter { it.startsWith(newValue, ignoreCase = true) }
             uiState.value = uiState.value.copy(locationSuggestions = suggestions)
@@ -125,21 +188,29 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Function to confirm location selection from dropdown
+    /**
+     * Handles selection of a location suggestion.
+     *
+     * @param selectedLocation The selected location from suggestions.
+     */
     fun onLocationSelected(selectedLocation: String) {
         uiState.value = uiState.value.copy(
             location = selectedLocation,
             locationSuggestions = emptyList(),
-            locationConfirmed = true  // Mark location as confirmed
+            locationConfirmed = true
         )
     }
 
-    // Function to handle address input change and show suggestions
+    /**
+     * Handles updates to the address field and triggers suggestions.
+     *
+     * @param newValue The new value for the address.
+     */
     fun onAddressChange(newValue: String) {
         uiState.value = uiState.value.copy(
             address = newValue,
-            postalCode = "",          // Reset postal code when address changes
-            addressConfirmed = false, // Reset confirmation flag
+            postalCode = "",
+            addressConfirmed = false,
             addressError = null
         )
 
@@ -150,21 +221,27 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Function to confirm address selection from dropdown
+    /**
+     * Handles selection of an address suggestion.
+     *
+     * @param selectedAddress The selected address from suggestions.
+     */
     fun onAddressSelected(selectedAddress: String) {
         uiState.value = uiState.value.copy(
             address = selectedAddress,
             addressSuggestions = emptyList(),
-            addressConfirmed = true  // Mark address as confirmed
+            addressConfirmed = true
         )
         fetchPostalCodeForAddress(selectedAddress, uiState.value.location)
     }
 
-    // Fetch address suggestions, handling house number extraction
+    /**
+     * Fetches suggestions for the address based on the query.
+     *
+     * @param query The address query string.
+     */
     private fun fetchAddressSuggestions(query: String) {
         val (streetName, houseNumber) = extractStreetAndHouseNumber(query)
-
-        // Only fetch suggestions if location is confirmed
         if (!uiState.value.locationConfirmed) {
             return
         }
@@ -180,7 +257,12 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Helper function to extract street name and house number
+    /**
+     * Extracts the street name and house number from an address query.
+     *
+     * @param query The address query string.
+     * @return A pair containing the street name and house number.
+     */
     private fun extractStreetAndHouseNumber(query: String): Pair<String, String?> {
         val regex = Regex("^(.*?)(\\d+)?$")
         val matchResult = regex.find(query.trim())
@@ -189,7 +271,12 @@ class NewActivityViewModel @Inject constructor(
         return streetName to houseNumber
     }
 
-    // Fetch postal code for the selected address
+    /**
+     * Fetches the postal code for the given address and municipality.
+     *
+     * @param address The address to fetch the postal code for.
+     * @param municipality The municipality of the address.
+     */
     private fun fetchPostalCodeForAddress(address: String, municipality: String) {
         viewModelScope.launch {
             locationService.fetchPostalCodeForAddress(address, municipality).collect { postalCode ->
@@ -202,18 +289,26 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Function to handle max participants input change
+    /**
+     * Handles updates to the max participants field.
+     *
+     * @param newValue The new value for max participants.
+     */
     fun onMaxParticipantsChange(newValue: String) {
         uiState.value = uiState.value.copy(maxParticipants = newValue, maxParticipantsError = null)
     }
 
-    // Function to handle age limit input change and validate
+    /**
+     * Handles updates to the age limit field.
+     *
+     * @param newValue The new value for the age limit.
+     */
     fun onAgeLimitChange(newValue: String) {
         val age = newValue.toIntOrNull()
         if (age != null && age > 100) {
             uiState.value = uiState.value.copy(
                 errorMessage = R.string.error_age_limit_exceeded,
-                ageLimitError = application.getString(R.string.age_limt_100)//"Aldersgrensen kan ikke overstige 100"
+                ageLimitError = application.getString(R.string.age_limt_100)
             )
         } else {
             uiState.value = uiState.value.copy(
@@ -224,19 +319,30 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    // Function to handle date input change
+    /**
+     * Handles updates to the date field.
+     *
+     * @param newValue The new value for the date.
+     */
     fun onDateChange(newValue: Timestamp) {
         uiState.value = uiState.value.copy(date = newValue, dateError = null)
     }
 
-    // Function to handle start time input change
+    /**
+     * Handles updates to the start time field.
+     *
+     * @param newValue The new value for the start time.
+     */
     fun onStartTimeChange(newValue: String) {
         uiState.value = uiState.value.copy(startTime = newValue, startTimeError = null)
     }
 
-    // Function to handle publish action
+    /**
+     * Handles the publish action, validates inputs, and publishes the activity.
+     *
+     * @param navController The NavController for navigation.
+     */
     fun onPublishClick(navController: NavController) {
-        // Validation
         var hasError = false
         var titleError: String? = null
         var descriptionError: String? = null
@@ -250,68 +356,63 @@ class NewActivityViewModel @Inject constructor(
         var startTimeError: String? = null
 
         if (uiState.value.title.isBlank()) {
-            //titleError = "Du må fylle inn tittel"
             titleError = application.getString(R.string.you_must_fyll_the_titel)
             hasError = true
         }
         if (uiState.value.description.isBlank()) {
-            //descriptionError = "Du må fylle inn beskrivelse"
             descriptionError = application.getString(R.string.description_must_be_filled_error)
             hasError = true
         }
         if (uiState.value.category.isBlank()) {
-            //categoryError = "Du må velge kategori"
             categoryError = application.getString(R.string.you_most_select_category)
             hasError = true
         }
         if (uiState.value.location.isBlank()) {
-            //locationError = "Du må velge sted"
             locationError = application.getString(R.string.you_most_select_location)
             hasError = true
         }
         if (uiState.value.address.isBlank()) {
-            addressError = application.getString(R.string.you_most_select_address)//"Du må velge adresse"
+            addressError = application.getString(R.string.you_most_select_address)
             hasError = true
         }
         if (uiState.value.postalCode.isBlank()) {
-            postalCodeError = application.getString(R.string.you_most_select_postalCode)//"Postnummer er påkrevd"
+            postalCodeError = application.getString(R.string.you_most_select_postalCode)
             hasError = true
         }
         if (uiState.value.maxParticipants.isBlank()) {
-            maxParticipantsError = application.getString(R.string.maxParticipants_must_be_filled_error)//"Du må fylle inn maks antall deltakere"
+            maxParticipantsError = application.getString(R.string.maxParticipants_must_be_filled_error)
             hasError = true
         } else if (uiState.value.maxParticipants.toIntOrNull() == null) {
-            maxParticipantsError = application.getString(R.string.most_ny_a_nummber)//"Må være et tall"
+            maxParticipantsError = application.getString(R.string.most_ny_a_nummber)
             hasError = true
         }
         if (uiState.value.ageLimit.isBlank()) {
-            ageLimitError = application.getString(R.string.ageLimit_must_be_filled_error)//"Du må fylle inn aldersgrense"
+            ageLimitError = application.getString(R.string.ageLimit_must_be_filled_error)
             hasError = true
         } else if (uiState.value.ageLimit.toIntOrNull() == null) {
-            ageLimitError = application.getString(R.string.most_ny_a_nummber)//"Må være et tall"
+            ageLimitError = application.getString(R.string.most_ny_a_nummber)
             hasError = true
         }
 
         val selectedDate = uiState.value.date
         if (selectedDate == null) {
-            dateError = application.getString(R.string.you_most_select_date)//"Du må velge dato"
+            dateError = application.getString(R.string.you_most_select_date)
             hasError = true
         } else {
             val currentTimeMillis = System.currentTimeMillis()
             val selectedDateMillis = selectedDate.toDate().time
             val diff = selectedDateMillis - currentTimeMillis
-            if (diff < 24 * 60 * 60 * 1000) { // 24 hours in milliseconds
-                dateError = application.getString(R.string.most_by_24_h)//"Datoen må være minst 24 timer fra nå"
+            if (diff < 24 * 60 * 60 * 1000) {
+                dateError = application.getString(R.string.most_by_24_h)
                 hasError = true
             }
         }
 
         if (uiState.value.startTime.isBlank()) {
-            startTimeError = application.getString(R.string.you_most_select_start_time)//"Du må velge starttidspunkt"
+            startTimeError = application.getString(R.string.you_most_select_start_time)
             hasError = true
         }
 
-        // Update UI-state with error messages
         uiState.value = uiState.value.copy(
             titleError = titleError,
             descriptionError = descriptionError,
@@ -339,8 +440,8 @@ class NewActivityViewModel @Inject constructor(
         if (uiState.value.imageUrl.isNotBlank()) {
             storageService.uploadImage(
                 imageUri = Uri.parse(uiState.value.imageUrl),
-                isActivity = true,  // Set to true for activity images
-                category = uiState.value.category, // Pass the activity category
+                isActivity = true,
+                category = uiState.value.category,
                 onSuccess = { imageUrl ->
                     createActivityAndNavigate(navController, imageUrl, combinedLocation, timestampDate, startTime, creatorId)
                 },
@@ -356,6 +457,16 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Creates a new activity and navigates back to the home screen.
+     *
+     * @param navController The NavController for navigation.
+     * @param imageUrl The URL of the uploaded image.
+     * @param combinedLocation The combined location string.
+     * @param date The selected date for the activity.
+     * @param startTime The start time of the activity.
+     * @param creatorId The ID of the user creating the activity.
+     */
     private fun createActivityAndNavigate(
         navController: NavController,
         imageUrl: String,

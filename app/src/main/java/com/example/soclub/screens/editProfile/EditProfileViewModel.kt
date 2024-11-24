@@ -34,7 +34,7 @@ data class EditProfileState(
 class EditProfileViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val accountService: AccountService,
-    private val storageService: StorageService // Inject StorageService
+    private val storageService: StorageService
 ) : ViewModel() {
 
     var isSaving: MutableState<Boolean> = mutableStateOf(false)
@@ -52,7 +52,7 @@ class EditProfileViewModel @Inject constructor(
 
     fun loadUserProfile() {
         isLoading.value = true
-        errorMessage.value = null  // Reset error message on reload
+        errorMessage.value = null
         viewModelScope.launch {
             try {
                 val userInfo: UserInfo = accountService.getUserInfo()
@@ -61,7 +61,7 @@ class EditProfileViewModel @Inject constructor(
                 uiState.value = uiState.value.copy(
                     firstname = userInfo.firstname,
                     lastname = userInfo.lastname,
-                    imageUri = imageUri
+                    imageUri = if (userInfo.imageUrl.isNotBlank()) Uri.parse(userInfo.imageUrl) else null
                 )
             } catch (e: Exception) {
                 errorMessage.value = context.getString(R.string.error_message)
@@ -124,7 +124,6 @@ class EditProfileViewModel @Inject constructor(
         val imageUri = uiState.value.imageUri
 
         if (imageUri != null) {
-            // Check if the URI is a local content URI
             if (imageUri.toString().startsWith("content://")) {
                 storageService.uploadImage(
                     imageUri = imageUri,
@@ -139,7 +138,6 @@ class EditProfileViewModel @Inject constructor(
                     }
                 )
             } else {
-                // Skip upload and use the existing URL if it's a remote URL
                 updateUserInfoAndNavigate(navController, firstname, lastname, imageUri.toString(), context)
             }
         } else {

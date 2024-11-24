@@ -99,67 +99,81 @@ class SigninViewModel @Inject constructor(private val accountService: AccountSer
      * @param context The [Context] used for displaying Toast messages.
      */
     fun onLoginClick(navController: NavController, context: Context) {
+        println("onLoginClick called") // Startpunkt
         var hasError = false
         var emailError: Int? = null
         var passwordError: Int? = null
 
-        // Validate email input
+        // Valider email og passord
         if (email.isBlank()) {
             emailError = R.string.error_email_required
             hasError = true
+            println("Email is blank")
         } else if (!email.isValidEmail()) {
             emailError = R.string.error_invalid_email
             hasError = true
+            println("Email is invalid")
         }
 
-        // Validate password input
         if (password.isBlank()) {
             passwordError = R.string.error_password_required
             hasError = true
+            println("Password is blank")
         }
 
-        // Update UI state with validation errors, if any
+        // Oppdater UI-state med eventuelle valideringsfeil
         uiState.value = uiState.value.copy(
             emailError = emailError,
             passwordError = passwordError,
             generalError = null
         )
 
-        // If there are validation errors, abort the login process
-        if (hasError) return
+        // Hvis det er valideringsfeil, avbryt login
+        if (hasError) {
+            println("Validation failed, exiting onLoginClick")
+            return
+        }
 
-        // Indicate that a login operation is in progress
+        // Sett isLoading til true og start login-prosess
         isLoading.value = true
+        println("Starting login process...")
 
-        // Launch a coroutine for the authentication process
+        // Start login-koroutine
         viewModelScope.launch {
             try {
                 accountService.authenticateWithEmail(email, password) { error ->
-                    // Hide the loading indicator
-                    isLoading.value = false
+                    isLoading.value = false // Nullstill isLoading uansett utfall
+                    println("Login completed with error: $error")
 
                     if (error == null) {
-                        // Show success message
+                        println("Login successful, navigating to HOME")
                         Toast.makeText(
                             context,
                             context.getString(R.string.success_login, email),
                             Toast.LENGTH_LONG
                         ).show()
 
-                        // Navigate to the Home screen and clear the back stack
                         navController.navigate(AppScreens.HOME.name) {
                             popUpTo(AppScreens.SIGNIN.name) { inclusive = true }
                         }
                     } else {
-                        // Update UI state with a general login error
-                        uiState.value = uiState.value.copy(generalError = R.string.error_could_not_log_in)
+                        // Oppdater UI med feilmelding ved feil
+                        println("Login failed, updating generalError")
+                        uiState.value = uiState.value.copy(
+                            generalError = R.string.error_could_not_log_in
+                        )
                     }
                 }
             } catch (e: Exception) {
-                // Handle any exceptions that occur during authentication
+                // Feil i koroutine eller nettverkskall
                 isLoading.value = false
-                uiState.value = uiState.value.copy(generalError = R.string.error_could_not_log_in)
+                println("Exception in login: ${e.message}")
+                uiState.value = uiState.value.copy(
+                    generalError = R.string.error_could_not_log_in
+                )
             }
         }
     }
+
+
 }

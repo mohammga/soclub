@@ -1,6 +1,5 @@
 package com.example.soclub.screens.home
 
-import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,7 +21,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -36,16 +34,20 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import com.example.soclub.models.Activity
-import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import com.example.soclub.utils.combineDateAndTime
+import com.example.soclub.utils.isLandscape
 
-
-
-
+/**
+ * Main composable function for the Home Screen.
+ * Displays activity categories, a filter option, and activities grouped by category.
+ *
+ * @param navController Navigation controller for navigating between screens.
+ * @param viewModel The ViewModel handling state for the Home Screen.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hiltViewModel()) {
@@ -55,15 +57,12 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
     val selectedCities by viewModel.selectedCities.observeAsState(emptyList())
     val cities by viewModel.getCities().observeAsState(emptyList())
     val hasLocationPermission by viewModel.hasLocationPermission.observeAsState(false)
-
-    // Filter categories based on location permission
     val visibleCategories = if (hasLocationPermission) {
         categories
     } else {
         categories.filter { it != "Nærme Aktiviteter" }
     }
 
-    // Initialize pagerState with visibleCategories.size
     val pagerState = rememberPagerState(
         initialPage = 0,
         pageCount = { visibleCategories.size }
@@ -79,8 +78,6 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-
-        // Select the current category based on the current page in the pager
         val selectedCategory = visibleCategories.getOrNull(pagerState.currentPage) ?: ""
 
         Row(
@@ -129,7 +126,6 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Display activities based on the selected category
         CategoryActivitiesPager(
             categories = visibleCategories,
             pagerState = pagerState,
@@ -139,7 +135,6 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
         )
     }
 
-    // Filter bottom sheet for city selection and area settings
     if (showBottomSheet) {
         FilterBottomSheet(
             showBottomSheet = showBottomSheet,
@@ -158,151 +153,13 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
     }
 }
 
-@Composable
-fun Chip(text: String, onRemove: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .clip(RoundedCornerShape(12.dp))  // Smaller rounding
-            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
-            .padding(horizontal = 8.dp, vertical = 4.dp),  // Reduced padding
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = text,
-            fontSize = 14.sp,  // Smaller font size
-            fontWeight = FontWeight.Normal
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Icon(
-            imageVector = Icons.Default.Close,
-            contentDescription = "Remove $text",
-            modifier = Modifier
-                .size(16.dp)
-                .clickable { onRemove() }
-        )
-    }
-}
 
-@Composable
-fun CategoryActivitiesPager(
-    categories: List<String>,
-    pagerState: PagerState,
-    viewModel: HomeViewModel,
-    navController: NavHostController,
-    hasLocationPermission: Boolean
-) {
-    val groupedActivities by viewModel.groupedActivities.observeAsState(emptyMap())
-    val isLoading by viewModel.isLoading.observeAsState(false)
-    val activities by viewModel.activities.observeAsState(emptyList())
-
-    HorizontalPager(
-        state = pagerState,
-        modifier = Modifier.fillMaxSize(),
-        userScrollEnabled = true
-    ) { page ->
-        val selectedCategory = categories[page]
-
-        val isNearestActivitiesSelected = selectedCategory == "Nærme Aktiviteter" && hasLocationPermission
-
-        LaunchedEffect(isNearestActivitiesSelected) {
-            if (isNearestActivitiesSelected) {
-                viewModel.getNearestActivities()
-            }
-        }
-
-        val activitiesToShow = if (isNearestActivitiesSelected) {
-            activities
-        } else {
-            groupedActivities[selectedCategory] ?: emptyList()
-        }
-
-        Column(modifier = Modifier.fillMaxSize()) {
-            if (isLoading) {
-                // Show a loading indicator while data is loading
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = 16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            } else if (activitiesToShow.isNotEmpty()) {
-                // Display the list of activities
-                ActivityList(
-                    activities = activitiesToShow,
-                    selectedCategory = selectedCategory,
-                    navController = navController
-                )
-            } else {
-                // Display a message if no activities are available
-                Text(
-                    text = "Ingen aktiviteter tilgjengelig for $selectedCategory.",
-                    modifier = Modifier.padding(16.dp),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-    }
-}
-
-
-@Composable
-fun CitySelectionItem(city: String, isSelected: Boolean, onCitySelected: (Boolean) -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onCitySelected(!isSelected) }
-            .padding(vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = city,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium,
-        )
-        Checkbox(
-            checked = isSelected,
-            onCheckedChange = { onCitySelected(it) },
-        )
-    }
-}
-
-@Composable
-fun FilterListItem(
-    title: String,
-    onClick: () -> Unit,
-    backgroundColor: Color,
-    contentColor: Color
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(backgroundColor)
-            .clickable { onClick() }
-            .padding(horizontal = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = title,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium,
-            color = contentColor,
-        )
-        Icon(
-            imageVector = Icons.Default.FilterList, // You can change to the appropriate icon
-            contentDescription = "Arrow",
-            tint = contentColor,
-            modifier = Modifier.padding(end = 16.dp)
-        )
-    }
-}
-
+/**
+ * Displays a row of tabs for navigating between categories.
+ *
+ * @param categories List of category names.
+ * @param pagerState The pager state for handling the current selected tab.
+ */
 @Composable
 fun CategoryTabs(categories: List<String>, pagerState: PagerState) {
     val coroutineScope = rememberCoroutineScope()
@@ -358,6 +215,84 @@ fun CategoryTabs(categories: List<String>, pagerState: PagerState) {
     }
 }
 
+/**
+ * Displays a horizontal pager for activities grouped by category.
+ *
+ * @param categories List of category names to display.
+ * @param pagerState The state of the pager, handling current page and scrolling.
+ * @param viewModel The ViewModel for retrieving activity data.
+ * @param navController Navigation controller for navigating to the detail screen.
+ * @param hasLocationPermission Boolean indicating whether the app has location permissions.
+ */
+@Composable
+fun CategoryActivitiesPager(
+    categories: List<String>,
+    pagerState: PagerState,
+    viewModel: HomeViewModel,
+    navController: NavHostController,
+    hasLocationPermission: Boolean
+) {
+    val groupedActivities by viewModel.groupedActivities.observeAsState(emptyMap())
+    val isLoading by viewModel.isLoading.observeAsState(false)
+    val activities by viewModel.activities.observeAsState(emptyList())
+
+    HorizontalPager(
+        state = pagerState,
+        modifier = Modifier.fillMaxSize(),
+        userScrollEnabled = true
+    ) { page ->
+        val selectedCategory = categories[page]
+
+        val isNearestActivitiesSelected = selectedCategory == "Nærme Aktiviteter" && hasLocationPermission
+
+        LaunchedEffect(isNearestActivitiesSelected) {
+            if (isNearestActivitiesSelected) {
+                viewModel.getNearestActivities()
+            }
+        }
+
+        val activitiesToShow = if (isNearestActivitiesSelected) {
+            activities
+        } else {
+            groupedActivities[selectedCategory] ?: emptyList()
+        }
+
+        Column(modifier = Modifier.fillMaxSize()) {
+            if (isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else if (activitiesToShow.isNotEmpty()) {
+                ActivityList(
+                    activities = activitiesToShow,
+                    selectedCategory = selectedCategory,
+                    navController = navController
+                )
+            } else {
+                Text(
+                    //text = "Ingen aktiviteter tilgjengelig for $selectedCategory.",
+                    text = stringResource(R.string.no_activities_available, selectedCategory),
+                    modifier = Modifier.padding(16.dp),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Displays a list of activities for a selected category.
+ *
+ * @param activities List of activities to display.
+ * @param selectedCategory The currently selected category.
+ * @param navController Navigation controller for navigating to the activity details screen.
+ */
 @Composable
 fun ActivityList(activities: List<Activity>, selectedCategory: String, navController: NavHostController) {
     LazyColumn(
@@ -367,7 +302,7 @@ fun ActivityList(activities: List<Activity>, selectedCategory: String, navContro
     ) {
         items(activities) { activity ->
             val categoryToUse = if (selectedCategory == "Nærme Aktiviteter") {
-                activity.category ?: "ukjent"
+                activity.category ?: stringResource(R.string.unknown) //"ukjent"
             } else {
                 selectedCategory
             }
@@ -378,6 +313,12 @@ fun ActivityList(activities: List<Activity>, selectedCategory: String, navContro
     }
 }
 
+/**
+ * Displays an individual activity item with title, location, and date.
+ *
+ * @param activity The activity object containing details.
+ * @param onClick Callback function for when the activity is clicked.
+ */
 @Composable
 fun ActivityItem(activity: Activity, onClick: () -> Unit) {
     Box(
@@ -442,8 +383,8 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
             val formattedDateTime = activityDateTime?.let {
                 val formatter = java.text.SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
                 formatter.format(it)
-            } ?: "Ukjent dato"
-
+            } ?: stringResource(R.string.unknown_dato)//
+            // "Ukjent dato"
             Text(
                 text = formattedDateTime,
                 fontSize = 14.sp,
@@ -453,30 +394,120 @@ fun ActivityItem(activity: Activity, onClick: () -> Unit) {
     }
 }
 
-fun combineDateAndTime(date: com.google.firebase.Timestamp?, timeString: String): Date? {
-    if (date == null || timeString.isEmpty()) return null
-
-    return try {
-        val calendar = Calendar.getInstance()
-        calendar.time = date.toDate()
-
-        val timeParts = timeString.split(":")
-        if (timeParts.size != 2) return null
-
-        val hour = timeParts[0].toInt()
-        val minute = timeParts[1].toInt()
-
-        calendar.set(Calendar.HOUR_OF_DAY, hour)
-        calendar.set(Calendar.MINUTE, minute)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
-
-        calendar.time
-    } catch (e: Exception) {
-        null
+/**
+ * Displays a chip with a removable option.
+ *
+ * @param text The text to display inside the chip.
+ * @param onRemove Callback function for removing the chip.
+ */
+@Composable
+fun Chip(text: String, onRemove: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = text,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Normal
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Icon(
+            imageVector = Icons.Default.Close,
+            contentDescription = "Remove $text",
+            modifier = Modifier
+                .size(16.dp)
+                .clickable { onRemove() }
+        )
     }
 }
 
+
+
+/**
+ * Displays a city selection item with a checkbox for selecting or deselecting.
+ *
+ * @param city The name of the city.
+ * @param isSelected Boolean indicating whether the city is selected.
+ * @param onCitySelected Callback function invoked when the selection state changes.
+ */
+@Composable
+fun CitySelectionItem(city: String, isSelected: Boolean, onCitySelected: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCitySelected(!isSelected) }
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = city,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+        )
+        Checkbox(
+            checked = isSelected,
+            onCheckedChange = { onCitySelected(it) },
+        )
+    }
+}
+
+/**
+ * Displays a filter list item with a clickable row.
+ *
+ * @param title The title of the filter item.
+ * @param onClick Callback function invoked when the item is clicked.
+ * @param backgroundColor The background color of the item.
+ * @param contentColor The text and icon color of the item.
+ */
+@Composable
+fun FilterListItem(
+    title: String,
+    onClick: () -> Unit,
+    backgroundColor: Color,
+    contentColor: Color
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(backgroundColor)
+            .clickable { onClick() }
+            .padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = title,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Medium,
+            color = contentColor,
+        )
+        Icon(
+            imageVector = Icons.Default.FilterList,
+            contentDescription = "Arrow",
+            tint = contentColor,
+            modifier = Modifier.padding(end = 16.dp)
+        )
+    }
+}
+
+/**
+ * Displays a bottom sheet for filtering activities by area.
+ *
+ * @param showBottomSheet Boolean indicating whether the bottom sheet is visible.
+ * @param selectedCities List of currently selected cities.
+ * @param cities List of available cities.
+ * @param onDismissRequest Callback function for dismissing the bottom sheet.
+ * @param onCitySelected Callback function for selecting or deselecting a city.
+ * @param onSearch Callback function for executing the search.
+ * @param onResetFilter Callback function for resetting the filter.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterBottomSheet(
@@ -544,10 +575,4 @@ fun FilterBottomSheet(
             }
         }
     }
-}
-
-
-@Composable
-fun isLandscape(): Boolean {
-    return LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 }

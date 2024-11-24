@@ -15,13 +15,14 @@ import com.example.soclub.R
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.lifecycle.Lifecycle
-import com.example.soclub.ui.theme.ThemeMode
-import androidx.compose.material3.FilterChip
 
+/**
+ * Composable function that renders the Edit Permission screen.
+ *
+ * @param viewModel The ViewModel responsible for managing the permission states.
+ */
 @Composable
 fun EditPermissionScreen(
-    themeMode: ThemeMode,
-    onThemeChange: (ThemeMode) -> Unit,
     viewModel: EditPermissionViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -138,54 +139,5 @@ fun EditPermissionScreen(
             }
         }
 
-        item {
-            ThemeSwitch(themeMode = themeMode, onThemeChange = onThemeChange)
-        }
-
     }
-}
-
-@Composable
-fun ThemeSwitch(themeMode: ThemeMode, onThemeChange: (ThemeMode) -> Unit) {
-    Text(
-        text = "Utseende",
-        style = MaterialTheme.typography.bodyLarge.copy(
-            fontWeight = FontWeight.Bold
-        ),
-        modifier = Modifier.padding(vertical = 15.dp)
-    )
-    Text(
-        text = stringResource(id = R.string.theme),
-        style = MaterialTheme.typography.labelLarge
-    )
-
-    Row(
-        modifier = Modifier.padding(vertical = 10.dp)
-    ) {
-        ThemeChip(
-            label = stringResource(R.string.system),//System
-            isSelected = themeMode == ThemeMode.SYSTEM,
-            onClick = { onThemeChange(ThemeMode.SYSTEM) }
-        )
-        ThemeChip(
-            label = stringResource(R.string.light),//Lyst
-            isSelected = themeMode == ThemeMode.LIGHT,
-            onClick = { onThemeChange(ThemeMode.LIGHT) }
-        )
-        ThemeChip(
-            label = stringResource(R.string.darke),//Mørkt
-            isSelected = themeMode == ThemeMode.DARK,
-            onClick = { onThemeChange(ThemeMode.DARK) }
-        )
-    }
-}
-
-@Composable
-fun ThemeChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
-    FilterChip(
-        selected = isSelected,
-        onClick = onClick,
-        label = { Text(label) },
-        modifier = Modifier.padding(end = 8.dp),
-    )
 }
