@@ -140,6 +140,12 @@ override suspend fun authenticateWithEmail(
         }
     }
 
+
+    /**
+     * Signs out the currently logged-in user.
+     *
+     * @throws Exception If sign-out fails.
+     */
     override suspend fun signOut() {
         try {
             auth.signOut()
@@ -149,6 +155,12 @@ override suspend fun authenticateWithEmail(
         }
     }
 
+    /**
+     * Sends a password reset email to the specified address.
+     *
+     * @param email The email address.
+     * @param onResult Callback that returns any error encountered during the operation.
+     */
     override suspend fun sendPasswordResetEmail(email: String, onResult: (Throwable?) -> Unit) {
         try {
             auth.sendPasswordResetEmail(email).await()
@@ -157,6 +169,15 @@ override suspend fun authenticateWithEmail(
                 context.getString(R.string.error_password_reset_failed, e.message), e)
         }
     }
+
+    /**
+     * Updates the user's profile information in Firestore.
+     *
+     * @param firstname The user's new first name.
+     * @param lastname The user's new last name.
+     * @param imageUrl The URL of the user's new profile image.
+     * @param onResult Callback that returns any error encountered during the update.
+     */
 
     override suspend fun updateProfile(
         firstname: String,
@@ -178,6 +199,16 @@ override suspend fun authenticateWithEmail(
                 context.getString(R.string.error_profile_update_failed, e.message), e)
         }
     }
+
+
+    /**
+     * Changes the current user's password.
+     *
+     * @param oldPassword The current password.
+     * @param newPassword The new password.
+     * @param onResult Callback that returns any error encountered during the operation.
+     * @throws Exception If the user is not logged in or the operation fails.
+     */
 
     override suspend fun changePassword(
         oldPassword: String,

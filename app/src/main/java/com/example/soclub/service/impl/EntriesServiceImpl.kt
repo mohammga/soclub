@@ -14,6 +14,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
+
+
+/**
+ * Implementation of the EntriesService interface that interacts with Firestore
+ * to retrieve user-specific activity data and listen for real-time updates.
+ *
+ * @property firestore FirebaseFirestore instance for database operations.
+ * @property context Context used for accessing application resources.
+ */
 class EntriesServiceImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val context: Context
@@ -22,19 +31,32 @@ class EntriesServiceImpl @Inject constructor(
     private var activeListenerRegistration: ListenerRegistration? = null
     private var notActiveListenerRegistration: ListenerRegistration? = null
 
+    /**
+     * Fetches active activities for a given user and listens for real-time updates.
+     *
+     * @param userId The ID of the user whose active activities are to be retrieved.
+     * @param onUpdate Callback to provide the updated list of activities.
+     * @throws Exception if an error occurs during data fetching or processing.
+     */
     override suspend fun getActiveActivitiesForUser(
         userId: String,
         onUpdate: (List<Activity>) -> Unit
     ) {
         try {
+            // Remove any previous listener to prevent duplicate updates
             activeListenerRegistration?.remove()
 
             activeListenerRegistration = firestore.collection("registrations")
                 .whereEqualTo("userId", userId)
                 .whereEqualTo("status", "aktiv")
                 .addSnapshotListener { snapshot, error ->
-                    if (error != null) { throw Exception(context.getString(R.string.error_fetching_active_activities,
-                                error.message), error)
+                    if (error != null) {
+                        throw Exception(
+                            context.getString(
+                                R.string.error_fetching_active_activities,
+                                error.message
+                            ), error
+                        )
                     }
 
                     if (snapshot == null || snapshot.isEmpty) {
@@ -43,9 +65,8 @@ class EntriesServiceImpl @Inject constructor(
                     }
 
                     val tasks = snapshot.documents.mapNotNull { document ->
-                         document.getString("activityId")
-                             ?: throw Exception(context.getString(R.string.error_missing_activity_id))
-
+                        document.getString("activityId")
+                            ?: throw Exception(context.getString(R.string.error_missing_activity_id))
                         firestore.collection("category").get()
                     }
 
@@ -55,15 +76,24 @@ class EntriesServiceImpl @Inject constructor(
                 }
         } catch (e: Exception) {
             throw Exception(
-                context.getString(R.string.error_get_active_activities, e.message), e)
+                context.getString(R.string.error_get_active_activities, e.message), e
+            )
         }
     }
 
+    /**
+     * Fetches not-active activities for a given user and listens for real-time updates.
+     *
+     * @param userId The ID of the user whose not-active activities are to be retrieved.
+     * @param onUpdate Callback to provide the updated list of activities.
+     * @throws Exception if an error occurs during data fetching or processing.
+     */
     override suspend fun getNotActiveActivitiesForUser(
         userId: String,
         onUpdate: (List<Activity>) -> Unit
     ) {
         try {
+            // Remove any previous listener to prevent duplicate updates
             notActiveListenerRegistration?.remove()
 
             notActiveListenerRegistration = firestore.collection("registrations")
@@ -74,7 +104,9 @@ class EntriesServiceImpl @Inject constructor(
                         throw Exception(
                             context.getString(
                                 R.string.error_fetching_not_active_activities,
-                                error.message), error)
+                                error.message
+                            ), error
+                        )
                     }
 
                     if (snapshot == null || snapshot.isEmpty) {
@@ -83,7 +115,7 @@ class EntriesServiceImpl @Inject constructor(
                     }
 
                     val tasks = snapshot.documents.mapNotNull { document ->
-                    document.getString("activityId")
+                        document.getString("activityId")
                         firestore.collection("category").get()
                     }
 
@@ -93,10 +125,19 @@ class EntriesServiceImpl @Inject constructor(
                 }
         } catch (e: Exception) {
             throw Exception(
-                context.getString(R.string.error_get_not_active_activities, e.message), e)
+                context.getString(R.string.error_get_not_active_activities, e.message), e
+            )
         }
     }
 
+    /**
+     * Processes the activities fetched from Firestore and updates the result via a callback.
+     *
+     * @param snapshot The query snapshot containing the activity data.
+     * @param tasks List of Firestore query tasks for fetching category data.
+     * @param onUpdate Callback to provide the processed list of activities.
+     * @throws Exception if an error occurs while processing activities.
+     */
     private suspend fun processActivities(
         snapshot: QuerySnapshot,
         tasks: List<Task<QuerySnapshot>>,
@@ -137,3 +178,4 @@ class EntriesServiceImpl @Inject constructor(
         }
     }
 }
+

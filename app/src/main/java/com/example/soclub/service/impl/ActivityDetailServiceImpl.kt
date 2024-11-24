@@ -10,13 +10,27 @@ import java.util.Date
 import javax.inject.Inject
 import com.google.firebase.firestore.ListenerRegistration
 
+
+/**
+ * Implementation of the ActivityDetailService interface to handle operations
+ * related to activities, such as fetching activity details, user registrations, and updates.
+ *
+ * @param firestore Firebase Firestore instance for database operations.
+ * @param context Android Context for accessing resources.
+ */
 class ActivityDetailServiceImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
-
     private val context: Context
-
 ) : ActivityDetailService {
 
+    /**
+     * Fetches an activity by its category and ID.
+     *
+     * @param category The category of the activity.
+     * @param activityId The ID of the activity.
+     * @return An Activity object with the fetched details.
+     * @throws Exception if the activity is not found or fetching fails.
+     */
     override suspend fun getActivityById(category: String, activityId: String): Activity {
         try {
             val documentSnapshot = firestore.collection("category")
@@ -25,7 +39,6 @@ class ActivityDetailServiceImpl @Inject constructor(
                 .document(activityId)
                 .get()
                 .await()
-
 
             val activity = documentSnapshot.toObject(Activity::class.java)
                 ?: throw Exception(context.getString(R.string.error_activity_not_found))
@@ -45,8 +58,16 @@ class ActivityDetailServiceImpl @Inject constructor(
         } catch (e: Exception) {
             throw Exception(context.getString(R.string.error_fetch_activity, e.message), e)
         }
-          }
+    }
 
+    /**
+     * Checks if a user is registered for a specific activity.
+     *
+     * @param userId The ID of the user.
+     * @param activityId The ID of the activity.
+     * @return True if the user is registered and active, otherwise false.
+     * @throws Exception if the query fails.
+     */
     override suspend fun isUserRegisteredForActivity(userId: String, activityId: String): Boolean {
         try {
             val registrationRef = firestore.collection("registrations")
@@ -57,7 +78,7 @@ class ActivityDetailServiceImpl @Inject constructor(
 
             if (!registrationRef.isEmpty) {
                 val status = registrationRef.documents.first().getString("status")
-                return status == context.getString(R.string.status_active)//"aktiv"
+                return status == context.getString(R.string.status_active)
             }
             return false
         } catch (e: Exception) {
@@ -66,6 +87,15 @@ class ActivityDetailServiceImpl @Inject constructor(
         }
     }
 
+    /**
+     * Updates the registration status of a user for an activity.
+     *
+     * @param userId The ID of the user.
+     * @param activityId The ID of the activity.
+     * @param status The new registration status.
+     * @return True if the operation is successful.
+     * @throws Exception if the update fails.
+     */
     override suspend fun updateRegistrationStatus(userId: String, activityId: String, status: String): Boolean {
         try {
             val registrationRef = firestore.collection("registrations")
@@ -95,9 +125,15 @@ class ActivityDetailServiceImpl @Inject constructor(
             val errorMessage = context.getString(R.string.error_update_registration_status, e.message)
             throw Exception(errorMessage, e)
         }
-
     }
 
+    /**
+     * Retrieves the count of registered participants for a specific activity.
+     *
+     * @param activityId The ID of the activity.
+     * @return The count of active participants.
+     * @throws Exception if the query fails.
+     */
     override suspend fun getRegisteredParticipantsCount(activityId: String): Int {
         try {
             val registrationRef = firestore.collection("registrations")
@@ -113,6 +149,13 @@ class ActivityDetailServiceImpl @Inject constructor(
         }
     }
 
+    /**
+     * Listens for updates to the registration count of a specific activity.
+     *
+     * @param activityId The ID of the activity.
+     * @param onUpdate A callback function invoked with the updated count.
+     * @return A ListenerRegistration object to manage the listener lifecycle.
+     */
     override fun listenToRegistrationUpdates(activityId: String, onUpdate: (Int) -> Unit): ListenerRegistration {
         return firestore.collection("registrations")
             .whereEqualTo("activityId", activityId)
@@ -129,6 +172,14 @@ class ActivityDetailServiceImpl @Inject constructor(
             }
     }
 
+    /**
+     * Listens for updates to a specific activity.
+     *
+     * @param category The category of the activity.
+     * @param activityId The ID of the activity.
+     * @param onUpdate A callback function invoked with the updated activity details.
+     * @return A ListenerRegistration object to manage the listener lifecycle.
+     */
     override fun listenForActivityUpdates(category: String, activityId: String, onUpdate: (Activity) -> Unit): ListenerRegistration {
         return firestore.collection("category")
             .document(category)
@@ -145,8 +196,7 @@ class ActivityDetailServiceImpl @Inject constructor(
                 val activity = snapshot.toObject(Activity::class.java)
                     ?: throw Exception(context.getString(R.string.error_parsing_activity_data))
                 onUpdate(activity)
-
-                onUpdate(activity)
             }
     }
 }
+
