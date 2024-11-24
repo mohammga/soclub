@@ -353,7 +353,7 @@ class HomeViewModel @Inject constructor(
      * Fetches and updates the nearest activities based on the user's location.
      *
      * Filters out expired activities and sorts them by proximity to the user's current location.
-     * Limits the result to the top 10 nearest activities.
+     * Limits the result to the top 8 nearest activities.
      */
     fun getNearestActivities() {
         if (hasLoadedNearestActivities) return
@@ -409,7 +409,7 @@ class HomeViewModel @Inject constructor(
                             }
                         }
 
-                        val nearestActivities = activitiesWithDistance.sortedBy { it.second }.take(10).map { it.first }
+                        val nearestActivities = activitiesWithDistance.sortedBy { it.second }.take(8).map { it.first }
                         _activities.postValue(nearestActivities)
                         _hasLoadedActivities.postValue(true)
 

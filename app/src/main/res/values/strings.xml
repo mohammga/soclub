@@ -503,7 +503,7 @@
     <string name="error_fetch_notifications">Kunne ikke hente varsler: %1$s</string>
     <string name="error_delete_notification">Kunne ikke slette varselet: %1$s</string>
     <string name="error_listening_notifications">Feil ved lytting til varsler: %1$s</string>
-    <string name="no_activities_available">Ingen aktiviteter tilgjengelig for %1$s.</string>
+    <string name="no_activities_available">Ingen aktiviteter tilgjengelig for %1$s</string>
     <string name="unknown_category">Ukjent kategor</string>
     <string name="default_activity">Aktivitet</string>
     <string name="status_not_active">notAktiv</string>
