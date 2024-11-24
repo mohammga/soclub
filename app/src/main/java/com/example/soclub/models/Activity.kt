@@ -1,8 +1,6 @@
 package com.example.soclub.models
 
 import com.google.firebase.Timestamp
-import com.google.firebase.firestore.FirebaseFirestore
-import java.util.Date
 
 data class Activity(
     val id: String = "",
