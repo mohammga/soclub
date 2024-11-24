@@ -57,7 +57,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -82,48 +81,32 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-
-
     testImplementation (libs.mockk.mockk)
     testImplementation (libs.kotlinx.coroutines.test)
     testImplementation (libs.slf4j.slf4j.simple)
     testImplementation (libs.byte.buddy)
     testImplementation (libs.androidx.core.testing)
-
-
-    // Hilt - til dependency injection
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.preference.ktx)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.firebase.crashlytics.buildtools)
-
-
     ksp(libs.hilt.compiler)
-
-    // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics.ktx)
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore.ktx)
-
-    // Material
     implementation(libs.androidx.material)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.material3)
-
-    // coil
     implementation (libs.coil.compose)
-
-    // google maps
     implementation (libs.play.services.maps)
     implementation (libs.maps.compose)
-
-
     implementation(libs.kotlinx.coroutines.core)
     implementation (libs.androidx.work.runtime.ktx)
     implementation (libs.androidx.datastore.preferences)
-
-
+    implementation (libs.github.glide)
+    implementation (libs.compose)
+    annotationProcessor (libs.compiler)
 }

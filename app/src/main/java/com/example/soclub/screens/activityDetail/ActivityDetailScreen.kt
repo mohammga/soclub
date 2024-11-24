@@ -160,7 +160,6 @@ fun ActivityImage(imageUrl: String) {
         modifier = Modifier
             .fillMaxWidth()
             .height(300.dp)
-            .clip(RoundedCornerShape(16.dp))
             .padding(vertical = 8.dp),
         contentScale = ContentScale.Crop
     )
@@ -450,29 +449,7 @@ fun InfoRow(
 }
 
 
-
-@Composable
-fun ActivityImage(imageUrl: String) {
-    val painter = if (imageUrl.isNotBlank()) {
-        rememberAsyncImagePainter(model = imageUrl)
-    } else {
-        painterResource(id = R.drawable.placeholder)
-    }
-
-    Image(
-        painter = painter,
-        contentDescription = "Activity Image",
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(300.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .padding(vertical = 8.dp),
-        contentScale = ContentScale.Crop
-    )
-
-        }
-    }
-
+}
 
 /**
  * Displays the description of the activity with proper formatting for readability.
