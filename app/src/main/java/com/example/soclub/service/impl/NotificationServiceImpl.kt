@@ -26,7 +26,6 @@ class NotificationServiceImpl @Inject constructor(
                 .add(notification.toMap())
                 .await()
         } catch (e: Exception) {
-           //throw Exception("Failed to save notification: ${e.message}", e)
             throw Exception(context.getString(R.string.error_save_notification, e.message), e)
         }
     }
@@ -42,10 +41,10 @@ class NotificationServiceImpl @Inject constructor(
             return snapshot.documents.mapNotNull { it.toObject(Notification::class.java) }
                 .sortedByDescending { it.timestamp }
         } catch (e: Exception) {
-            //throw Exception("Failed to fetch notifications: ${e.message}", e)
             throw Exception(context.getString(R.string.error_fetch_notifications, e.message), e)
         }
     }
+
 
     override suspend fun deleteNotification(notification: Notification) {
         val userId = accountService.currentUserId
@@ -62,31 +61,38 @@ class NotificationServiceImpl @Inject constructor(
                 document.reference.delete().await()
             }
         } catch (e: Exception) {
-            //throw Exception("Failed to delete notification: ${e.message}", e)
             throw Exception(context.getString(R.string.error_delete_notification, e.message), e)
         }
     }
 
-    override fun getNotificationsStream(): Flow<List<Notification>> = callbackFlow {
-        val userId = accountService.currentUserId
-        val listenerRegistration: ListenerRegistration = firestore.collection("notifications")
-            .whereEqualTo("userId", userId)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    //this.close(Exception("Error listening to notifications: ${error.message}", error))
-                    this.close(
+override fun getNotificationsStream(): Flow<List<Notification>> = callbackFlow {
+    val userId = accountService.currentUserId
+    if (userId.isEmpty()) {
+        trySend(emptyList()).isSuccess
+        awaitClose { }
+        return@callbackFlow
+    }
+
+    val listenerRegistration: ListenerRegistration = firestore.collection("notifications")
+        .whereEqualTo("userId", userId)
+        .addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                this.close(
                     Exception(
                         context.getString(R.string.error_listening_notifications, error.message),
-                        error))
-
-                    return@addSnapshotListener
-                }
-                if (snapshot != null) {
-                    val notifications = snapshot.documents.mapNotNull { it.toObject(Notification::class.java) }
-                        .sortedByDescending { it.timestamp }
-                    trySend(notifications).isSuccess
-                }
+                        error
+                    )
+                )
+                return@addSnapshotListener
             }
-        awaitClose { listenerRegistration.remove() }
-    }
+            if (snapshot != null) {
+                val notifications = snapshot.documents.mapNotNull { it.toObject(Notification::class.java) }
+                    .sortedByDescending { it.timestamp }
+                trySend(notifications).isSuccess
+            }
+        }
+    awaitClose { listenerRegistration.remove() }
+}
+
+
 }

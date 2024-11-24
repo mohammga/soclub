@@ -35,12 +35,6 @@ fun String.isAgeNumeric(): Boolean {
     return this.toIntOrNull() != null
 }
 
-//participants og age og alt i edit og create validations må legges her
-fun String.isValidParticipants(): Boolean {
-    val participants = this.toIntOrNull()
-    return participants != null && participants in 1..100
-}
-
 fun String.isAgeValid(): Boolean {
     val age = this.toIntOrNull()
     return age != null && age in 16..100

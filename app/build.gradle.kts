@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.soclub"
-        minSdk = 26
+        minSdk = 24
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -88,7 +88,7 @@ dependencies {
     testImplementation (libs.kotlinx.coroutines.test)
     testImplementation (libs.slf4j.slf4j.simple)
     testImplementation (libs.byte.buddy)
-    testImplementation ("androidx.arch.core:core-testing:2.1.0")
+    testImplementation (libs.androidx.core.testing)
 
 
     // Hilt - til dependency injection

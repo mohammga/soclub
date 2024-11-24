@@ -1,7 +1,10 @@
 package com.example.soclub.screens.newActivity
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -28,10 +31,12 @@ import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.soclub.R
+import com.example.soclub.screens.editActivity.shouldShowRequestPermissionRationale
 import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.*
@@ -749,11 +754,73 @@ fun ImageUploadSection(
     error: String? = null,
     enabled: Boolean
 ) {
+    val context = LocalContext.current
+
+    val galleryPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        Manifest.permission.READ_MEDIA_IMAGES
+    } else {
+        Manifest.permission.READ_EXTERNAL_STORAGE
+    }
+
+    var showPermissionDialog by remember { mutableStateOf(false) }
+
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
+        if (uri != null) {
+            onImageSelected(uri)
+        }
+    }
 
-        onImageSelected(uri)
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            galleryLauncher.launch("image/*")
+        } else {
+            Toast.makeText(
+                context,
+                R.string.galleriPermissionisrequired,
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    val handleImageClick = {
+        when {
+            ContextCompat.checkSelfPermission(context, galleryPermission) == PackageManager.PERMISSION_GRANTED -> {
+                galleryLauncher.launch("image/*")
+            }
+            shouldShowRequestPermissionRationale(context, galleryPermission) -> {
+                showPermissionDialog = true
+            }
+            else -> {
+                permissionLauncher.launch(galleryPermission)
+            }
+        }
+    }
+
+    if (showPermissionDialog) {
+        AlertDialog(
+            onDismissRequest = { showPermissionDialog = false },
+            title = { Text(stringResource(R.string.allow_premision_gallery)) },
+            text = { Text(stringResource(R.string.this_app_need_gallery_premision)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showPermissionDialog = false
+                        permissionLauncher.launch(galleryPermission)
+                    }
+                ) {
+                    Text(stringResource(R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPermissionDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -762,7 +829,7 @@ fun ImageUploadSection(
                 .fillMaxWidth()
                 .height(300.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .clickable { galleryLauncher.launch("image/*") }
+                .clickable { handleImageClick() }
                 .padding(vertical = 8.dp)
         ) {
             if (selectedImageUri != null) {
@@ -794,7 +861,7 @@ fun ImageUploadSection(
             text = stringResource(id = R.string.change_ad_picture),
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
-            modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
+            modifier = Modifier.clickable { handleImageClick() }
         )
 
         if (selectedImageUri != null) {
@@ -831,14 +898,14 @@ fun ImageUploadSection(
                         color = Color.Gray,
                         fontSize = 14.sp
                     ),
-                    modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
+                    modifier = Modifier.clickable { handleImageClick() }
                 )
 
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = stringResource(id = R.string.upload_new_picture),
                     tint = Color.Gray,
-                    modifier = Modifier.clickable { galleryLauncher.launch("image/*") }
+                    modifier = Modifier.clickable { handleImageClick() }
                 )
             }
         }

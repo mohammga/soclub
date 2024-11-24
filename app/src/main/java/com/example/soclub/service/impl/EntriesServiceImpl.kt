@@ -33,7 +33,6 @@ class EntriesServiceImpl @Inject constructor(
                 .whereEqualTo("userId", userId)
                 .whereEqualTo("status", "aktiv")
                 .addSnapshotListener { snapshot, error ->
-                    //if (error != null) throw Exception("Error fetching active activities: ${error.message}", error)
                     if (error != null) { throw Exception(context.getString(R.string.error_fetching_active_activities,
                                 error.message), error)
                     }
@@ -45,7 +44,6 @@ class EntriesServiceImpl @Inject constructor(
 
                     val tasks = snapshot.documents.mapNotNull { document ->
                          document.getString("activityId")
-                            //?: throw Exception("Missing activityId in registration document")
                              ?: throw Exception(context.getString(R.string.error_missing_activity_id))
 
                         firestore.collection("category").get()
@@ -56,7 +54,6 @@ class EntriesServiceImpl @Inject constructor(
                     }
                 }
         } catch (e: Exception) {
-            //throw Exception("Failed to get active activities for user: ${e.message}", e)
             throw Exception(
                 context.getString(R.string.error_get_active_activities, e.message), e)
         }
@@ -73,7 +70,6 @@ class EntriesServiceImpl @Inject constructor(
                 .whereEqualTo("userId", userId)
                 .whereEqualTo("status", "notAktiv")
                 .addSnapshotListener { snapshot, error ->
-                    //if (error != null) throw Exception("Error fetching not active activities: ${error.message}", error)
                     if (error != null) {
                         throw Exception(
                             context.getString(
@@ -88,8 +84,6 @@ class EntriesServiceImpl @Inject constructor(
 
                     val tasks = snapshot.documents.mapNotNull { document ->
                     document.getString("activityId")
-                            //?: throw Exception("Missing activityId in registration document")
-
                         firestore.collection("category").get()
                     }
 
@@ -98,7 +92,6 @@ class EntriesServiceImpl @Inject constructor(
                     }
                 }
         } catch (e: Exception) {
-            //throw Exception("Failed to get not active activities for user: ${e.message}", e)
             throw Exception(
                 context.getString(R.string.error_get_not_active_activities, e.message), e)
         }
@@ -140,7 +133,6 @@ class EntriesServiceImpl @Inject constructor(
             }
             onUpdate(activityList)
         } catch (e: Exception) {
-            //throw Exception("Failed to process activities: ${e.message}", e)
             throw Exception(context.getString(R.string.error_process_activities, e.message), e)
         }
     }
