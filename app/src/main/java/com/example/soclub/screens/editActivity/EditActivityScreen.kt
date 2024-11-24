@@ -213,7 +213,8 @@ fun EditActivityScreen(
                     colors = ButtonDefaults.outlinedButtonColors(),
                     enabled = !isSaving
                 ) {
-                    Text(text = stringResource(R.string.delete_aktivity), color = Color.Red)
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
+
                 }
             }
         }
@@ -247,7 +248,7 @@ fun DeleteConfirmationDialog(
         text = { Text(stringResource(R.string.sure_you_want_to_delete)) },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text(stringResource(R.string.delete), color = Color.Red)
+                Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
             }
         },
         dismissButton = {
@@ -922,7 +923,7 @@ fun ImageUploadSection(
                 Text(
                     text = stringResource(id = R.string.remove_image),
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp
                     ),
                     modifier = Modifier.clickable { onImageSelected(null) }
@@ -931,7 +932,7 @@ fun ImageUploadSection(
                 Icon(
                     imageVector = Icons.Filled.Delete,
                     contentDescription = stringResource(id = R.string.remove_image),
-                    tint = Color.Gray,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.clickable { onImageSelected(null) }
                 )
             }
@@ -944,7 +945,7 @@ fun ImageUploadSection(
                 Text(
                     text = stringResource(id = R.string.upload_new_picture),
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp
                     ),
                     modifier = Modifier.clickable { handleImageClick() }
@@ -953,7 +954,7 @@ fun ImageUploadSection(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = stringResource(id = R.string.upload_new_picture),
-                    tint = Color.Gray,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.clickable { handleImageClick() }
                 )
             }
