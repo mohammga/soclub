@@ -127,6 +127,4 @@ class SigninViewModelTest {
         viewModel.onLoginClick(mockNavController, mockContext)
     }
 
-
-
 }

@@ -328,7 +328,7 @@
     <string name="unknown_title">Ukjent tittel</string>
     <string name="editAktvititi">Endre aktivitet</string>
     <string name="myEntries">Mine Påmeldinger</string>
-    <string name="editpermission">Tillatelser og preferanser</string>
+    <string name="editpermission">Tillatelser</string>
     <string name="change_password">Endre passord</string>
     <string name="change_profile">Endre Profil</string>
     <string name="add_activity">Legg til aktivitet</string>
