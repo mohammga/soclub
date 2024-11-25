@@ -427,7 +427,6 @@ class EditActivityViewModel @Inject constructor(
         var ageLimitError: String? = null
         var dateError: String? = null
         var startTimeError: String? = null
-        var imageError: String? = null
 
         // Validering for Title
         if (uiState.value.title.isBlank()) {
