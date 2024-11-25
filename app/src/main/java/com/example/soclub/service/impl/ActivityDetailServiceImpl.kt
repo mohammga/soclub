@@ -66,7 +66,7 @@ class ActivityDetailServiceImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateRegistrationStatus(userId: String, activityId: String, status: String): Boolean {
+    override suspend fun updateRegistrationStatus(userId: String, activityId: String, category: String, status: String): Boolean {
         try {
             val registrationRef = firestore.collection("registrations")
                 .whereEqualTo("userId", userId)
@@ -76,15 +76,17 @@ class ActivityDetailServiceImpl @Inject constructor(
 
             if (!registrationRef.isEmpty) {
                 for (document in registrationRef.documents) {
+                    // Update the existing registration to include 'category'
                     firestore.collection("registrations")
                         .document(document.id)
-                        .update(mapOf("status" to status))
+                        .update(mapOf("status" to status, "category" to category)) // Added 'category' here
                         .await()
                 }
             } else {
                 val newRegistration = hashMapOf(
                     "userId" to userId,
                     "activityId" to activityId,
+                    "category" to category, // Added 'category' to the new registration
                     "status" to status,
                     "timestamp" to Timestamp(Date())
                 )
@@ -95,8 +97,8 @@ class ActivityDetailServiceImpl @Inject constructor(
             val errorMessage = context.getString(R.string.error_update_registration_status, e.message)
             throw Exception(errorMessage, e)
         }
-
     }
+
 
     override suspend fun getRegisteredParticipantsCount(activityId: String): Int {
         try {

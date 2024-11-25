@@ -106,13 +106,13 @@ fun ActivityDetailScreen(
                                 publisherUser = publisherUser,
                                 onRegisterClick = {
                                     if (activityId != null && category != null) {
-                                        viewModel.updateRegistrationForActivity(activityId, true)
+                                        viewModel.updateRegistrationForActivity(activityId, category, true)
                                         showToast(context, true, activity, currentParticipants)
                                     }
                                 },
                                 onUnregisterClick = {
                                     if (activityId != null && category != null) {
-                                        viewModel.updateRegistrationForActivity(activityId, false)
+                                        viewModel.updateRegistrationForActivity(activityId, category, false)
                                         showToast(context, false, activity, currentParticipants)
                                     }
                                 }
@@ -501,7 +501,7 @@ fun ActivityTitle(title: String) {
 fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
     val context = LocalContext.current
     val formattedDate2 = remember(createdAt) {
-        createdAt?.let { formatDate(it) } ?: context.getString(R.string.unknown_date) //"Ukjent dato"
+        createdAt?.let { formatDate(it) } ?: context.getString(R.string.unknown_date)
     }
 
     if (publisherUser != null) {
@@ -510,7 +510,6 @@ fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Informasjonsboks
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -521,7 +520,7 @@ fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
                     val painter = if (publisherUser.imageUrl.isNotEmpty()) {
                         rememberAsyncImagePainter(publisherUser.imageUrl)
                     } else {
-                        painterResource(id = R.drawable.user) // Default image
+                        painterResource(id = R.drawable.user)
                     }
 
                     Image(
@@ -544,13 +543,12 @@ fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
                         )
 
                         Text(
-                            text = stringResource(R.string.author),//Forfatter
+                            text = stringResource(R.string.author),
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
 
                         Text(
-                            //text = "Publisert $formattedDate2",
                             text = stringResource(R.string.published, formattedDate2),
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
@@ -560,8 +558,6 @@ fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Knappboks
             Button(
                 onClick = {
                     val email = publisherUser.email
@@ -572,11 +568,9 @@ fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
                         if (intent.resolveActivity(context.packageManager) != null) {
                             context.startActivity(intent)
                         } else {
-                            // Toast.makeText(context, "Ingen e-postapp funnet", Toast.LENGTH_SHORT).show()
                             Toast.makeText(context, context.getString(R.string.no_email_app_found), Toast.LENGTH_SHORT).show()
                         }
                     } else {
-                        //Toast.makeText(context, "E-postadresse mangler", Toast.LENGTH_SHORT).show()
                         Toast.makeText(context, context.getString(R.string.email_missing), Toast.LENGTH_SHORT).show()
                     }
                 },
@@ -585,7 +579,7 @@ fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text(text = stringResource(R.string.contact))//Kontakt
+                Text(text = stringResource(R.string.contact))
             }
         }
     }

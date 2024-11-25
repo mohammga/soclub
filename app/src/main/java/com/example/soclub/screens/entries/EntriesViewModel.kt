@@ -99,12 +99,15 @@ class EntriesScreenViewModel @Inject constructor(
             _isProcessingCancellation.value = activityId
             val userId = accountService.currentUserId
             val defaultActivityTitle = context.getString(R.string.default_activity)
-            val activityTitle = _activeActivities.value.find { it.id == activityId }?.title ?: defaultActivityTitle
+            val activity = _activeActivities.value.find { it.id == activityId }
+            val activityTitle = activity?.title ?: defaultActivityTitle
 
             val statusNotActive = context.getString(R.string.status_not_active)
-            val success = activityDetailService.updateRegistrationStatus(userId, activityId, statusNotActive)
+            val category = activity?.category // Get 'category' from the activity
 
-            if (success) {
+            if (category != null) {
+                val success = activityDetailService.updateRegistrationStatus(userId, activityId, category, statusNotActive)
+                if (success) {
                 // Fjern fra aktive aktiviteter
                 val cancelledActivity = _activeActivities.value.find { it.id == activityId }
                 _activeActivities.value = _activeActivities.value.filter { it.id != activityId }
@@ -134,5 +137,6 @@ class EntriesScreenViewModel @Inject constructor(
             _isProcessingCancellation.value = null
         }
     }
+}
 }
 
