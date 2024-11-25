@@ -47,7 +47,9 @@ interface ActivityDetailService {
      *
      * @throws [Exception] if the update process fails.
      */
-    suspend fun updateRegistrationStatus(userId: String, activityId: String, status: String): Boolean
+// Update the method signature to include 'category'
+// Update the method signature to include 'category'
+    suspend fun updateRegistrationStatus(userId: String, activityId: String, category: String, status: String): Boolean
 
     /**
      * Retrieves the count of registered participants for a specific activity.

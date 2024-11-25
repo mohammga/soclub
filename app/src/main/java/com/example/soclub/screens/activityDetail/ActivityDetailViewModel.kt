@@ -176,14 +176,14 @@ class ActivityDetailViewModel @Inject constructor(
      * @param activityId The unique identifier of the activity.
      * @param isRegistering True if the user is registering, false if unregistering.
      */
-    fun updateRegistrationForActivity(activityId: String, isRegistering: Boolean) {
+    fun updateRegistrationForActivity(activityId: String, category: String, isRegistering: Boolean) {
         viewModelScope.launch {
             _isProcessingRegistration.value = true
 
             val userId = accountService.currentUserId
             val status = if (isRegistering) "aktiv" else "notAktiv"
 
-            val success = activityDetailService.updateRegistrationStatus(userId, activityId, status)
+            val success = activityDetailService.updateRegistrationStatus(userId, activityId, category, status)
             if (success) {
                 _isRegistered.value = isRegistering
 

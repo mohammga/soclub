@@ -4,7 +4,6 @@ import android.content.Context
 import com.example.soclub.R
 import com.example.soclub.models.Activity
 import com.example.soclub.service.EntriesService
-import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.QuerySnapshot
@@ -33,8 +32,9 @@ class EntriesServiceImpl @Inject constructor(
                 .whereEqualTo("userId", userId)
                 .whereEqualTo("status", "aktiv")
                 .addSnapshotListener { snapshot, error ->
-                    if (error != null) { throw Exception(context.getString(R.string.error_fetching_active_activities,
-                                error.message), error)
+                    if (error != null) {
+                        throw Exception(context.getString(R.string.error_fetching_active_activities,
+                            error.message), error)
                     }
 
                     if (snapshot == null || snapshot.isEmpty) {
@@ -42,15 +42,9 @@ class EntriesServiceImpl @Inject constructor(
                         return@addSnapshotListener
                     }
 
-                    val tasks = snapshot.documents.mapNotNull { document ->
-                         document.getString("activityId")
-                             ?: throw Exception(context.getString(R.string.error_missing_activity_id))
-
-                        firestore.collection("category").get()
-                    }
 
                     CoroutineScope(Dispatchers.IO).launch {
-                        processActivities(snapshot, tasks, onUpdate)
+                        processActivities(snapshot, onUpdate)
                     }
                 }
         } catch (e: Exception) {
@@ -58,7 +52,6 @@ class EntriesServiceImpl @Inject constructor(
                 context.getString(R.string.error_get_active_activities, e.message), e)
         }
     }
-
     override suspend fun getNotActiveActivitiesForUser(
         userId: String,
         onUpdate: (List<Activity>) -> Unit
@@ -82,13 +75,9 @@ class EntriesServiceImpl @Inject constructor(
                         return@addSnapshotListener
                     }
 
-                    val tasks = snapshot.documents.mapNotNull { document ->
-                    document.getString("activityId")
-                        firestore.collection("category").get()
-                    }
 
                     CoroutineScope(Dispatchers.IO).launch {
-                        processActivities(snapshot, tasks, onUpdate)
+                        processActivities(snapshot, onUpdate)
                     }
                 }
         } catch (e: Exception) {
@@ -99,35 +88,38 @@ class EntriesServiceImpl @Inject constructor(
 
     private suspend fun processActivities(
         snapshot: QuerySnapshot,
-        tasks: List<Task<QuerySnapshot>>,
         onUpdate: (List<Activity>) -> Unit
     ) {
         try {
             val activityList = mutableListOf<Activity>()
 
-            tasks.forEach { task ->
-                val categories = task.await().documents
-                for (categoryDoc in categories) {
-                    val category = categoryDoc.id
-                    val activityIds = snapshot.documents.mapNotNull { it.getString("activityId") }
 
-                    activityIds.forEach { id ->
-                        val activitySnapshot = firestore.collection("category")
-                            .document(category)
-                            .collection("activities")
-                            .document(id)
-                            .get()
-                            .await()
+            val activityCategoryPairs = snapshot.documents.mapNotNull { document ->
+                val activityId = document.getString("activityId")
+                val category = document.getString("category")
+                if (activityId != null && category != null) {
+                    activityId to category
+                } else {
+                    null
+                }
+            }
 
-                        if (activitySnapshot.exists()) {
-                            val activity = activitySnapshot.toObject(Activity::class.java)?.copy(
-                                category = category,
-                                id = id
-                            )
-                            if (activity != null) {
-                                activityList.add(activity)
-                            }
-                        }
+
+            for ((activityId, category) in activityCategoryPairs) {
+                val activitySnapshot = firestore.collection("category")
+                    .document(category)
+                    .collection("activities")
+                    .document(activityId)
+                    .get()
+                    .await()
+
+                if (activitySnapshot.exists()) {
+                    val activity = activitySnapshot.toObject(Activity::class.java)?.copy(
+                        category = category,
+                        id = activityId
+                    )
+                    if (activity != null) {
+                        activityList.add(activity)
                     }
                 }
             }
