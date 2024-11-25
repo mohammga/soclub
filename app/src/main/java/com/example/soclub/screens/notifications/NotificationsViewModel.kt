@@ -7,7 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.soclub.R
 import com.example.soclub.models.Notification
 import com.example.soclub.service.NotificationService
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,12 +25,15 @@ import javax.inject.Inject
  * - Fetching and observing notifications from the `NotificationService`.
  * - Loading notifications on demand.
  * - Deleting notifications.
+ * - Observing authentication state changes to manage notifications accordingly.
  *
  * @property notificationService The service used to interact with the notification data source.
+ * @property firebaseAuth Firebase authentication instance for observing auth state changes.
  */
 @HiltViewModel
 class NotificationsViewModel @Inject constructor(
-    private val notificationService: NotificationService
+    private val notificationService: NotificationService,
+    private val firebaseAuth: FirebaseAuth // Inject FirebaseAuth
 ) : ViewModel() {
 
     /**
@@ -54,19 +59,85 @@ class NotificationsViewModel @Inject constructor(
      */
     val notificationCount: StateFlow<Int> = _notifications.map { it.size }.stateIn(
         viewModelScope,
-        SharingStarted.Lazily,
+        SharingStarted.Eagerly,
         initialValue = 0
     )
 
     /**
-     * Initializes the ViewModel by listening to the notification stream.
+     * Job reference for managing the notifications coroutine.
+     */
+    private var notificationsJob: Job? = null
+
+    /**
+     * AuthStateListener to observe authentication state changes.
+     */
+    private var authStateListener: FirebaseAuth.AuthStateListener? = null
+
+    /**
+     * Initializes the ViewModel by setting up the AuthStateListener.
      */
     init {
-        viewModelScope.launch {
-            notificationService.getNotificationsStream().collect { notifications ->
-                _notifications.value = notifications.sortedByDescending { it.timestamp }
+        // Initialize the auth state listener
+        authStateListener = FirebaseAuth.AuthStateListener { auth ->
+            val user = auth.currentUser
+            if (user != null) {
+                // User is logged in
+                startListeningToNotifications()
+            } else {
+                // User is logged out
+                stopListeningToNotifications()
+                _notifications.value = emptyList()
             }
         }
+        // Add the listener to FirebaseAuth
+        firebaseAuth.addAuthStateListener(authStateListener!!)
+
+        // Check initial auth state
+        if (firebaseAuth.currentUser != null) {
+            startListeningToNotifications()
+        } else {
+            _isLoading.value = false
+        }
+    }
+
+    /**
+     * Starts listening to the notifications stream.
+     */
+    private fun startListeningToNotifications() {
+        if (notificationsJob == null || notificationsJob?.isCancelled == true) {
+            notificationsJob = viewModelScope.launch {
+                _isLoading.value = true
+                _errorMessage.value = null
+
+                try {
+                    notificationService.getNotificationsStream().collect { notifications ->
+                        _notifications.value = notifications.sortedByDescending { it.timestamp }
+                        _isLoading.value = false
+                    }
+                } catch (e: Exception) {
+                    _errorMessage.value = "Error loading notifications"
+                    _isLoading.value = false
+                }
+            }
+        }
+    }
+
+    /**
+     * Stops listening to the notifications stream.
+     */
+    private fun stopListeningToNotifications() {
+        notificationsJob?.cancel()
+        notificationsJob = null
+        _isLoading.value = false
+    }
+
+    /**
+     * Cleans up resources when the ViewModel is cleared.
+     */
+    override fun onCleared() {
+        super.onCleared()
+        authStateListener?.let { firebaseAuth.removeAuthStateListener(it) }
+        stopListeningToNotifications()
     }
 
     /**
