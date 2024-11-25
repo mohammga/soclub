@@ -24,6 +24,6 @@ fun requestExactAlarmPermissionIfNeeded(activity: Activity) {
                 .show()
         }
     } else {
-        // Ingen handling nødvendig for API < 31
+
     }
 }
