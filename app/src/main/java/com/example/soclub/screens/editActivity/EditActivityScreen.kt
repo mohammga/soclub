@@ -205,15 +205,15 @@ fun EditActivityScreen(
             item { Spacer(modifier = Modifier.height(8.dp)) }
 
             item {
-                OutlinedButton(
+                Button(
                     onClick = { showDeleteDialog = true },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                     enabled = !isSaving
                 ) {
-                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete))
 
                 }
             }
