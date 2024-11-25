@@ -20,6 +20,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 data class EditProfileState(
     val firstname: String = "",
@@ -40,7 +43,6 @@ class EditProfileViewModel @Inject constructor(
     var isSaving: MutableState<Boolean> = mutableStateOf(false)
         private set
 
-
     var uiState: MutableState<EditProfileState> = mutableStateOf(EditProfileState())
         private set
 
@@ -56,12 +58,12 @@ class EditProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val userInfo: UserInfo = accountService.getUserInfo()
-                val imageUri = userInfo.imageUrl.let { Uri.parse(it) }
+                val imageUri = if (userInfo.imageUrl.isNotBlank()) Uri.parse(userInfo.imageUrl) else null
 
                 uiState.value = uiState.value.copy(
                     firstname = userInfo.firstname,
                     lastname = userInfo.lastname,
-                    imageUri = if (userInfo.imageUrl.isNotBlank()) Uri.parse(userInfo.imageUrl) else null
+                    imageUri = imageUri
                 )
             } catch (e: Exception) {
                 errorMessage.value = context.getString(R.string.error_message)
@@ -117,56 +119,59 @@ class EditProfileViewModel @Inject constructor(
         )
 
         if (hasError) return
+
         isSaving.value = true
 
         val firstname = uiState.value.firstname
         val lastname = uiState.value.lastname
         val imageUri = uiState.value.imageUri
 
-        if (imageUri != null) {
-            if (imageUri.toString().startsWith("content://")) {
-                storageService.uploadImage(
-                    imageUri = imageUri,
-                    isActivity = false,
-                    category = "",
-                    onSuccess = { imageUrl ->
-                        updateUserInfoAndNavigate(navController, firstname, lastname, imageUrl, context)
-                    },
-                    onError = { error ->
-                        Log.e("EditProfileViewModel", "Error uploading image: ${error.message}")
-                        uiState.value = uiState.value.copy(firstnameError = R.string.error_profile_creation)
-                    }
-                )
-            } else {
-                updateUserInfoAndNavigate(navController, firstname, lastname, imageUri.toString(), context)
+        viewModelScope.launch {
+            try {
+                val imageUrl = if (imageUri != null && imageUri.toString().startsWith("content://")) {
+                    // Upload image and get URL
+                    storageService.uploadImageSuspend(imageUri)
+                } else {
+                    imageUri?.toString().orEmpty()
+                }
+
+                // Update profile information
+                accountService.updateProfile(firstname, lastname, imageUrl)
+
+                // Notify success
+                Toast.makeText(context, R.string.profile_han_been_changed, Toast.LENGTH_SHORT).show()
+
+                // Navigate after a short delay
+                delay(2000)
+                navController.navigate("profile") {
+                    popUpTo("edit_profile") { inclusive = true }
+                }
+
+                // Reset isSaving
+                isSaving.value = false
+            } catch (e: Exception) {
+                isSaving.value = false
+                Log.e("EditProfileViewModel", "Error updating profile: ${e.message}", e)
+                Toast.makeText(context, R.string.error_profile_creation, Toast.LENGTH_SHORT).show()
             }
-        } else {
-            updateUserInfoAndNavigate(navController, firstname, lastname, "", context)
         }
     }
 
-
-    private fun updateUserInfoAndNavigate(navController: NavController, firstname: String, lastname: String, imageUrl: String, context: Context) {
-        viewModelScope.launch {
-            try {
-                accountService.updateProfile(firstname = firstname, lastname = lastname, imageUrl = imageUrl) { error ->
-                    isSaving.value = false
-                    if (error == null) {
-                        Toast.makeText(context, R.string.profile_han_been_changed, Toast.LENGTH_SHORT).show()
-                        viewModelScope.launch {
-                            delay(2000)
-                            navController.navigate("profile") {
-                                popUpTo("edit_profile") { inclusive = true }
-                            }
-                        }
-                    } else {
-                        uiState.value = uiState.value.copy(firstnameError = R.string.error_profile_creation)
-                    }
-                }
-            } catch (e: Exception) {
-                isSaving.value = false
-                uiState.value = uiState.value.copy(firstnameError = R.string.error_profile_creation)
+    /**
+     * Extension function to convert the callback-based uploadImage to a suspending function.
+     * You need to implement this in your StorageService.
+     */
+    private suspend fun StorageService.uploadImageSuspend(imageUri: Uri): String = suspendCoroutine { cont ->
+        uploadImage(
+            imageUri = imageUri,
+            isActivity = false,
+            category = "",
+            onSuccess = { imageUrl ->
+                cont.resume(imageUrl)
+            },
+            onError = { error ->
+                cont.resumeWithException(error ?: Exception("Unknown error during image upload"))
             }
-        }
+        )
     }
 }

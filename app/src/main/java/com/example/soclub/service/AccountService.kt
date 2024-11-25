@@ -106,15 +106,12 @@ interface AccountService {
      * @param firstname The new first name.
      * @param lastname The new last name.
      * @param imageUrl The URL of the new profile image.
-     * @param onResult A callback invoked upon completion.
-     *
-     * Passes `null` if the update is successful, or a [Throwable] if an error occurs.
+     *.
      */
     suspend fun updateProfile(
         firstname: String,
         lastname: String,
         imageUrl: String,
-        onResult: (Throwable?) -> Unit
     )
 
     /**

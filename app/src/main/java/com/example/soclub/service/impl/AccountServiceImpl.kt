@@ -54,36 +54,18 @@ class AccountServiceImpl @Inject constructor(
         }
     }
 
-/*
-    override suspend fun authenticateWithEmail(
-        email: String,
-        password: String,
-        onResult: (Throwable?) -> Unit
-    ) {
-        try {
-            auth.signInWithEmailAndPassword(email, password).await()
-        } catch (e: Exception) {
-            throw Exception(context.getString(R.string.error_authentication_failed, e.message), e)
-
-        }
-    }*/
 override suspend fun authenticateWithEmail(
     email: String,
     password: String,
     onResult: (Throwable?) -> Unit
 ) {
     try {
-        println("authenticateWithEmail: Attempting login with email: $email")
         auth.signInWithEmailAndPassword(email, password).await()
-        println("authenticateWithEmail: Login successful for email: $email")
-        onResult(null) // Ingen feil
+        onResult(null)
     } catch (e: Exception) {
-        println("authenticateWithEmail: Login failed with exception: ${e.message}")
-        onResult(e) // Returner feilen
+        onResult(e)
     }
 }
-
-
     override suspend fun createEmailAccount(
         email: String,
         password: String,
@@ -133,8 +115,7 @@ override suspend fun authenticateWithEmail(
     override suspend fun updateProfile(
         firstname: String,
         lastname: String,
-        imageUrl: String,
-        onResult: (Throwable?) -> Unit
+        imageUrl: String
     ) {
         val userId = currentUserId
         val updates = hashMapOf(

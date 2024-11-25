@@ -7,7 +7,7 @@ import android.os.Build
 import com.example.soclub.R
 
 fun createNotificationChannel(context: Context) =
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) { // O corresponds to API 26
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         val channelId = context.getString(R.string.channel_id)
         val channelName = context.getString(R.string.channel_name)
         val channelDescription = context.getString(R.string.channel_description)

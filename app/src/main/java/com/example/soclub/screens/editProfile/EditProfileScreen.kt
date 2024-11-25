@@ -24,7 +24,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -69,7 +68,6 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                 errorMessage != null -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            //text = errorMessage ?: "An unknown error occurred",
                             text = errorMessage ?: stringResource(id = R.string.unknown_error_occurred),
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodyMedium
@@ -90,7 +88,6 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                                 imageUri = uiState.imageUri,
                                 onImageSelected = viewModel::onImageSelected,
                                 enabled = !isSaving
-
                             )
 
                             Spacer(modifier = Modifier.height(16.dp))
