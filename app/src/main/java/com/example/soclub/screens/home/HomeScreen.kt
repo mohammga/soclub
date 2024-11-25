@@ -330,8 +330,7 @@ fun ActivityList(
                     activity = activity,
                     height = height
                 ) {
-                    navController.navigate("detail/${selectedCategory}/${activity.id}")
-
+                    navController.navigate("detail/${activity.category}/${activity.id}")
                 }
             }
 
