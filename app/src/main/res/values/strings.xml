@@ -351,7 +351,7 @@
     <string name="privacy">2. Personvern</string>
     <string name="processes_personal_data">Vi samler inn og behandler personopplysninger i henhold til vår personvernerklæring.</string>
     <string name="disclaimer">3. Ansvarsfraskrivelse</string>
-    <string name="the_service_is_offered">Tjenesten tilbys \\\"som den er\\\", og vi fraskriver oss ethvert ansvar for eventuelle feil eller mangler.</string>
+    <string name="the_service_is_offered">Tjenesten tilbys "som den er", og vi fraskriver oss ethvert ansvar for eventuelle feil eller mangler.</string>
     <string name="Content_Property">4. Innhold og Eiendomsrett</string>
     <string name="in_app">Alt innhold i applikasjonen er beskyttet av opphavsrett og andre eiendomsrettigheter. Reproduksjon eller distribusjon av innholdet uten tillatelse er ikke tillatt.</string>
     <string name="changes_Terms">5. Endringer i Vilkår</string>

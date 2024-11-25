@@ -66,7 +66,7 @@ class ProfileViewModel @Inject constructor(
             isLoading = true
             try {
                 userInfo = accountService.getUserInfo()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
             } finally {
                 isLoading = false
             }

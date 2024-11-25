@@ -1,5 +1,3 @@
-
-
 package com.example.soclub.screens.noInternet
 
 import androidx.compose.foundation.layout.Arrangement

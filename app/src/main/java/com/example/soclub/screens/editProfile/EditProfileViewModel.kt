@@ -170,7 +170,7 @@ class EditProfileViewModel @Inject constructor(
                 cont.resume(imageUrl)
             },
             onError = { error ->
-                cont.resumeWithException(error ?: Exception("Unknown error during image upload"))
+                cont.resumeWithException(error)
             }
         )
     }

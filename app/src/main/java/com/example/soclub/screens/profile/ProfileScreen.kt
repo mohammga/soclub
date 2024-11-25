@@ -21,11 +21,9 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.soclub.R
 import com.example.soclub.components.navigation.AppScreens
@@ -69,12 +67,12 @@ fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 EditProfileButton(navController, isLoggingOut)
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
             item {
                 AccountInfoSection(navController, userInfo, isLoggingOut)
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
             item {

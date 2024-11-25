@@ -82,15 +82,12 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         item {
-                            Spacer(modifier = Modifier.height(16.dp))
-
                             ImageUploadSection(
                                 imageUri = uiState.imageUri,
                                 onImageSelected = viewModel::onImageSelected,
                                 enabled = !isSaving
                             )
 
-                            Spacer(modifier = Modifier.height(16.dp))
                         }
 
                         item {
@@ -116,8 +113,6 @@ fun EditProfileScreen(navController: NavController, viewModel: EditProfileViewMo
                         }
 
                         item {
-                            Spacer(modifier = Modifier.height(24.dp))
-
                             SaveButton(
                                 onClick = {
                                     viewModel.onSaveProfileClick(navController, context)
@@ -157,8 +152,7 @@ fun ProfileTextField(
         onValueChange = onValueChange,
         label = { Text(label) },
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .fillMaxWidth(),
         singleLine = true,
         isError = error != null,
         enabled = enabled,

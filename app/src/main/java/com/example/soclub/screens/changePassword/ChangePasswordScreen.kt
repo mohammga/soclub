@@ -7,7 +7,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -39,7 +38,6 @@ fun ChangePasswordScreen(viewModel: ChangePasswordViewModel = hiltViewModel()) {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
                     PasswordField(
@@ -84,7 +82,7 @@ fun ChangePasswordScreen(viewModel: ChangePasswordViewModel = hiltViewModel()) {
                 }
 
                 item {
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
 
                     ChangePasswordButton(

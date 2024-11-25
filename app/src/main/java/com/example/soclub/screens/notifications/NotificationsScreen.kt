@@ -1,7 +1,5 @@
 package com.example.soclub.screens.notifications
 
-
-
 import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -66,8 +64,10 @@ fun NotificationsScreen(
             else -> {
                 if (notifications.isEmpty()) {
                     Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                        modifier = Modifier
+                            .fillMaxSize()
+                        ,
+                        contentAlignment = Alignment.Center,
                     ) {
                         Text(
                             text = stringResource(R.string.no_notifications),
@@ -103,31 +103,6 @@ fun NotificationsScreen(
  * @return A human-readable string representing the time elapsed since the given timestamp.
  */
 
-
-
-/*fun getTimeAgo(timestamp: Long): String {
-
-    val diff = System.currentTimeMillis() - timestamp
-    val seconds = diff / 1000
-    val minutes = seconds / 60
-    val hours = minutes / 60
-    val days = hours / 24
-    return when {
-        seconds < 60 -> "Akkurat nå"
-        minutes < 60 -> {
-            val minuteText = if (minutes == 1L) "minutt" else "minutter"
-            "$minutes $minuteText siden"
-        }
-        hours < 24 -> {
-            val hourText = if (hours == 1L) "time" else "timer"
-            "$hours $hourText siden"
-        }
-        else -> {
-            val dayText = if (days == 1L) "dag" else "dager"
-            "$days $dayText siden"
-        }
-    }
-}*/
 fun getTimeAgo(timestamp: Long, context: Context): String {
     val diff = System.currentTimeMillis() - timestamp
     val seconds = diff / 1000
@@ -171,8 +146,7 @@ fun NotificationItem(
 
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
+            .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -194,7 +168,7 @@ fun NotificationItem(
             )
         }
         Box(
-            contentAlignment = Alignment.Center
+            modifier = Modifier
         ) {
             IconButton(onClick = { onDelete(notification) }) {
                 Icon(
