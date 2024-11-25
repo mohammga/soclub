@@ -574,33 +574,37 @@ fun PostalCodeField(value: String, error: String?) {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enabled: Boolean) {
-    val context = LocalContext.current
-    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = value)
+fun DateField(
+    value: Long,
+    onNewValue: (Timestamp) -> Unit,
+    error: String?,
+    enabled: Boolean
+) {
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = if (value != 0L) value else null
+    )
     val isDatePickerVisible = remember { mutableStateOf(false) }
-    val todayMillis = System.currentTimeMillis()
-
-    val formattedDate = if (value != 0L) {
-        SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
-    } else {
-        stringResource(R.string.choose_Dato)
-    }
+    val context = LocalContext.current
 
     Box {
         OutlinedTextField(
-            value = formattedDate,
+            value = if (value != 0L) {
+                SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
+            } else "",
             onValueChange = {},
-            label = { Text(stringResource(R.string.date_label)) },
+            label = { Text(stringResource(id = R.string.date_label)) },
+            placeholder = { Text(stringResource(id = R.string.choose_date)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             readOnly = true,
             isError = error != null,
+            enabled = enabled,
             supportingText = {
-                if (error == null) {
-                    Text(stringResource(R.string.choose_activity_Dato))
+                if (error != null) {
+                    Text(error, color = MaterialTheme.colorScheme.error)
                 } else {
-                    Text(text = error, color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.choose_date))
                 }
             }
         )
@@ -609,7 +613,7 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enab
             modifier = Modifier
                 .matchParentSize()
                 .alpha(0f)
-                .clickable { isDatePickerVisible.value = true }
+                .clickable(enabled = enabled) { isDatePickerVisible.value = true }
         )
 
         if (isDatePickerVisible.value) {
@@ -618,26 +622,33 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enab
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            datePickerState.selectedDateMillis?.let { selectedDateMillis ->
-                                if (selectedDateMillis >= todayMillis) {
-                                    onNewValue(Timestamp(Date(selectedDateMillis)))
-                                    isDatePickerVisible.value = false
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        R.string.date_expiered,
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
+                            val selectedMillis = datePickerState.selectedDateMillis
+                            val startOfTodayMillis = Calendar.getInstance().apply {
+                                set(Calendar.HOUR_OF_DAY, 0)
+                                set(Calendar.MINUTE, 0)
+                                set(Calendar.SECOND, 0)
+                                set(Calendar.MILLISECOND, 0)
+                            }.timeInMillis
+
+                            if (selectedMillis == null || selectedMillis < startOfTodayMillis) {
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.date_cannot_be_in_past),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                val timestamp = Timestamp(Date(selectedMillis))
+                                onNewValue(timestamp)
+                                isDatePickerVisible.value = false
                             }
                         }
                     ) {
-                        Text(stringResource(R.string.ok))
+                        Text(stringResource(id = R.string.ok))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { isDatePickerVisible.value = false }) {
-                        Text(stringResource( R.string.cancel))
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             ) {
@@ -666,8 +677,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?, 
         OutlinedTextField(
             value = value,
             onValueChange = {},
-            placeholder = { Text(stringResource(R.string.start_time_label)) },
-            label = { Text(stringResource(R.string.start_time_label))},
+            label = { Text(stringResource(R.string.start_time_label)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
@@ -686,9 +696,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?, 
             modifier = Modifier
                 .matchParentSize()
                 .alpha(0f)
-                .clickable {
-                    isTimePickerVisible.value = true
-                }
+                .clickable { isTimePickerVisible.value = true }
         )
 
         if (isTimePickerVisible.value) {
@@ -698,10 +706,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?, 
                     tonalElevation = 8.dp
                 ) {
                     Column {
-                        TimePicker(
-                            state = timePickerState,
-                            colors = TimePickerDefaults.colors()
-                        )
+                        TimePicker(state = timePickerState)
                         Row(
                             modifier = Modifier.padding(8.dp),
                             horizontalArrangement = Arrangement.End
