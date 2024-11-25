@@ -24,22 +24,44 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
+
+/**
+ * Dagger module for providing Firebase services and application-specific service implementations.
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 object FirebaseModule {
 
+    /**
+     * Provides a singleton instance of [FirebaseAuth].
+     * @return The [FirebaseAuth] instance.
+     */
     @Singleton
     @Provides
     fun auth(): FirebaseAuth = Firebase.auth
 
+    /**
+     * Provides a singleton instance of [FirebaseFirestore].
+     * @return The [FirebaseFirestore] instance.
+     */
     @Singleton
     @Provides
     fun firestore(): FirebaseFirestore = Firebase.firestore
 
+    /**
+     * Provides a singleton instance of [FirebaseStorage].
+     * @return The [FirebaseStorage] instance.
+     */
     @Singleton
     @Provides
     fun firebaseStorage(): FirebaseStorage = FirebaseStorage.getInstance()
 
+    /**
+     * Provides a singleton instance of [ActivityService].
+     * @param firestore The [FirebaseFirestore] instance.
+     * @param context The application [Context].
+     * @return The [ActivityService] implementation.
+     */
     @Singleton
     @Provides
     fun provideActivityService(
@@ -49,6 +71,12 @@ object FirebaseModule {
         return ActivityServiceImpl(firestore, context)
     }
 
+    /**
+     * Provides a singleton instance of [ActivityDetailService].
+     * @param firestore The [FirebaseFirestore] instance.
+     * @param context The application [Context].
+     * @return The [ActivityDetailService] implementation.
+     */
     @Singleton
     @Provides
     fun provideActivityDetailService(
@@ -58,6 +86,12 @@ object FirebaseModule {
         return ActivityDetailServiceImpl(firestore, context)
     }
 
+    /**
+     * Provides a singleton instance of [EntriesService].
+     * @param firestore The [FirebaseFirestore] instance.
+     * @param context The application [Context].
+     * @return The [EntriesService] implementation.
+     */
     @Singleton
     @Provides
     fun provideEntriesService(
@@ -67,6 +101,13 @@ object FirebaseModule {
         return EntriesServiceImpl(firestore, context)
     }
 
+    /**
+     * Provides a singleton instance of [NotificationService].
+     * @param firestore The [FirebaseFirestore] instance.
+     * @param accountService The [AccountService] instance.
+     * @param context The application [Context].
+     * @return The [NotificationService] implementation.
+     */
     @Singleton
     @Provides
     fun provideNotificationService(
@@ -77,6 +118,13 @@ object FirebaseModule {
         return NotificationServiceImpl(firestore, accountService, context)
     }
 
+    /**
+     * Provides a singleton instance of [AccountService].
+     * @param auth The [FirebaseAuth] instance.
+     * @param firestore The [FirebaseFirestore] instance.
+     * @param context The application [Context].
+     * @return The [AccountService] implementation.
+     */
     @Singleton
     @Provides
     fun provideAccountService(
@@ -87,3 +135,4 @@ object FirebaseModule {
         return AccountServiceImpl(auth, firestore, context)
     }
 }
+

@@ -20,6 +20,12 @@ import com.example.soclub.service.ActivityService
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+
+
+/**
+ * MainActivity serves as the entry point of the application.
+ * It initializes required permissions, network monitoring, and sets up the UI content.
+ */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -32,6 +38,11 @@ class MainActivity : ComponentActivity() {
 
     private val activityDetailViewModel: ActivityDetailViewModel by viewModels()
 
+    /**
+     * Called when the activity is first created. Initializes permissions, network helper, and alarm permissions.
+     *
+     * @param savedInstanceState If the activity is being re-initialized after previously being shut down, this contains the most recent data supplied. Otherwise, it is null.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -59,7 +70,7 @@ class MainActivity : ComponentActivity() {
                 val hasInternetConnection by remember { networkHelper::hasInternetConnection }
 
                 if (hasInternetConnection) {
-                        AppNavigation(navController = navController)
+                    AppNavigation(navController = navController)
                 } else {
                     NoInternetScreen()
                 }
@@ -67,3 +78,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+

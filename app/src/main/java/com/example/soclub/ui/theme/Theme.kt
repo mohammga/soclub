@@ -6,8 +6,13 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 
+
+
+/**
+ * Light color scheme used for the application theme.
+ */
 private val LightColorScheme = lightColorScheme(
-    primary = primaryLight, // svart
+    primary = primaryLight,
     onPrimary = onPrimaryLight,
     primaryContainer = primaryContainerLight,
     onPrimaryContainer = onPrimaryContainerLight,
@@ -44,6 +49,9 @@ private val LightColorScheme = lightColorScheme(
     surfaceContainerHighest = surfaceContainerHighestLight,
 )
 
+/**
+ * Dark color scheme used for the application theme.
+ */
 private val DarkColorScheme = darkColorScheme(
     primary = primaryDark,
     onPrimary = onPrimaryDark,
@@ -82,7 +90,12 @@ private val DarkColorScheme = darkColorScheme(
     surfaceContainerHighest = surfaceContainerHighestDark,
 )
 
-
+/**
+ * Composable function to apply the theme for the application.
+ *
+ * @param darkTheme Whether to use the dark theme. Defaults to system setting.
+ * @param content The content to be displayed within the theme.
+ */
 @Composable
 fun SoClubTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

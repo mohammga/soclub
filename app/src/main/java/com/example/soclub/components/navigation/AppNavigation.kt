@@ -38,16 +38,20 @@ import com.example.soclub.screens.termsPrivacy.TermsPrivacyScreen
 import com.example.soclub.service.impl.AccountServiceImpl
 import com.example.soclub.service.module.FirebaseModule
 
+
+/**
+ * Composable function for setting up application navigation.
+ *
+ * @param navController The NavHostController for managing navigation.
+ * @param notificationsViewModel ViewModel for notifications, providing notification count.
+ */
 @Composable
 fun AppNavigation(
     navController: NavHostController,
     notificationsViewModel: NotificationsViewModel = hiltViewModel()
 ) {
     val currentScreen = getCurrentScreen(navController)
-
     val notificationCount by notificationsViewModel.notificationCount.collectAsState()
-
-
     val profileScreens = setOf(
         AppScreens.PROFILE.name,
         AppScreens.EDIT_PROFILE.name,
@@ -116,7 +120,6 @@ fun AppNavigation(
                 currentScreen.startsWith("editActivity") -> {
                     TopBar(navController, title = stringResource(R.string.editAktvititi), showBackButton = true)
                 }
-                else -> { /* Håndter andre skjermer */ }
             }
         },
         bottomBar = {
@@ -193,3 +196,4 @@ fun AppNavigation(
         }
     }
 }
+

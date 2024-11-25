@@ -104,30 +104,6 @@ fun NotificationsScreen(
  */
 
 
-
-/*fun getTimeAgo(timestamp: Long): String {
-
-    val diff = System.currentTimeMillis() - timestamp
-    val seconds = diff / 1000
-    val minutes = seconds / 60
-    val hours = minutes / 60
-    val days = hours / 24
-    return when {
-        seconds < 60 -> "Akkurat nå"
-        minutes < 60 -> {
-            val minuteText = if (minutes == 1L) "minutt" else "minutter"
-            "$minutes $minuteText siden"
-        }
-        hours < 24 -> {
-            val hourText = if (hours == 1L) "time" else "timer"
-            "$hours $hourText siden"
-        }
-        else -> {
-            val dayText = if (days == 1L) "dag" else "dager"
-            "$days $dayText siden"
-        }
-    }
-}*/
 fun getTimeAgo(timestamp: Long, context: Context): String {
     val diff = System.currentTimeMillis() - timestamp
     val seconds = diff / 1000

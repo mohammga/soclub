@@ -12,8 +12,19 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.example.soclub.R
 
+
+/**
+ * BroadcastReceiver for handling reminder notifications.
+ */
 class ReminderBroadcastReceiver : BroadcastReceiver() {
 
+    /**
+     * Handles the broadcast when received, checks for notification permissions,
+     * and displays the notification if permitted.
+     *
+     * @param context the context from which the broadcast is received
+     * @param intent the intent containing notification data
+     */
     override fun onReceive(context: Context?, intent: Intent?) {
         if (context == null) return
 
@@ -44,3 +55,4 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
         }
     }
 }
+

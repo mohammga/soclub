@@ -7,6 +7,13 @@ import android.os.Build
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.content.ContextCompat
 
+
+/**
+ * A utility class for managing permissions in the application.
+ *
+ * @param context The application context.
+ * @param permissionLauncher The launcher used to request permissions.
+ */
 class PermissionHelper(
     private val context: Context,
     private val permissionLauncher: ActivityResultLauncher<Array<String>>
@@ -15,10 +22,16 @@ class PermissionHelper(
     private var isPostNotificationsGranted = false
     private var isGalleryPermissionGranted = false
 
+    /**
+     * Initializes the class and checks the current permission statuses.
+     */
     init {
         checkPermissions()
     }
 
+    /**
+     * Checks the current statuses of required permissions.
+     */
     private fun checkPermissions() {
         isLocationPermissionGranted = ContextCompat.checkSelfPermission(
             context,
@@ -47,6 +60,9 @@ class PermissionHelper(
         }
     }
 
+    /**
+     * Requests the necessary permissions that are not currently granted.
+     */
     fun requestPermissions() {
         val permissionsToRequest = mutableListOf<String>()
 
@@ -72,6 +88,11 @@ class PermissionHelper(
         }
     }
 
+    /**
+     * Updates the statuses of permissions based on the results of a permission request.
+     *
+     * @param permissions A map of permissions and their grant statuses.
+     */
     fun updatePermissionsStatus(permissions: Map<String, Boolean>) {
         isLocationPermissionGranted =
             permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: isLocationPermissionGranted
@@ -89,3 +110,4 @@ class PermissionHelper(
         }
     }
 }
+

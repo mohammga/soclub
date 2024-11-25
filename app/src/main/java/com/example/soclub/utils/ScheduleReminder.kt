@@ -18,6 +18,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
+/**
+ * Schedules a reminder notification.
+ *
+ * @param context The context from which this function is called.
+ * @param reminderTime The time at which the reminder should trigger.
+ * @param activityTitle The title of the activity related to the reminder.
+ * @param activityId The ID of the activity related to the reminder.
+ * @param userId The ID of the user associated with the reminder.
+ * @param sendNow Whether the notification should be sent immediately.
+ * @param isCancellation Whether the notification is for a cancellation.
+ * @param isRegistration Whether the notification is for a registration.
+ * @param saveToDatabase Whether to save the notification to the database.
+ */
 fun scheduleReminder(
     context: Context,
     reminderTime: Long,
@@ -85,8 +98,12 @@ fun scheduleReminder(
     }
 }
 
-
-
+/**
+ * Cancels notifications for a specific activity.
+ *
+ * @param context The context from which this function is called.
+ * @param activityId The ID of the activity for which notifications are to be canceled.
+ */
 fun cancelNotificationForActivity(context: Context, activityId: String) {
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     val reminderIds = listOf("${activityId}_24hr", "${activityId}_12hr", "${activityId}_1hr")
@@ -105,7 +122,14 @@ fun cancelNotificationForActivity(context: Context, activityId: String) {
     }
 }
 
-
+/**
+ * Saves a notification to the database.
+ *
+ * @param context The context from which this function is called.
+ * @param userId The ID of the user associated with the notification.
+ * @param activityId The ID of the activity associated with the notification.
+ * @param message The message to be saved in the notification.
+ */
 fun saveNotificationToDatabase(context: Context, userId: String, activityId: String, message: String) {
     val notification = Notification(
         userId = userId,
@@ -119,3 +143,4 @@ fun saveNotificationToDatabase(context: Context, userId: String, activityId: Str
         notificationService.saveNotification(notification)
     }
 }
+

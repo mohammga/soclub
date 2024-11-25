@@ -21,11 +21,25 @@ import java.util.Locale
 import javax.inject.Inject
 
 
+
+/**
+ * Implementation of the ActivityService interface that manages activities in the application.
+ * Provides methods for creating, fetching, updating, and deleting activities.
+ *
+ * @param firestore the Firebase Firestore instance
+ * @param application the application context
+ */
 class ActivityServiceImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val application: Context
 ) : ActivityService {
 
+    /**
+     * Starts listening for activities across all categories.
+     *
+     * @param onUpdate the callback invoked with the list of activities when data changes
+     * @return a ListenerRegistration to stop listening
+     */
     override fun listenForActivities(onUpdate: (List<Activity>) -> Unit): ListenerRegistration {
         return firestore.collectionGroup("activities")
             .addSnapshotListener { snapshot, error ->
@@ -43,6 +57,13 @@ class ActivityServiceImpl @Inject constructor(
             }
     }
 
+    /**
+     * Creates a new activity in a specified category.
+     *
+     * @param category the category under which the activity will be created
+     * @param activity the activity details to be created
+     * @throws Exception if activity creation fails
+     */
     override suspend fun createActivity(category: String, activity: CreateActivity) {
         try {
             firestore.collection("category").document(category)
@@ -53,6 +74,14 @@ class ActivityServiceImpl @Inject constructor(
         }
     }
 
+    /**
+     * Fetches the details of a specific activity by its ID.
+     *
+     * @param category the category of the activity
+     * @param activityId the ID of the activity
+     * @return the fetched Activity object
+     * @throws Exception if fetching activity fails or the activity is not found
+     */
     override suspend fun getActivityById(category: String, activityId: String): Activity {
         try {
             val documentSnapshot = firestore.collection("category")
@@ -64,7 +93,6 @@ class ActivityServiceImpl @Inject constructor(
 
             val activity = documentSnapshot.toObject(Activity::class.java)
                 ?: throw Exception(application.getString(R.string.error_activity_not_found))
-
 
             val fullLocation = activity.location
             val lastWord = fullLocation.substringAfterLast(" ")
@@ -82,6 +110,13 @@ class ActivityServiceImpl @Inject constructor(
         }
     }
 
+    /**
+     * Fetches all activities under a specific category.
+     *
+     * @param category the category of the activities
+     * @return a list of activities in the category
+     * @throws Exception if fetching activities fails
+     */
     override suspend fun getActivities(category: String): List<Activity> {
         try {
             val snapshot = firestore.collection("category").document(category)
@@ -106,6 +141,14 @@ class ActivityServiceImpl @Inject constructor(
         }
     }
 
+    /**
+     * Listens for activities near a user's location.
+     *
+     * @param userLocation the user's current location
+     * @param maxDistance the maximum distance (in meters) to filter activities
+     * @param onUpdate the callback invoked with the list of nearby activities
+     * @return a ListenerRegistration to stop listening
+     */
     override fun listenForNearestActivities(
         userLocation: Location,
         maxDistance: Float,
@@ -115,7 +158,6 @@ class ActivityServiceImpl @Inject constructor(
             .addSnapshotListener { snapshot, error ->
                 if (error != null) throw Exception(
                     application.getString(R.string.error_listening_nearest_activities, error.message), error)
-
 
                 CoroutineScope(Dispatchers.IO).launch {
                     val activities = snapshot?.documents?.mapNotNull { doc ->
@@ -130,7 +172,13 @@ class ActivityServiceImpl @Inject constructor(
             }
     }
 
-    @Suppress("DEPRECATION")
+    /**
+     * Retrieves the geographic location from an address string.
+     *
+     * @param address the address to resolve
+     * @return a Location object representing the geographic coordinates, or null if resolution fails
+     * @throws Exception if address resolution fails
+     */
     private suspend fun getLocationFromAddress(address: String?): Location? {
         if (address.isNullOrEmpty()) throw Exception("Invalid address")
         val geocoder = Geocoder(application.applicationContext, Locale.getDefault())
@@ -144,15 +192,20 @@ class ActivityServiceImpl @Inject constructor(
                         longitude = it.longitude
                     }
                 } ?: throw Exception(application.getString(R.string.error_resolve_location_failed))
-
             }
         } catch (e: IOException) {
             throw Exception(
                 application.getString(R.string.error_geocoder_failed, e.message), e)
-
         }
     }
 
+    /**
+     * Retrieves all activities created by a specific user.
+     *
+     * @param creatorId the ID of the user who created the activities
+     * @return a list of activities created by the user
+     * @throws Exception if fetching activities fails
+     */
     override suspend fun getAllActivitiesByCreator(creatorId: String): List<EditActivity> {
         try {
             val categoriesSnapshot = firestore.collection("category").get().await()
@@ -189,6 +242,13 @@ class ActivityServiceImpl @Inject constructor(
         }
     }
 
+    /**
+     * Deletes an activity and its associated notifications and registrations.
+     *
+     * @param category the category of the activity
+     * @param activityId the ID of the activity to be deleted
+     * @throws Exception if deletion fails
+     */
     override suspend fun deleteActivity(category: String, activityId: String) {
         try {
             val batch = firestore.batch()
@@ -213,13 +273,17 @@ class ActivityServiceImpl @Inject constructor(
 
             batch.commit().await()
         } catch (e: Exception) {
-                throw Exception(
-                    application.getString(R.string.error_delete_activity_failed, e.message), e)
-            }
-
+            throw Exception(
+                application.getString(R.string.error_delete_activity_failed, e.message), e)
         }
+    }
 
-
+    /**
+     * Fetches all available activity categories.
+     *
+     * @return a list of category names
+     * @throws Exception if fetching categories fails
+     */
     override suspend fun getCategories(): List<String> {
         try {
             val snapshot = firestore.collection("category").get().await()
@@ -231,6 +295,15 @@ class ActivityServiceImpl @Inject constructor(
         }
     }
 
+    /**
+     * Updates the details of an existing activity, potentially moving it to a new category.
+     *
+     * @param category the current category of the activity
+     * @param newCategory the new category for the activity
+     * @param activityId the ID of the activity to be updated
+     * @param updatedActivity the updated activity details
+     * @throws Exception if updating activity fails
+     */
     override suspend fun updateActivity(
         category: String,
         newCategory: String,
@@ -261,6 +334,12 @@ class ActivityServiceImpl @Inject constructor(
         }
     }
 
+    /**
+     * Fetches all activities across all categories.
+     *
+     * @return a list of all activities
+     * @throws Exception if fetching activities fails
+     */
     override suspend fun getAllActivities(): List<Activity> {
         try {
             val activityList = mutableListOf<Activity>()
@@ -286,7 +365,7 @@ class ActivityServiceImpl @Inject constructor(
                     activityList.addAll(activities)
                 } catch (e: Exception) {
                     throw Exception(
-                            application.getString(R.string.error_fetch_activities_for_category, categoryName, e.message), e)
+                        application.getString(R.string.error_fetch_activities_for_category, categoryName, e.message), e)
                 }
             }
 
@@ -297,6 +376,12 @@ class ActivityServiceImpl @Inject constructor(
         }
     }
 
+    /**
+     * Fetches activities grouped by their categories.
+     *
+     * @return a map where the keys are category names and the values are lists of activities
+     * @throws Exception if fetching grouped activities fails
+     */
     override suspend fun getActivitiesGroupedByCategory(): Map<String, List<Activity>> {
         try {
             val activitiesByCategory = mutableMapOf<String, List<Activity>>()
@@ -316,18 +401,24 @@ class ActivityServiceImpl @Inject constructor(
                     activitiesByCategory[categoryName] = activities
                 } catch (e: Exception) {
                     throw Exception(
-                            application.getString(R.string.error_fetch_activities_for_category, categoryName, e.message),e)
+                        application.getString(R.string.error_fetch_activities_for_category, categoryName, e.message), e)
                 }
             }
 
             return activitiesByCategory
         } catch (e: Exception) {
-                throw Exception(
-                    application.getString(R.string.error_fetch_grouped_activities_failed, e.message), e)
-
+            throw Exception(
+                application.getString(R.string.error_fetch_grouped_activities_failed, e.message), e)
         }
     }
 
+    /**
+     * Fetches all users registered for a specific activity.
+     *
+     * @param activityId the ID of the activity
+     * @return a list of user IDs registered for the activity
+     * @throws Exception if fetching registered users fails
+     */
     override suspend fun getRegisteredUsersForActivity(activityId: String): List<String> {
         try {
             val registrationsSnapshot = firestore.collection("registrations")
@@ -342,3 +433,4 @@ class ActivityServiceImpl @Inject constructor(
         }
     }
 }
+
