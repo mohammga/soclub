@@ -1,4 +1,3 @@
-// FirebaseModule.kt
 package com.example.soclub.service.module
 
 import android.content.Context

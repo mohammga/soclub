@@ -1,4 +1,4 @@
-package com.example.soclub.di
+package com.example.soclub.service.module
 
 import android.content.Context
 import com.google.android.gms.location.FusedLocationProviderClient
