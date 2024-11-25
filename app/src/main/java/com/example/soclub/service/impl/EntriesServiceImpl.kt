@@ -42,7 +42,7 @@ class EntriesServiceImpl @Inject constructor(
                         return@addSnapshotListener
                     }
 
-                    // No longer need to fetch all categories
+
                     CoroutineScope(Dispatchers.IO).launch {
                         processActivities(snapshot, onUpdate)
                     }
@@ -75,7 +75,7 @@ class EntriesServiceImpl @Inject constructor(
                         return@addSnapshotListener
                     }
 
-                    // No longer need to fetch all categories
+
                     CoroutineScope(Dispatchers.IO).launch {
                         processActivities(snapshot, onUpdate)
                     }
@@ -93,7 +93,7 @@ class EntriesServiceImpl @Inject constructor(
         try {
             val activityList = mutableListOf<Activity>()
 
-            // Extract activityId and category pairs from registration documents
+
             val activityCategoryPairs = snapshot.documents.mapNotNull { document ->
                 val activityId = document.getString("activityId")
                 val category = document.getString("category")
@@ -104,7 +104,7 @@ class EntriesServiceImpl @Inject constructor(
                 }
             }
 
-            // Fetch activities directly using activityId and category
+
             for ((activityId, category) in activityCategoryPairs) {
                 val activitySnapshot = firestore.collection("category")
                     .document(category)

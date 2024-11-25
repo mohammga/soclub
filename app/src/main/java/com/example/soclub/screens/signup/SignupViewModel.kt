@@ -166,7 +166,7 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
         } else if (!uiState.value.age.isAgeNumeric()) {
             ageError = R.string.error_invalid_age
             hasError = true
-        } else if (!uiState.value.age.isAgeValid()) {
+        } else if (!uiState.value.age.isValidAgeLimit()) {
             ageError = R.string.error_age_minimum
             hasError = true
         }

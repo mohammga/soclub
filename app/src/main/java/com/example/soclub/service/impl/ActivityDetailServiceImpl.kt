@@ -76,17 +76,17 @@ class ActivityDetailServiceImpl @Inject constructor(
 
             if (!registrationRef.isEmpty) {
                 for (document in registrationRef.documents) {
-                    // Update the existing registration to include 'category'
+
                     firestore.collection("registrations")
                         .document(document.id)
-                        .update(mapOf("status" to status, "category" to category)) // Added 'category' here
+                        .update(mapOf("status" to status, "category" to category))
                         .await()
                 }
             } else {
                 val newRegistration = hashMapOf(
                     "userId" to userId,
                     "activityId" to activityId,
-                    "category" to category, // Added 'category' to the new registration
+                    "category" to category,
                     "status" to status,
                     "timestamp" to Timestamp(Date())
                 )

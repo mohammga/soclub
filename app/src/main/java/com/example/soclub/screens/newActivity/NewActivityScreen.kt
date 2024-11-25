@@ -151,6 +151,7 @@ fun NewActivityScreen(
                     error = uiState.dateError,
                     enabled = !isPublishing
                 )
+
             }
 
             item {
@@ -517,38 +518,40 @@ fun PostalCodeField(value: String, error: String?, enabled: Boolean) {
  * @param error An optional error message for validation.
  * @param enabled Flag to enable or disable the date picker.
  */
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enabled: Boolean) {
-    val context = LocalContext.current
-    val currentTimeMillis = System.currentTimeMillis()
-    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = value)
+fun DateField(
+    value: Long,
+    onNewValue: (Timestamp) -> Unit,
+    error: String?,
+    enabled: Boolean
+) {
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = if (value != 0L) value else null
+    )
     val isDatePickerVisible = remember { mutableStateOf(false) }
-    var internalError by remember { mutableStateOf<String?>(null) }
-
-    val formattedDate = if (value != 0L) {
-        SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
-    } else {
-        stringResource(R.string.choose_Dato)
-    }
+    val context = LocalContext.current
 
     Box {
         OutlinedTextField(
-            value = formattedDate,
+            value = if (value != 0L) {
+                SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(value))
+            } else "",
             onValueChange = {},
             label = { Text(stringResource(id = R.string.date_label)) },
+            placeholder = { Text(stringResource(id = R.string.choose_date)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             readOnly = true,
-            isError = error != null || internalError != null,
+            isError = error != null,
             enabled = enabled,
             supportingText = {
-                val errorMessage = error ?: internalError
-                if (errorMessage == null) {
-                    Text(stringResource(R.string.date_most_by_24_fn))
+                if (error != null) {
+                    Text(error, color = MaterialTheme.colorScheme.error)
                 } else {
-                    Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.choose_date))
                 }
             }
         )
@@ -564,25 +567,27 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enab
             DatePickerDialog(
                 onDismissRequest = { isDatePickerVisible.value = false },
                 confirmButton = {
-                    TextButton(
-                        onClick = {
-                            datePickerState.selectedDateMillis?.let { selectedMillis ->
-                                val diff = selectedMillis - currentTimeMillis
-                                if (diff >= 24 * 60 * 60 * 1000) {
-                                    onNewValue(Timestamp(Date(selectedMillis)))
-                                    internalError = null
-                                    isDatePickerVisible.value = false
-                                } else if (selectedMillis < currentTimeMillis) {
-                                    internalError =  context.getString(R.string.date_most_by_24_fn)
-                                    Toast.makeText(context, R.string.date_expiered, Toast.LENGTH_SHORT).show()
-                                } else {
-                                    internalError = context.getString(R.string.date_most_by_24_fn)
-                                }
-                            } ?: run {
-                                internalError = context.getString(R.string.you_most_select_date)
-                            }
+                    TextButton(onClick = {
+                        val selectedMillis = datePickerState.selectedDateMillis
+                        val startOfTodayMillis = Calendar.getInstance().apply {
+                            set(Calendar.HOUR_OF_DAY, 0)
+                            set(Calendar.MINUTE, 0)
+                            set(Calendar.SECOND, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }.timeInMillis
+
+                        if (selectedMillis == null || selectedMillis < startOfTodayMillis) {
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.date_cannot_be_in_past),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            val timestamp = Timestamp(Date(selectedMillis))
+                            onNewValue(timestamp)
+                            isDatePickerVisible.value = false
                         }
-                    ) {
+                    }) {
                         Text(stringResource(id = R.string.ok))
                     }
                 },
@@ -598,6 +603,8 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enab
     }
 }
 
+
+
 /**
  * Composable for selecting the start time of the activity.
  *
@@ -609,7 +616,12 @@ fun DateField(value: Long, onNewValue: (Timestamp) -> Unit, error: String?, enab
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?, enabled: Boolean) {
+fun StartTimeField(
+    value: String,
+    onNewValue: (String) -> Unit,
+    error: String?,
+    enabled: Boolean
+) {
     val isTimePickerVisible = remember { mutableStateOf(false) }
     val timePickerState = rememberTimePickerState()
 
@@ -617,8 +629,8 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?, 
         OutlinedTextField(
             value = value,
             onValueChange = {},
-            placeholder = { Text(stringResource(R.string.start_time_label)) },
-            label = { Text(stringResource(R.string.start_time_label))},
+            label = { Text(stringResource(id = R.string.start_time_label)) },
+            placeholder = { Text(stringResource(id = R.string.choose_activity_starttime)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
@@ -626,10 +638,10 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?, 
             isError = error != null,
             enabled = enabled,
             supportingText = {
-                if (error == null) {
-                    Text(stringResource(R.string.choose_activity_starttime))
+                if (error != null) {
+                    Text(error, color = MaterialTheme.colorScheme.error)
                 } else {
-                    Text(text = error, color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.choose_activity_starttime))
                 }
             }
         )
@@ -637,9 +649,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?, 
             modifier = Modifier
                 .matchParentSize()
                 .alpha(0f)
-                .clickable {
-                    isTimePickerVisible.value = true
-                }
+                .clickable { isTimePickerVisible.value = true }
         )
         if (isTimePickerVisible.value) {
             Dialog(onDismissRequest = { isTimePickerVisible.value = false }) {
@@ -648,10 +658,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?, 
                     tonalElevation = 8.dp
                 ) {
                     Column {
-                        TimePicker(
-                            state = timePickerState,
-                            colors = TimePickerDefaults.colors()
-                        )
+                        TimePicker(state = timePickerState)
                         Row(
                             modifier = Modifier.padding(8.dp),
                             horizontalArrangement = Arrangement.End
@@ -662,7 +669,8 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?, 
                             TextButton(onClick = {
                                 val hour = timePickerState.hour
                                 val minute = timePickerState.minute
-                                onNewValue(String.format("%02d:%02d", hour, minute))
+                                val newStartTime = String.format("%02d:%02d", hour, minute)
+                                onNewValue(newStartTime)
                                 isTimePickerVisible.value = false
                             }) {
                                 Text(stringResource(R.string.ok))
