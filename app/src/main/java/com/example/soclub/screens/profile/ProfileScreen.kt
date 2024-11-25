@@ -46,6 +46,10 @@ fun ProfileScreen(navController: NavHostController, viewModel: ProfileViewModel 
     val isLoading = viewModel.isLoading
     val isLoggingOut = viewModel.isLoggingOut
 
+    LaunchedEffect(Unit) {
+        viewModel.fetchUserInfo()
+    }
+
     if (isLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()

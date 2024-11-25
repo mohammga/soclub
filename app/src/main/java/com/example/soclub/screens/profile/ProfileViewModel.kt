@@ -61,7 +61,7 @@ class ProfileViewModel @Inject constructor(
      * Updates the `userInfo` state with the retrieved data and sets `isLoading` to `false` once the data is loaded.
      * If an error occurs, it silently fails and `isLoading` is still set to `false`.
      */
-    private fun fetchUserInfo() {
+    fun fetchUserInfo() {
         viewModelScope.launch {
             isLoading = true
             try {

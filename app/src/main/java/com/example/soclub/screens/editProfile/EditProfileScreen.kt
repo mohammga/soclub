@@ -404,6 +404,6 @@ fun SaveButton(onClick: () -> Unit, enabled: Boolean, isSaving: Boolean) {
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
         enabled = enabled
     ) {
-        Text(text = buttonText, color = MaterialTheme.colorScheme.onPrimary)
+        Text(text = buttonText)
     }
 }

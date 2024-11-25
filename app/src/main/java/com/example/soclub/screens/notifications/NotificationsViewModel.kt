@@ -34,7 +34,7 @@ class NotificationsViewModel @Inject constructor(
     /**
      * StateFlow containing the list of notifications.
      */
-    private val _notifications = MutableStateFlow<List<Notification>>(emptyList())
+    val _notifications = MutableStateFlow<List<Notification>>(emptyList())
     val notifications: StateFlow<List<Notification>> = _notifications
 
     /**
