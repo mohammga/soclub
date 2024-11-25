@@ -54,6 +54,7 @@ import androidx.core.content.ContextCompat
  * @param viewModel ViewModel containing the logic and state for the screen.
  * @param category The category of the activity being edited.
  */
+
 @Composable
 fun EditActivityScreen(
     navController: NavController,
@@ -63,6 +64,7 @@ fun EditActivityScreen(
 ) {
     val uiState by viewModel.uiState
     val isSaving by viewModel.isSaving
+    val isLoading by viewModel.isLoading
     LocalContext.current
 
     val locationSuggestions by remember { derivedStateOf { uiState.locationSuggestions } }
@@ -73,6 +75,16 @@ fun EditActivityScreen(
     LaunchedEffect(Unit) {
         viewModel.loadActivity(category, activityId)
     }
+
+    if (isLoading) {
+        // Display a loading indicator while data is loading
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+    } else {
 
     Column(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -227,6 +239,7 @@ fun EditActivityScreen(
                 onDismiss = { showDeleteDialog = false }
             )
         }
+    }
     }
 }
 
@@ -997,7 +1010,7 @@ fun SaveChangesButton(
     isSaving: Boolean
 ) {
     val buttonText = if (isSaving) {
-        stringResource(R.string.saving_changes_button)
+        stringResource(R.string.saving_changes_button) // Make sure this string says "endrer aktiviteten...."
     } else {
         stringResource(R.string.save_changes_button)
     }
@@ -1007,10 +1020,19 @@ fun SaveChangesButton(
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp),
-        enabled = enabled
+        enabled = enabled && !isSaving // Disable the button when saving
     ) {
+        if (isSaving) {
+            CircularProgressIndicator(
+                color = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier
+                    .size(20.dp)
+                    .padding(end = 8.dp)
+            )
+        }
         Text(text = buttonText)
     }
 }
+
 
 

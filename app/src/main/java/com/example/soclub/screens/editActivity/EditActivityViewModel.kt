@@ -16,6 +16,7 @@ import com.example.soclub.service.StorageService
 import com.example.soclub.utils.cancelNotificationForActivity
 import com.google.firebase.Timestamp
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -104,6 +105,8 @@ class EditActivityViewModel @Inject constructor(
     var isSaving = mutableStateOf(false)
         private set
 
+    var isLoading = mutableStateOf(true)
+        private set
 
     var uiState = mutableStateOf(EditActivityState())
         private set
@@ -136,6 +139,8 @@ class EditActivityViewModel @Inject constructor(
      */
     fun loadActivity(category: String, activityId: String) {
         viewModelScope.launch {
+            isLoading.value = true
+            val startTime = System.currentTimeMillis()
             try {
                 val activity = activityService.getActivityById(category, activityId)
                 if (activity != null) {
@@ -146,6 +151,13 @@ class EditActivityViewModel @Inject constructor(
                     val postalCode = addressParts.getOrNull(1)?.trim() ?: ""
                     val isLocationConfirmed = location.isNotBlank()
                     val isAddressConfirmed = address.isNotBlank()
+
+
+                    val elapsedTime = System.currentTimeMillis() - startTime
+                    val remainingTime = 1000L - elapsedTime
+                    if (remainingTime > 0) {
+                        delay(remainingTime)
+                    }
 
                     uiState.value = uiState.value.copy(
                         title = activity.title,
@@ -170,6 +182,9 @@ class EditActivityViewModel @Inject constructor(
             } catch (e: Exception) {
                 uiState.value = uiState.value.copy(errorMessage = R.string.error_creating_activity)
                 Log.e("EditActivityViewModel", "Error loading activity: ${e.message}")
+
+            }finally {
+                isLoading.value = false
             }
         }
     }
