@@ -68,7 +68,6 @@ fun NewActivityScreen(
                 ImageUploadSection(
                     selectedImageUri = uiState.selectedImageUri,
                     onImageSelected = viewModel::onImageSelected,
-                    enabled = !isPublishing
                 )
             }
 
@@ -755,14 +754,12 @@ fun AgeLimitField(value: String, onNewValue: (String) -> Unit, error: String?, e
  * @param selectedImageUri The URI of the currently selected image.
  * @param onImageSelected Lambda to handle image selection.
  * @param error An optional error message for validation.
- * @param enabled Flag to enable or disable the image upload section.
  */
 @Composable
 fun ImageUploadSection(
     selectedImageUri: Uri?,
     onImageSelected: (Uri?) -> Unit,
     error: String? = null,
-    enabled: Boolean
 ) {
     val context = LocalContext.current
 

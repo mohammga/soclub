@@ -443,7 +443,6 @@ class EditActivityViewModel @Inject constructor(
         var dateError: String? = null
         var startTimeError: String? = null
 
-        // Validering for Title
         if (uiState.value.title.isBlank()) {
             titleError = application.getString(R.string.title_must_be_filled_error)
             hasError = true
@@ -452,7 +451,6 @@ class EditActivityViewModel @Inject constructor(
             hasError = true
         }
 
-        // Validering for Description
         if (uiState.value.description.isBlank()) {
             descriptionError = application.getString(R.string.error_description_required)
             hasError = true
@@ -461,7 +459,6 @@ class EditActivityViewModel @Inject constructor(
             hasError = true
         }
 
-        // Validering for Category
         if (uiState.value.category.isBlank()) {
             categoryError = application.getString(R.string.error_category_required)
             hasError = true
@@ -470,25 +467,21 @@ class EditActivityViewModel @Inject constructor(
             hasError = true
         }
 
-        // Validering for Location
         if (uiState.value.location.isBlank()) {
             locationError = application.getString(R.string.you_most_select_location)
             hasError = true
         }
 
-        // Validering for Address
         if (uiState.value.address.isBlank()) {
             addressError = application.getString(R.string.you_most_select_address)
             hasError = true
         }
 
-        // Validering for Postal Code
         if (uiState.value.postalCode.isBlank()) {
             postalCodeError = application.getString(R.string.you_most_select_postalCode)
             hasError = true
         }
 
-        // Validering for Max Participants
         if (uiState.value.maxParticipants.isBlank()) {
             maxParticipantsError = application.getString(R.string.maxParticipants_must_be_filled_error)
             hasError = true
@@ -497,7 +490,6 @@ class EditActivityViewModel @Inject constructor(
             hasError = true
         }
 
-        // Validering for Age Limit
         if (uiState.value.ageLimit.isBlank()) {
             ageLimitError = application.getString(R.string.ageLimit_must_be_filled_error)
             hasError = true
@@ -506,25 +498,20 @@ class EditActivityViewModel @Inject constructor(
             hasError = true
         }
 
-        // 2. Validering for Dato og Starttid
-
         val selectedDateMillis = uiState.value.date?.toDate()?.time ?: 0L
         val isDateSet = selectedDateMillis != 0L
         val isTimeSet = uiState.value.startTime.isNotBlank()
 
-        // Validering for Dato
         if (!isDateSet) {
             dateError = application.getString(R.string.error_date_required)
             hasError = true
         }
 
-        // Validering for Starttid
         if (!isTimeSet) {
             startTimeError = application.getString(R.string.error_start_time_required)
             hasError = true
         }
 
-        // Kombinert Validering hvis begge er satt
         if (isDateSet && isTimeSet) {
             if (!isValidCombinedDateTime(uiState.value.date, uiState.value.startTime)) {
                 val combinedErrorMsg = application.getString(R.string.invalid_combined_datetime)
@@ -533,7 +520,6 @@ class EditActivityViewModel @Inject constructor(
                 hasError = true
             }
         }
-        // Oppdater UI-state med eventuelle feil
         uiState.value = uiState.value.copy(
             titleError = titleError,
             descriptionError = descriptionError,
@@ -559,7 +545,6 @@ class EditActivityViewModel @Inject constructor(
      */
     fun onSaveClick(navController: NavController, activityId: String, currentCategory: String) {
         if (validateInputs()) {
-            // Det er valideringsfeil, avbryt lagring
             return
         }
 
@@ -658,7 +643,6 @@ class EditActivityViewModel @Inject constructor(
                 activityService.updateActivity(oldCategoryValue, uiState.value.category, activityId, updatedActivity)
                 isSaving.value = false
 
-                // Tilbakestill UI-state hvis nødvendig
                 uiState.value = uiState.value.copy()
 
                 navController.navigate("home") {

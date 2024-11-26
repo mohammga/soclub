@@ -1,11 +1,3 @@
-plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("com.google.gms.google-services")
-    id("com.google.devtools.ksp")
-    id("dagger.hilt.android.plugin")
-}
-
 android {
     namespace = "com.example.soclub"
     compileSdk = 35
@@ -109,4 +101,12 @@ dependencies {
     implementation (libs.github.glide)
     implementation (libs.compose)
     annotationProcessor (libs.compiler)
+}
+
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("com.google.gms.google-services")
+    id("com.google.devtools.ksp")
+    id("dagger.hilt.android.plugin")
 }

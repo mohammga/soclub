@@ -117,7 +117,6 @@ class HomeViewModel @Inject constructor(
     fun fetchUserLocation() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                // Sjekk om tillatelsen er gitt
                 val context = getApplication<Application>().applicationContext
                 val hasLocationPermission = ContextCompat.checkSelfPermission(
                     context,
@@ -130,7 +129,6 @@ class HomeViewModel @Inject constructor(
                     return@launch
                 }
 
-                // Forsøk å hente plasseringen
                 val location: Location? = try {
                     fusedLocationClient.lastLocation.await()
                 } catch (e: SecurityException) {
@@ -138,8 +136,6 @@ class HomeViewModel @Inject constructor(
                     _hasLocationPermission.postValue(false)
                     return@launch
                 }
-
-                // Oppdater LiveData basert på resultatet
                 _hasLocationPermission.postValue(location != null)
                 location?.let {
                     val city = getCityFromLocation(it)
@@ -241,7 +237,6 @@ class HomeViewModel @Inject constructor(
         val geocoder = Geocoder(getApplication<Application>().applicationContext, Locale.getDefault())
 
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            // Bruk GeocodeListener for API 33 og nyere
             suspendCancellableCoroutine { cont ->
                 try {
                     geocoder.getFromLocation(
@@ -266,7 +261,6 @@ class HomeViewModel @Inject constructor(
                 }
             }
         } else {
-            // Bruk synkron metode på en bakgrunnstråd for API < 33
             withContext(Dispatchers.IO) {
                 try {
                     val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
@@ -363,7 +357,6 @@ class HomeViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                // Sjekk om lokasjonstillatelse er gitt
                 val context = getApplication<Application>().applicationContext
                 val hasLocationPermission = ContextCompat.checkSelfPermission(
                     context,
@@ -376,7 +369,6 @@ class HomeViewModel @Inject constructor(
                     return@launch
                 }
 
-                // Forsøk å hente brukerens plassering
                 val userLocation = try {
                     fusedLocationClient.lastLocation.await()
                 } catch (e: SecurityException) {
@@ -391,7 +383,6 @@ class HomeViewModel @Inject constructor(
                     return@launch
                 }
 
-                // Lytt etter aktiviteter og finn nærmeste
                 nearestActivitiesListener = activityService.listenForActivities { allActivities ->
                     viewModelScope.launch {
                         val currentDateTime = Calendar.getInstance().time

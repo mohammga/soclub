@@ -65,7 +65,7 @@ class ResetPasswordViewModelTest {
 
     @Test
     fun `onForgotPasswordClick shows error when email reset fails`() = runTest {
-        coEvery { mockAccountService.sendPasswordResetEmail(any(), any()) } answers {
+        coEvery { mockAccountService.sendPasswordResetEmail(any()) } answers {
             val callback = secondArg<(String?) -> Unit>()
             callback.invoke("Error")
         }
@@ -81,7 +81,7 @@ class ResetPasswordViewModelTest {
 
     @Test
     fun `onForgotPasswordClick handles exceptions gracefully`() = runTest {
-        coEvery { mockAccountService.sendPasswordResetEmail(any(), any()) } throws RuntimeException("Exception occurred")
+        coEvery { mockAccountService.sendPasswordResetEmail(any()) } throws RuntimeException("Exception occurred")
 
         viewModel.onEmailChange("test@example.com")
         viewModel.onForgotPasswordClick(mockContext)

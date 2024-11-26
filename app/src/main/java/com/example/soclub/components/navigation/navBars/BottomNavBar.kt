@@ -38,7 +38,7 @@ val shortcuts = listOf(
 fun BottomNavBar(
     navController: NavController,
     currentScreen: String,
-    notificationCount: Int // New parameter
+    notificationCount: Int
 ) {
     val profileScreens = setOf(
         AppScreens.PROFILE.name,
@@ -59,7 +59,6 @@ fun BottomNavBar(
             NavigationBarItem(
                 icon = {
                     if (shortcut.route == AppScreens.NOTIFICATIONS && notificationCount > 0) {
-                        // Show badge with the notification count on the Notifications icon
                         BadgedBox(badge = { Badge { Text(notificationCount.toString()) } }) {
                             Icon(shortcut.icon, contentDescription = stringResource(shortcut.label))
                         }

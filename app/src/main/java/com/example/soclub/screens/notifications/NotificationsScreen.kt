@@ -35,7 +35,7 @@ fun NotificationsScreen(
     val notifications by viewModel.notifications.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
-    val context = LocalContext.current // Get the context
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.loadNotifications(context)

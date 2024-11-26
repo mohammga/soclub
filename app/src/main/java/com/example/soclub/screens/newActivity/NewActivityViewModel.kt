@@ -33,7 +33,7 @@ data class NewActivityState(
     val maxParticipants: String = "",
     val ageLimit: String = "",
     val imageUrl: String = "",
-    val date: Timestamp? = null, // Changed from Timestamp.now() to null
+    val date: Timestamp? = null,
     val startTime: String = "",
     val errorMessage: Int? = null,
     val locationSuggestions: List<String> = emptyList(),
@@ -303,7 +303,6 @@ class NewActivityViewModel @Inject constructor(
         var dateError: String? = null
         var startTimeError: String? = null
 
-        // Validering for Tittel
         if (uiState.value.title.isBlank()) {
             titleError = application.getString(R.string.title_must_be_filled_error)
             hasError = true
@@ -312,7 +311,6 @@ class NewActivityViewModel @Inject constructor(
             hasError = true
         }
 
-        // Validering for Beskrivelse
         if (uiState.value.description.isBlank()) {
             descriptionError = application.getString(R.string.error_description_required)
             hasError = true
@@ -321,7 +319,6 @@ class NewActivityViewModel @Inject constructor(
             hasError = true
         }
 
-        // Validering for Kategori
         if (uiState.value.category.isBlank()) {
             categoryError = application.getString(R.string.error_category_required)
             hasError = true
@@ -330,25 +327,21 @@ class NewActivityViewModel @Inject constructor(
             hasError = true
         }
 
-        // Validering for Lokasjon
         if (uiState.value.location.isBlank()) {
             locationError = application.getString(R.string.error_location_required)
             hasError = true
         }
 
-        // Validering for Adresse
         if (uiState.value.address.isBlank()) {
             addressError = application.getString(R.string.error_address_required)
             hasError = true
         }
 
-        // Validering for Postnummer
         if (uiState.value.postalCode.isBlank()) {
             postalCodeError = application.getString(R.string.error_postal_code_required)
             hasError = true
         }
 
-        // Validering for Maks Deltakere
         if (uiState.value.maxParticipants.isBlank()) {
             maxParticipantsError = application.getString(R.string.error_max_participants_required)
             hasError = true
@@ -357,7 +350,6 @@ class NewActivityViewModel @Inject constructor(
             hasError = true
         }
 
-        // Validering for Aldersgrense
         if (uiState.value.ageLimit.isBlank()) {
             ageLimitError = application.getString(R.string.ageLimit_must_be_filled_error)
             hasError = true
@@ -366,25 +358,20 @@ class NewActivityViewModel @Inject constructor(
             hasError = true
         }
 
-        // 2. Validering for Dato og Starttid
-
         val selectedDateMillis = uiState.value.date?.toDate()?.time ?: 0L
         val isDateSet = selectedDateMillis != 0L
         val isTimeSet = uiState.value.startTime.isNotBlank()
 
-        // Validering for Dato
         if (!isDateSet) {
             dateError = application.getString(R.string.error_date_required)
             hasError = true
         }
 
-        // Validering for Starttid
         if (!isTimeSet) {
             startTimeError = application.getString(R.string.error_start_time_required)
             hasError = true
         }
 
-        // Kombinert Validering hvis begge er satt
         if (isDateSet && isTimeSet) {
             if (!isValidCombinedDateTime(uiState.value.date, uiState.value.startTime)) {
                 val combinedErrorMsg = application.getString(R.string.invalid_combined_datetime)
@@ -393,8 +380,6 @@ class NewActivityViewModel @Inject constructor(
                 hasError = true
             }
         }
-
-        // 3. Oppdater UI State med Feilmeldinger
 
         uiState.value = uiState.value.copy(
             titleError = titleError,
@@ -413,8 +398,6 @@ class NewActivityViewModel @Inject constructor(
     }
 
 
-
-
     /**
      * Handles the publish action, validates inputs, and publishes the activity.
      *
@@ -422,7 +405,6 @@ class NewActivityViewModel @Inject constructor(
      */
     fun onPublishClick(navController: NavController) {
         if (validateInputs()) {
-            // Det er valideringsfeil, avbryt publisering
             return
         }
 

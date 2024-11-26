@@ -52,7 +52,7 @@ class LocationServiceImpl @Inject constructor(
     ): Flow<List<String>> = flow {
         val url = buildString {
             append("https://ws.geonorge.no/adresser/v1/sok")
-            append("?fuzzy=true") // Aktiver fuzzy søk
+            append("?fuzzy=true")
             append("&adressenavn=$streetName")
             if (!houseNumber.isNullOrEmpty()) append("&nummer=$houseNumber")
             append("&kommunenavn=$municipality")

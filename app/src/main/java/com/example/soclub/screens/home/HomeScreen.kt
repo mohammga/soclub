@@ -1,5 +1,6 @@
 package com.example.soclub.screens.home
 
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,10 +39,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
-import com.example.soclub.utils.isLandscape
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
+import androidx.compose.ui.platform.LocalConfiguration
 
 /**
  * Main composable function for the Home Screen.
@@ -139,7 +140,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
     if (showBottomSheet) {
         FilterBottomSheet(
-            showBottomSheet = showBottomSheet,
+            showBottomSheet = true,
             selectedCities = selectedCities,
             cities = cities,
             onDismissRequest = { showBottomSheet = false },
@@ -271,7 +272,6 @@ fun CategoryActivitiesPager(
                 }
             } else if (activitiesToShow.isNotEmpty()) {
                 if (isNearestActivitiesSelected) {
-                    // Bruk grid-designen for "Nærme Aktiviteter"
                     ActivityList(
                         activities = activitiesToShow,
                         selectedCategory = selectedCategory,
@@ -279,7 +279,6 @@ fun CategoryActivitiesPager(
                         useStaggeredGrid = true
                     )
                 } else {
-                    // Bruk standard design for andre kategorier
                     ActivityList(
                         activities = activitiesToShow,
                         selectedCategory = selectedCategory,
@@ -316,16 +315,15 @@ fun ActivityList(
     useStaggeredGrid: Boolean
 ) {
     if (useStaggeredGrid) {
-        // Bruk LazyVerticalStaggeredGrid
         LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Fixed(2), // To kolonner
+            columns = StaggeredGridCells.Fixed(2),
             verticalItemSpacing = 16.dp,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
             modifier = Modifier.fillMaxSize()
         ) {
             itemsIndexed(activities) { index, activity ->
-                val height = calculateHeightBasedOnIndex(index) // Dynamisk høyde basert på indeks
+                val height = calculateHeightBasedOnIndex(index)
                 ActivityItemWithDynamicHeight(
                     activity = activity,
                     height = height
@@ -365,11 +363,11 @@ fun ActivityList(
  */
 fun calculateHeightBasedOnIndex(index: Int): Dp {
     return when (index % 4) {
-        0 -> 200.dp // Liten
-        1 -> 350.dp // Stor
-        2 -> 350.dp // Stor
-        3 -> 200.dp // Liten
-        else -> 200.dp // Standard fallback
+        0 -> 200.dp
+        1 -> 350.dp
+        2 -> 350.dp
+        3 -> 200.dp
+        else -> 200.dp
     }
 }
 
@@ -381,7 +379,7 @@ fun ActivityItemWithDynamicHeight(activity: Activity, height: Dp, onClick: () ->
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(height) // Dynamisk høyde
+            .height(height)
             .clip(RoundedCornerShape(16.dp))
             .clickable { onClick() }
     ) {
@@ -699,3 +697,15 @@ fun FilterBottomSheet(
         }
     }
 }
+
+/**
+ * Determines if the device is in landscape orientation.
+ *
+ * @return True if the orientation is landscape, false otherwise.
+ */
+@Composable
+fun isLandscape(): Boolean {
+    return LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+}
+
+

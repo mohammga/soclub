@@ -84,7 +84,7 @@ class ChangePasswordViewModelTest {
         viewModel.onNewPasswordChange("ValidPassword1")
         viewModel.onConfirmPasswordChange("ValidPassword1")
 
-        coEvery { mockAccountService.changePassword(any(), any(), captureLambda()) } answers {
+        coEvery { mockAccountService.changePassword(any(), any()) } answers {
             lambda<(String?) -> Unit>().invoke("Error") // Simulerer feil fra AccountService
         }
 
@@ -92,7 +92,7 @@ class ChangePasswordViewModelTest {
 
         advanceUntilIdle()
 
-        coVerify { mockAccountService.changePassword("OldPassword", "ValidPassword1", any()) }
+        coVerify { mockAccountService.changePassword("OldPassword", "ValidPassword1") }
         assertEquals(R.string.error_could_not_change_password, viewModel.uiState.value.generalError)
         assertTrue(viewModel.isProcessing.value.not())
     }

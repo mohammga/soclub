@@ -183,7 +183,7 @@ fun DateDisplay(date: Timestamp?, time: String?) {
         val sdf = SimpleDateFormat("EEEE, d. MMMM yyyy", Locale("no", "NO"))
         val dateStr = sdf.format(it.toDate())
         dateStr.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-    } ?: stringResource(id = R.string.unknown_date)//"Ukjent dato"
+    } ?: stringResource(id = R.string.unknown_date)
 
     val displayText = if (time != null) {
         "$formattedDateTime, $time"

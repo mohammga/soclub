@@ -1,7 +1,5 @@
 package com.example.soclub.common.ext
 
-import java.util.Date
-
 private const val MIN_TITLE_LENGTH = 3
 private const val MAX_TITLE_LENGTH = 50
 private const val MIN_PASS_LENGTH = 8
@@ -60,15 +58,4 @@ fun String.isValidMaxParticipants(): Boolean {
 fun String.isValidAgeLimit(): Boolean {
     val age = this.toIntOrNull()
     return age != null && age in 16..100
-}
-
-fun String.isValidStartTime(): Boolean {
-    return Regex("^([01]\\d|2[0-3]):([0-5]\\d)$").matches(this)
-}
-
-fun Long.isValidDate(): Boolean {
-    val selectedDate = Date(this)
-    val currentDate = Date()
-    val diff = selectedDate.time - currentDate.time
-    return diff >= 24 * 60 * 60 * 1000 // minst 24 timer fram i tid
 }

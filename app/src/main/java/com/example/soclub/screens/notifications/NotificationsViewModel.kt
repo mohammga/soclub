@@ -33,7 +33,7 @@ import javax.inject.Inject
 @HiltViewModel
 class NotificationsViewModel @Inject constructor(
     private val notificationService: NotificationService,
-    private val firebaseAuth: FirebaseAuth // Inject FirebaseAuth
+    private val firebaseAuth: FirebaseAuth
 ) : ViewModel() {
 
     /**
@@ -77,22 +77,17 @@ class NotificationsViewModel @Inject constructor(
      * Initializes the ViewModel by setting up the AuthStateListener.
      */
     init {
-        // Initialize the auth state listener
         authStateListener = FirebaseAuth.AuthStateListener { auth ->
             val user = auth.currentUser
             if (user != null) {
-                // User is logged in
                 startListeningToNotifications()
             } else {
-                // User is logged out
                 stopListeningToNotifications()
                 _notifications.value = emptyList()
             }
         }
-        // Add the listener to FirebaseAuth
         firebaseAuth.addAuthStateListener(authStateListener!!)
 
-        // Check initial auth state
         if (firebaseAuth.currentUser != null) {
             startListeningToNotifications()
         } else {

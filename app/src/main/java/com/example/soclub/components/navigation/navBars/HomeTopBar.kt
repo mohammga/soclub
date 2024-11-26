@@ -14,8 +14,8 @@ fun HomeTopBar(
 ) {
     TopAppBar(title = {
         Text(
-            text = title,  // Use the title parameter
-            textAlign = TextAlign.Start,  // Align title to the start (left)
+            text = title,
+            textAlign = TextAlign.Start,
             fontWeight = FontWeight.Bold,
         )
     })

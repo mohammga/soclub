@@ -17,14 +17,14 @@ import androidx.navigation.compose.rememberNavController
 @Composable
 fun TopBar(
     navController: NavController,
-    title: String,  // New parameter to accept a title
-    showBackButton: Boolean = true,  // Parameter to show or hide the back button
+    title: String,
+    showBackButton: Boolean = true,
     route: String? = null
 ) {
     CenterAlignedTopAppBar(
         title = {
             Text(
-                text = title,  // Use the title parameter
+                text = title,
                 textAlign = TextAlign.Center
             )
         },
@@ -50,11 +50,11 @@ fun TopBar(
 @Preview
 @Composable
 fun TopBarPreview() {
-    TopBar(rememberNavController(), title = "Preview Title", showBackButton = true)  // Preview with back button
+    TopBar(rememberNavController(), title = "Preview Title", showBackButton = true)
 }
 
 @Preview
 @Composable
 fun TopBarTextOnlyPreview() {
-    TopBar(rememberNavController(), title = "Preview Title", showBackButton = false)  // Preview without back button
+    TopBar(rememberNavController(), title = "Preview Title", showBackButton = false)
 }

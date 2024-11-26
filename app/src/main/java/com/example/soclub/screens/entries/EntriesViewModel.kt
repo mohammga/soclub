@@ -35,22 +35,18 @@ class EntriesScreenViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
-    // Flow for aktive aktiviteter
     private val _activeActivities = MutableStateFlow<List<Activity>>(emptyList())
     val activeActivities: StateFlow<List<Activity>> = _activeActivities
 
-    // Flow for inaktive aktiviteter
     private val _notActiveActivities = MutableStateFlow<List<Activity>>(emptyList())
     val notActiveActivities: StateFlow<List<Activity>> = _notActiveActivities
 
-    // Lastestatus for aktive og inaktive aktiviteter
     private val _isLoadingActive = MutableStateFlow(false)
     val isLoadingActive: StateFlow<Boolean> = _isLoadingActive
 
     private val _isLoadingInactive = MutableStateFlow(false)
     val isLoadingInactive: StateFlow<Boolean> = _isLoadingInactive
 
-    // Status for kanselleringsprosess
     private val _isProcessingCancellation = MutableStateFlow<String?>(null)
     val isProcessingCancellation: StateFlow<String?> = _isProcessingCancellation
 
@@ -59,14 +55,12 @@ class EntriesScreenViewModel @Inject constructor(
         listenForNotActiveActivityUpdates()
     }
 
-    // Henter aktive aktiviteter
     private fun listenForActivityUpdates() {
         val userId = accountService.currentUserId
         if (userId.isNotEmpty()) {
             viewModelScope.launch {
                 _isLoadingActive.value = true
                 entriesService.getActiveActivitiesForUser(userId) { activities ->
-                    // Oppdater listen med unike aktiviteter
                     _activeActivities.value = activities
                         .distinctBy { it.id }
                         .sortedByDescending { it.createdAt }
@@ -76,14 +70,12 @@ class EntriesScreenViewModel @Inject constructor(
         }
     }
 
-    // Henter kansellerte aktiviteter
     private fun listenForNotActiveActivityUpdates() {
         val userId = accountService.currentUserId
         if (userId.isNotEmpty()) {
             viewModelScope.launch {
                 _isLoadingInactive.value = true
                 entriesService.getNotActiveActivitiesForUser(userId) { activities ->
-                    // Oppdater listen med unike aktiviteter
                     _notActiveActivities.value = activities
                         .distinctBy { it.id }
                         .sortedByDescending { it.createdAt }
@@ -93,7 +85,6 @@ class EntriesScreenViewModel @Inject constructor(
         }
     }
 
-    // Kansellerer en aktivitet
     fun cancelRegistration(activityId: String) {
         viewModelScope.launch {
             _isProcessingCancellation.value = activityId
@@ -103,23 +94,20 @@ class EntriesScreenViewModel @Inject constructor(
             val activityTitle = activity?.title ?: defaultActivityTitle
 
             val statusNotActive = context.getString(R.string.status_not_active)
-            val category = activity?.category // Get 'category' from the activity
+            val category = activity?.category
 
             if (category != null) {
                 val success = activityDetailService.updateRegistrationStatus(userId, activityId, category, statusNotActive)
                 if (success) {
-                // Fjern fra aktive aktiviteter
                 val cancelledActivity = _activeActivities.value.find { it.id == activityId }
                 _activeActivities.value = _activeActivities.value.filter { it.id != activityId }
 
-                // Legg til i inaktive aktiviteter
                 if (cancelledActivity != null) {
                     _notActiveActivities.value = (_notActiveActivities.value + cancelledActivity)
-                        .distinctBy { it.id } // Sørg for ingen duplikater
+                        .distinctBy { it.id }
                         .sortedByDescending { it.createdAt }
                 }
 
-                // Avbryt varslinger og oppdater bruker
                 scheduleReminder(
                     context = context,
                     reminderTime = System.currentTimeMillis(),

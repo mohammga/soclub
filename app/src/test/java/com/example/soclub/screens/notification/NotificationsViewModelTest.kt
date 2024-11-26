@@ -1,11 +1,11 @@
 package com.example.soclub.screens.notification
 
 import android.content.Context
-import android.widget.Toast
 import com.example.soclub.R
 import com.example.soclub.models.Notification
 import com.example.soclub.screens.notifications.NotificationsViewModel
 import com.example.soclub.service.NotificationService
+import com.google.firebase.auth.FirebaseAuth
 import io.mockk.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -21,6 +21,7 @@ class NotificationsViewModelTest {
 
     private val mockNotificationService = mockk<NotificationService>()
     private val mockContext = mockk<Context>(relaxed = true)
+    private val mockFirebaseAuth = mockk<FirebaseAuth>(relaxed = true)
     private val testDispatcher = StandardTestDispatcher()
 
     private lateinit var viewModel: NotificationsViewModel
@@ -32,7 +33,8 @@ class NotificationsViewModelTest {
         // Mock the getNotificationsStream() method
         every { mockNotificationService.getNotificationsStream() } returns flowOf(emptyList())
 
-        viewModel = NotificationsViewModel(mockNotificationService)
+        // Initialize the ViewModel with mockFirebaseAuth
+        viewModel = NotificationsViewModel(mockNotificationService, mockFirebaseAuth)
     }
 
     @After
@@ -48,7 +50,7 @@ class NotificationsViewModelTest {
         )
         every { mockNotificationService.getNotificationsStream() } returns flowOf(mockNotifications)
 
-        viewModel = NotificationsViewModel(mockNotificationService)
+        viewModel = NotificationsViewModel(mockNotificationService, mockFirebaseAuth)
 
         advanceUntilIdle()
 
@@ -87,5 +89,4 @@ class NotificationsViewModelTest {
         assertEquals(false, viewModel.isLoading.value)
         assertEquals("Error loading notifications", viewModel.errorMessage.value)
     }
-
 }

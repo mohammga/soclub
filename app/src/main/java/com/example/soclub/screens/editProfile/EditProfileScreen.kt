@@ -277,7 +277,6 @@ fun ImageUploadSection(
                     contentScale = ContentScale.Crop
                 )
             } else {
-                // Vis standardbilde når imageUri er null
                 Image(
                     painter = painterResource(id = R.drawable.user),
                     contentDescription = stringResource(id = R.string.profile_picture_description),

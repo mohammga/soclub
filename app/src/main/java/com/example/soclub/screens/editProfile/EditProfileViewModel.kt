@@ -129,25 +129,18 @@ class EditProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val imageUrl = if (imageUri != null && imageUri.toString().startsWith("content://")) {
-                    // Upload image and get URL
                     storageService.uploadImageSuspend(imageUri)
                 } else {
                     imageUri?.toString().orEmpty()
                 }
-
-                // Update profile information
                 accountService.updateProfile(firstname, lastname, imageUrl)
 
-                // Notify success
                 Toast.makeText(context, R.string.profile_han_been_changed, Toast.LENGTH_SHORT).show()
 
-                // Navigate after a short delay
                 delay(2000)
                 navController.navigate("profile") {
                     popUpTo("edit_profile") { inclusive = true }
                 }
-
-                // Reset isSaving
                 isSaving.value = false
             } catch (e: Exception) {
                 isSaving.value = false

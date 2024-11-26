@@ -107,7 +107,7 @@ class SignupViewModelTest {
 
     private fun mockSuccessfulSignUp() {
         coEvery {
-            mockAccountService.createEmailAccount(any(), any(), any(), any(), any(), any())
+            mockAccountService.createEmailAccount(any(), any(), any(), any(), any())
         } answers {
             val callback = lastArg<(String?) -> Unit>()
             callback.invoke(null) // Simulate success

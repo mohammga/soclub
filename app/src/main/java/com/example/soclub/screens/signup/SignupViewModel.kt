@@ -64,7 +64,7 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
     /**
      * Indicates whether a registration operation is currently in progress.
      */
-    var isLoading = mutableStateOf(false) // New state to track registration status
+    var isLoading = mutableStateOf(false)
         private set
 
     /**

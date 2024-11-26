@@ -135,8 +135,8 @@ override suspend fun authenticateWithEmail(
 
         try {
             val credential = EmailAuthProvider.getCredential(user.email!!, oldPassword)
-            user.reauthenticate(credential).await() // Verify old password
-            user.updatePassword(newPassword).await() // Update to new password
+            user.reauthenticate(credential).await()
+            user.updatePassword(newPassword).await()
         } catch (e: Exception) {
             throw Exception(context.getString(R.string.error_password_change_failed, e.message), e)
         }

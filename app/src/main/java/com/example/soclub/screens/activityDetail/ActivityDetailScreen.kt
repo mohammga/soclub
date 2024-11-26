@@ -516,7 +516,6 @@ fun PublisherInfo(publisherUser: UserInfo?, createdAt: Timestamp?) {
                     .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(8.dp))
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Circular image
                     val painter = if (publisherUser.imageUrl.isNotEmpty()) {
                         rememberAsyncImagePainter(publisherUser.imageUrl)
                     } else {

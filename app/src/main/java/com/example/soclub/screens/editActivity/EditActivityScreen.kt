@@ -77,7 +77,6 @@ fun EditActivityScreen(
     }
 
     if (isLoading) {
-        // Display a loading indicator while data is loading
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -1019,7 +1018,7 @@ fun SaveChangesButton(
     isSaving: Boolean
 ) {
     val buttonText = if (isSaving) {
-        stringResource(R.string.saving_changes_button) // Make sure this string says "endrer aktiviteten...."
+        stringResource(R.string.saving_changes_button)
     } else {
         stringResource(R.string.save_changes_button)
     }
@@ -1029,7 +1028,7 @@ fun SaveChangesButton(
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp),
-        enabled = enabled && !isSaving // Disable the button when saving
+        enabled = enabled && !isSaving
     ) {
         if (isSaving) {
             CircularProgressIndicator(
