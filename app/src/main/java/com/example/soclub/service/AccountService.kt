@@ -57,7 +57,6 @@ interface AccountService {
      * @param firstname The user's first name.
      * @param lastname The user's last name.
      * @param age The user's age.
-     * @param onResult A callback invoked upon completion.
      *
      * Passes `null` if account creation is successful, or a [Throwable] if an error occurs.
      */
@@ -66,8 +65,7 @@ interface AccountService {
         password: String,
         firstname: String,
         lastname: String,
-        age: Int,
-        onResult: (Throwable?) -> Unit
+        age: Int
     )
 
     /**
@@ -91,13 +89,10 @@ interface AccountService {
      * Sends a password reset email to the specified email address.
      *
      * @param email The email address to send the reset link to.
-     * @param onResult A callback invoked upon completion.
      *
-     * Passes `null` if the email was sent successfully, or a [Throwable] if an error occurs.
      */
     suspend fun sendPasswordResetEmail(
-        email: String,
-        onResult: (Throwable?) -> Unit
+        email: String
     )
 
     /**
@@ -113,19 +108,15 @@ interface AccountService {
         lastname: String,
         imageUrl: String,
     )
-
     /**
      * Changes the password of the currently authenticated user.
      *
      * @param oldPassword The user's current password.
      * @param newPassword The user's new desired password.
-     * @param onResult A callback invoked upon completion.
      *
-     * Passes `null` if the password change is successful, or a [Throwable] if an error occurs.
      */
     suspend fun changePassword(
         oldPassword: String,
         newPassword: String,
-        onResult: (Throwable?) -> Unit
     )
 }

@@ -137,6 +137,7 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
      * @param navController [NavController] used for navigation.
      * @param context [Context] used for displaying Toast messages.
      */
+
     fun onSignUpClick(navController: NavController, context: Context) {
         var hasError = false
         var firstNameError: Int? = null
@@ -144,6 +145,7 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
         var ageError: Int? = null
         var emailError: Int? = null
         var passwordError: Int? = null
+
         if (uiState.value.firstname.isBlank()) {
             firstNameError = R.string.error_first_name_required
             hasError = true
@@ -219,25 +221,18 @@ class SignupViewModel @Inject constructor(private val accountService: AccountSer
                     uiState.value.firstname,
                     uiState.value.lastname,
                     convertedAge
-                ) { error ->
-                    isLoading.value = false
-
-                    if (error == null) {
-                        Toast.makeText(
-                            context,
-                            context.getString(
-                                R.string.registration_success_login,
-                                uiState.value.email
-                            ),
-                            Toast.LENGTH_LONG
-                        ).show()
-                        uiState.value = RegistrationNewUserState()
-                        navController.navigate(AppScreens.HOME.name)
-                    } else {
-                        uiState.value =
-                            uiState.value.copy(generalError = R.string.error_account_creation)
-                    }
-                }
+                )
+                isLoading.value = false
+                Toast.makeText(
+                    context,
+                    context.getString(
+                        R.string.registration_success_login,
+                        uiState.value.email
+                    ),
+                    Toast.LENGTH_LONG
+                ).show()
+                uiState.value = RegistrationNewUserState()
+                navController.navigate(AppScreens.HOME.name)
             } catch (e: Exception) {
                 isLoading.value = false
                 uiState.value = uiState.value.copy(generalError = R.string.error_account_creation)

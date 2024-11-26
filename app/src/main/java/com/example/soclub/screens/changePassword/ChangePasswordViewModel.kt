@@ -133,7 +133,6 @@ class ChangePasswordViewModel @Inject constructor(
             oldPasswordError = R.string.error_old_password_required
             hasError = true
         }
-
         if (newPassword.isBlank()) {
             newPasswordError = R.string.error_new_password_required
             hasError = true
@@ -153,7 +152,6 @@ class ChangePasswordViewModel @Inject constructor(
             newPasswordError = R.string.error_password_contains_whitespace
             hasError = true
         }
-
         if (confirmPassword.isBlank()) {
             confirmPasswordError = R.string.error_confirm_password_required
             hasError = true
@@ -161,7 +159,6 @@ class ChangePasswordViewModel @Inject constructor(
             confirmPasswordError = R.string.password_mismatch_error
             hasError = true
         }
-
         uiState.value = uiState.value.copy(
             oldPasswordError = oldPasswordError,
             newPasswordError = newPasswordError,
@@ -173,19 +170,15 @@ class ChangePasswordViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                accountService.changePassword(oldPassword, newPassword) { error ->
-                    isProcessing.value = false
-                    if (error == null) {
-                        uiState.value = ChangePasswordState()
-                        Toast.makeText(context, context.getString(R.string.password_change), Toast.LENGTH_LONG).show()
-                    } else {
-                        uiState.value = uiState.value.copy(generalError = R.string.error_could_not_change_password)
-                    }
-                }
+                accountService.changePassword(oldPassword, newPassword)
+                isProcessing.value = false
+                uiState.value = ChangePasswordState()
+                Toast.makeText(context, context.getString(R.string.password_change), Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
                 isProcessing.value = false
                 uiState.value = uiState.value.copy(generalError = R.string.error_could_not_change_password)
             }
         }
     }
+
 }
