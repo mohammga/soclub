@@ -365,10 +365,10 @@ fun LocationField(
             isError = error != null,
             enabled = enabled,
             supportingText = {
-                if (error == null) {
-                    Text(stringResource(id = R.string.location_supporting_text))
-                } else {
+                if (error != null) {
                     Text(text = error, color = MaterialTheme.colorScheme.error)
+                } else {
+                    Text(stringResource(id = R.string.location_supporting_text))
                 }
             }
         )
@@ -446,16 +446,16 @@ fun AddressField(
             },
             singleLine = true,
             isError = error != null,
-            enabled = isEnabled,
+            enabled = isEnabled && enabled,
             supportingText = {
-                if (error == null) {
-                    Text(stringResource(id = R.string.address_supporting_text))
-                } else {
+                if (error != null) {
                     Text(text = error, color = MaterialTheme.colorScheme.error)
+                } else {
+                    Text(stringResource(id = R.string.address_supporting_text))
                 }
             }
         )
-        if (suggestions.isNotEmpty()) {
+        if (suggestions.isNotEmpty() && textFieldValue.text.isNotBlank()) {
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
@@ -477,6 +477,8 @@ fun AddressField(
         }
     }
 }
+
+
 
 /**
  * Composable for displaying the postal code of the activity.

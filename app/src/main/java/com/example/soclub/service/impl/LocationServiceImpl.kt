@@ -52,7 +52,8 @@ class LocationServiceImpl @Inject constructor(
     ): Flow<List<String>> = flow {
         val url = buildString {
             append("https://ws.geonorge.no/adresser/v1/sok")
-            append("?fuzzy=true&adressenavn=$streetName")
+            append("?fuzzy=true") // Aktiver fuzzy søk
+            append("&adressenavn=$streetName")
             if (!houseNumber.isNullOrEmpty()) append("&nummer=$houseNumber")
             append("&kommunenavn=$municipality")
             append("&utkoordsys=4258&treffPerSide=1000&asciiKompatibel=true")
@@ -77,9 +78,9 @@ class LocationServiceImpl @Inject constructor(
             emit(addresses)
         } catch (e: Exception) {
             throw Exception(context.getString(R.string.error_parse_address_suggestions_response, e.message), e)
-
         }
     }.flowOn(Dispatchers.IO)
+
 
     override suspend fun fetchPostalCodeForAddress(
         address: String,
@@ -111,3 +112,5 @@ class LocationServiceImpl @Inject constructor(
         }
     }.flowOn(Dispatchers.IO)
 }
+
+

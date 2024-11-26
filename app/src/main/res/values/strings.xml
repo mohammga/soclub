@@ -517,6 +517,4 @@
     <string name="you_must_select_date">Du må velge en dato</string>
     <string name="invalid_combined_datetime">Dato og tid må være minst 24 timer frem i tid</string>
     <string name="choose_date">Velg en dato for aktiviteten.</string>
-
-
 </resources>
