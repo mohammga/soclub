@@ -71,8 +71,7 @@ override suspend fun authenticateWithEmail(
         password: String,
         firstname: String,
         lastname: String,
-        age: Int,
-        onResult: (Throwable?) -> Unit
+        age: Int
     ) {
         try {
             val result = auth.createUserWithEmailAndPassword(email, password).await()
@@ -87,12 +86,11 @@ override suspend fun authenticateWithEmail(
             firestore.collection("users").document(user.uid).set(userData).await()
         } catch (e: FirebaseAuthUserCollisionException) {
             throw Exception(context.getString(R.string.user_already_registered))
-
         } catch (e: Exception) {
-            throw Exception(
-                context.getString(R.string.error_account_creation_failed, e.message), e)
+            throw Exception(context.getString(R.string.error_account_creation_failed, e.message), e)
         }
     }
+
 
     override suspend fun signOut() {
         try {
@@ -103,14 +101,14 @@ override suspend fun authenticateWithEmail(
         }
     }
 
-    override suspend fun sendPasswordResetEmail(email: String, onResult: (Throwable?) -> Unit) {
+    override suspend fun sendPasswordResetEmail(email: String) {
         try {
             auth.sendPasswordResetEmail(email).await()
         } catch (e: Exception) {
-            throw Exception(
-                context.getString(R.string.error_password_reset_failed, e.message), e)
+            throw Exception(context.getString(R.string.error_password_reset_failed, e.message), e)
         }
     }
+
 
     override suspend fun updateProfile(
         firstname: String,
@@ -132,21 +130,16 @@ override suspend fun authenticateWithEmail(
         }
     }
 
-    override suspend fun changePassword(
-        oldPassword: String,
-        newPassword: String,
-        onResult: (Throwable?) -> Unit
-    ) {
+    override suspend fun changePassword(oldPassword: String, newPassword: String) {
         val user = auth.currentUser ?: throw Exception(context.getString(R.string.error_user_not_logged_in))
-
 
         try {
             val credential = EmailAuthProvider.getCredential(user.email!!, oldPassword)
-            user.reauthenticate(credential).await()
-            user.updatePassword(newPassword).await()
+            user.reauthenticate(credential).await() // Verify old password
+            user.updatePassword(newPassword).await() // Update to new password
         } catch (e: Exception) {
-            throw Exception(
-                context.getString(R.string.error_password_change_failed, e.message), e)
+            throw Exception(context.getString(R.string.error_password_change_failed, e.message), e)
         }
     }
+
 }

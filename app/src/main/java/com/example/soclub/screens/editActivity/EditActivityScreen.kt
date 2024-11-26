@@ -96,7 +96,6 @@ fun EditActivityScreen(
                 ImageUploadSection(
                     selectedImageUri = uiState.selectedImageUri,
                     onImageSelected = viewModel::onImageSelected,
-                    enabled = !isSaving
                 )
             }
 
@@ -290,6 +289,7 @@ fun TitleField(value: String, onNewValue: (String) -> Unit, error: String?, enab
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         singleLine = true,
+        enabled = enabled,
         isError = error != null,
         supportingText = {
             if (error == null) {
@@ -321,6 +321,7 @@ fun DescriptionField(value: String, onNewValue: (String) -> Unit, error: String?
             .padding(vertical = 8.dp)
             .height(150.dp),
         maxLines = 10,
+        enabled = enabled,
         isError = error != null,
         supportingText = {
             if (error == null) {
@@ -364,6 +365,7 @@ fun CategoryField(value: String, onNewValue: (String) -> Unit, error: String?, e
             singleLine = true,
             colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
             isError = error != null,
+            enabled = enabled,
             supportingText = {
                 if (error == null) {
                     Text(stringResource(id = R.string.category_supporting_text))
@@ -433,6 +435,7 @@ fun LocationField(
             },
             singleLine = true,
             isError = error != null,
+            enabled = enabled,
             supportingText = {
                 if (error == null) {
                     Text(stringResource(id = R.string.location_supporting_text))
@@ -508,7 +511,7 @@ fun AddressField(
                 .menuAnchor(MenuAnchorType.PrimaryEditable)
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
-            enabled = isEnabled,
+            enabled = enabled,
             trailingIcon = {
                 if (suggestions.isNotEmpty()) {
                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
@@ -696,6 +699,7 @@ fun StartTimeField(value: String, onNewValue: (String) -> Unit, error: String?, 
                 .padding(vertical = 8.dp),
             readOnly = true,
             isError = error != null,
+            enabled = enabled,
             supportingText = {
                 if (error == null) {
                     Text(stringResource(R.string.choose_activity_starttime))
@@ -763,6 +767,7 @@ fun MaxParticipantsField(value: String, onNewValue: (String) -> Unit, error: Str
             .padding(vertical = 8.dp),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         singleLine = true,
+        enabled = enabled,
         isError = error != null,
         supportingText = {
             if (error == null) {
@@ -796,6 +801,7 @@ fun AgeLimitField(value: String, onNewValue: (String) -> Unit, error: String?, e
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         singleLine = true,
         isError = error != null,
+        enabled = enabled,
         supportingText = {
             if (error == null) {
                 Text(stringResource(id = R.string.age_limit_supporting_text))
@@ -812,14 +818,12 @@ fun AgeLimitField(value: String, onNewValue: (String) -> Unit, error: String?, e
  * @param selectedImageUri The URI of the currently selected image.
  * @param onImageSelected Callback invoked when a new image is selected.
  * @param error Error message displayed if there is an error.
- * @param enabled Flag indicating whether the section is enabled.
  */
 @Composable
 fun ImageUploadSection(
     selectedImageUri: Uri?,
     onImageSelected: (Uri?) -> Unit,
     error: String? = null,
-    enabled: Boolean
 ) {
     val context = LocalContext.current
 

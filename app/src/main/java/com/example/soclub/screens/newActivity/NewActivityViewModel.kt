@@ -124,42 +124,36 @@ class NewActivityViewModel @Inject constructor(
     fun onLocationChange(newValue: String) {
         uiState.value = uiState.value.copy(
             location = newValue,
+            locationConfirmed = false,
             address = "",
             postalCode = "",
-            locationConfirmed = false,
-            addressConfirmed = false,
-            locationError = null,
-            addressSuggestions = emptyList()
+            addressSuggestions = emptyList(),
+            addressConfirmed = false
         )
 
-        if (newValue.length >= 2) {
-            val suggestions = municipalities.filter { it.startsWith(newValue, ignoreCase = true) }
-            uiState.value = uiState.value.copy(locationSuggestions = suggestions)
+        val suggestions = if (newValue.isBlank()) {
+            municipalities
         } else {
-            uiState.value = uiState.value.copy(locationSuggestions = emptyList())
+            municipalities.filter { it.startsWith(newValue, ignoreCase = true) }
         }
+
+        uiState.value = uiState.value.copy(locationSuggestions = suggestions)
     }
 
-    /**
-     * Handles selection of a location suggestion.
-     */
     fun onLocationSelected(selectedLocation: String) {
         uiState.value = uiState.value.copy(
             location = selectedLocation,
             locationSuggestions = emptyList(),
-            locationConfirmed = true
+            locationConfirmed = true,
         )
     }
 
-    /**
-     * Handles updates to the address field and triggers suggestions.
-     */
+
     fun onAddressChange(newValue: String) {
         uiState.value = uiState.value.copy(
             address = newValue,
             postalCode = "",
-            addressConfirmed = false,
-            addressError = null
+            addressConfirmed = false
         )
 
         if (newValue.isNotBlank()) {
@@ -169,14 +163,14 @@ class NewActivityViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Handles selection of an address suggestion.
-     */
+
+
     fun onAddressSelected(selectedAddress: String) {
         uiState.value = uiState.value.copy(
             address = selectedAddress,
             addressSuggestions = emptyList(),
-            addressConfirmed = true
+            addressConfirmed = true,
+            addressError = null
         )
         fetchPostalCodeForAddress(selectedAddress, uiState.value.location)
     }
@@ -186,6 +180,7 @@ class NewActivityViewModel @Inject constructor(
      */
     private fun fetchAddressSuggestions(query: String) {
         val (streetName, houseNumber) = extractStreetAndHouseNumber(query)
+
         if (!uiState.value.locationConfirmed) {
             return
         }
@@ -196,10 +191,15 @@ class NewActivityViewModel @Inject constructor(
                 houseNumber = houseNumber,
                 municipality = uiState.value.location
             ).collect { suggestions ->
-                uiState.value = uiState.value.copy(addressSuggestions = suggestions)
+                val filteredSuggestions = suggestions.filter {
+                    it.contains(query, ignoreCase = true)
+                }
+
+                uiState.value = uiState.value.copy(addressSuggestions = filteredSuggestions)
             }
         }
     }
+
 
     /**
      * Extracts the street name and house number from an address query.
@@ -217,12 +217,17 @@ class NewActivityViewModel @Inject constructor(
      */
     private fun fetchPostalCodeForAddress(address: String, municipality: String) {
         viewModelScope.launch {
-            locationService.fetchPostalCodeForAddress(address, municipality).collect { postalCode ->
-                if (postalCode != null) {
-                    uiState.value = uiState.value.copy(postalCode = postalCode, postalCodeError = null)
-                } else {
-                    uiState.value = uiState.value.copy(postalCode = "", postalCodeError = application.getString(R.string.error_postal_code_not_found))
+            try {
+                locationService.fetchPostalCodeForAddress(address, municipality).collect { postalCode ->
+                    if (postalCode != null) {
+                        uiState.value = uiState.value.copy(postalCode = postalCode, postalCodeError = null)
+                    } else {
+                        uiState.value = uiState.value.copy(postalCode = "", postalCodeError = application.getString(R.string.error_postal_code_not_found))
+                    }
                 }
+            } catch (e: Exception) {
+                uiState.value = uiState.value.copy(errorMessage = R.string.error_fetch_postal_code_failed)
+                Log.e("EditActivityViewModel", "Error fetching postal code: ${e.message}")
             }
         }
     }
@@ -280,7 +285,6 @@ class NewActivityViewModel @Inject constructor(
         return combinedMillis > currentMillis && combinedMillis - currentMillis >= 24 * 60 * 60 * 1000
     }
 
-
     /**
      * Validates all input fields before publishing.
      *
@@ -298,8 +302,6 @@ class NewActivityViewModel @Inject constructor(
         var ageLimitError: String? = null
         var dateError: String? = null
         var startTimeError: String? = null
-
-        // 1. Individuell Felttest
 
         // Validering for Tittel
         if (uiState.value.title.isBlank()) {

@@ -53,7 +53,6 @@ import java.util.Calendar
  * @property dateError Validation error for the date field.
  * @property startTimeError Validation error for the start time field.
  * @property selectedImageUri The URI of the selected image.
- * @property imageError Validation error for the image field.
  */
 data class EditActivityState(
     val title: String = "",
@@ -84,7 +83,6 @@ data class EditActivityState(
     val dateError: String? = null,
     val startTimeError: String? = null,
     val selectedImageUri: Uri? = null,
-    val imageError: String? = null // Legg til hvis bilde er obligatorisk
 )
 
 @HiltViewModel
@@ -235,12 +233,13 @@ class EditActivityViewModel @Inject constructor(
             addressSuggestions = emptyList()
         )
 
-        if (newValue.length >= 2) {
-            val suggestions = municipalities.filter { it.startsWith(newValue, ignoreCase = true) }
-            uiState.value = uiState.value.copy(locationSuggestions = suggestions)
+        val suggestions = if (newValue.isBlank()) {
+            municipalities
         } else {
-            uiState.value = uiState.value.copy(locationSuggestions = emptyList())
+            municipalities.filter { it.startsWith(newValue, ignoreCase = true) }
         }
+
+        uiState.value = uiState.value.copy(locationSuggestions = suggestions)
     }
 
     /**
@@ -396,7 +395,7 @@ class EditActivityViewModel @Inject constructor(
      * @param uri The URI of the selected image.
      */
     fun onImageSelected(uri: Uri?) {
-        uiState.value = uiState.value.copy(selectedImageUri = uri, imageUrl = uri?.toString() ?: "", imageError = null)
+        uiState.value = uiState.value.copy(selectedImageUri = uri, imageUrl = uri?.toString() ?: "")
     }
 
 
