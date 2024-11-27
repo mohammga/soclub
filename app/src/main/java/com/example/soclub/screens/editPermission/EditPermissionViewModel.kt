@@ -65,7 +65,7 @@ class EditPermissionViewModel @Inject constructor() : ViewModel() {
      * @param context The context used to access permission states.
      */
 
-
+//Fikk hjelp ved bruk av AI på denne 
     fun checkPermissions(context: Context) {
         viewModelScope.launch {
             _locationPermission.value = checkPermissionStatus(context, Manifest.permission.ACCESS_FINE_LOCATION)
