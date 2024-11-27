@@ -78,6 +78,8 @@ class AdsViewModel @Inject constructor(
      * - Updates the `_activities` state with the fetched activities.
      * - Handles any errors that occur during the fetching process.
      */
+
+    //Måtte bruke AI for å fikse på det fordi funksjonenen ikke fungerte som den sakl
     fun fetchActivitiesByCreator() {
         val creatorId = accountService.currentUserId
         viewModelScope.launch {
