@@ -4,7 +4,7 @@ private const val MIN_TITLE_LENGTH = 3
 private const val MAX_TITLE_LENGTH = 50
 private const val MIN_PASS_LENGTH = 8
 
-
+//hentet fra eksempel i forelesning/github
 fun String.isValidEmail(): Boolean {
     val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$"
     return Regex(emailRegex).matches(this)
