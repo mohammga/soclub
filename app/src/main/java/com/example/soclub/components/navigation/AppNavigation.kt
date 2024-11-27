@@ -37,7 +37,7 @@ import com.example.soclub.screens.start.StartScreen
 import com.example.soclub.screens.termsPrivacy.TermsPrivacyScreen
 import com.example.soclub.service.impl.AccountServiceImpl
 import com.example.soclub.service.module.FirebaseModule
-
+//hentet fra eksempel i forelesning/github
 @Composable
 fun AppNavigation(
     navController: NavHostController,
